@@ -1,0 +1,47 @@
+﻿@model VideoGameHash.Models.AddUrlViewModel
+
+@{
+    ViewBag.Title = "AddUrl";
+}
+
+<h2>Add Url</h2>
+@using (Html.BeginForm("AddUrl", "Info")) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Add URL</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(m => m.Model.Section)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownList("Section", Model.Section)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(m => m.Model.Source)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownList("Source", Model.Source)
+        </div>
+
+         <div class="editor-label">
+            @Html.LabelFor(m => m.Model.GameSystem)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownList("GameSystem", Model.GameSystem)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(m => m.Model.Url)
+        </div>
+        <div class="editor-field">
+            @Html.TextArea("Url", Model.Model.Url, 6, 35, null)
+            @Html.ValidationMessageFor(m => m.Model.Url)
+        </div>
+
+        <p>
+            <input type="submit" class="btn" value="Add" />
+        </p>
+    </fieldset>
+}

@@ -1,0 +1,31 @@
+﻿@model VideoGameHash.Models.RecoverModel
+
+@{
+    ViewBag.Title = "Validate";
+}
+
+<h2>Validate</h2>
+
+<section id="loginForm">
+<h2>Recover user name or password</h2>
+@using (Html.BeginForm(new { Recover = ViewBag.Recover }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    <fieldset>
+        <legend>Log in Form</legend>
+        <ol>
+            <li>
+                @Html.LabelFor(m => m.Email)
+                @Html.TextBoxFor(m => m.Email)
+                @Html.ValidationMessageFor(m => m.Email)
+            </li>
+        </ol>
+        <input type="submit" class="btn" value="Continue" />
+    </fieldset>
+}
+
+<br />
+<p>@ViewBag.Message</p>
+
+</section>

@@ -1,0 +1,64 @@
+﻿@using VideoGameHash.Helpers;
+@model VideoGameHash.Models.MainPageViewModel
+
+
+@{
+    ViewBag.Title = NewsHelper.SectionTitle(Model.Section);
+}
+
+<h2 class="sec_heading">@NewsHelper.SectionTitle(Model.Section)</h2>
+    
+    <ul class="nav nav-tabs" id="myTab">
+        @if (Model.Source <= 0)
+        {
+            <li class="active"><a>All</a></li>
+        }
+        else
+        {
+            <li>@Html.ActionLink("All", "ViewArticlesN", new { Section = Model.Section, GameSystem = Model.GameSystem, ViewType = Model.ViewType })</li>
+        }
+        @foreach (string source in Model.SourceList)
+        {
+            int id = NewsHelper.SourceId(source);
+            if (id == Model.Source)
+            {
+                <li class="active"><a>@source</a></li>
+            }
+            else
+            {
+                <li>@Html.ActionLink(@source, "ViewArticles", new { Section = Model.Section, Source = id, GameSystem = Model.GameSystem, ViewType = Model.ViewType })</li>
+            }
+        }
+    </ul>
+
+    <div>
+        <ul class="nav nav-pills">
+            @foreach (string gameSystem in Model.GameSystemList)
+            {
+                int id = NewsHelper.GameSystemId(gameSystem);
+                if (id == Model.GameSystem)
+                {
+                    <li class="active"><a>@gameSystem</a></li>
+                }
+                else
+                {
+                    if (Model.Source >= 0)
+                    {
+                        <li>@Html.ActionLink(@gameSystem, "ViewArticles", new { Section = Model.Section, Source = Model.Source, GameSystem = id, ViewType = Model.ViewType })</li>
+                    }
+                    else
+                    {
+                        <li>@Html.ActionLink(@gameSystem, "ViewArticlesN", new { Section = Model.Section, GameSystem = id, ViewType = Model.ViewType })</li>
+                    }
+                }
+            }
+        </ul>
+    </div>
+            
+
+
+    @Html.Action("GetArticles", new { Section = Model.Section, Source = Model.Source, GameSystem = Model.GameSystem, Search = Model.Search, ViewType = Model.ViewType, CurrentPage = Model.CurrentPage})
+
+
+        
+

@@ -1,0 +1,27 @@
+﻿@model VideoGameHash.Models.RolesModel
+
+
+@{
+    ViewBag.Title = "Add Role";
+}
+
+@using (Html.BeginForm(new { Id = ViewBag.UserId }))
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Add Role To User</legend>
+
+        <div class="editor-label">
+            @Html.LabelFor(m => m.RoleName)
+        </div>
+        <div class="editor-field">
+            @Html.DropDownList("AvailableRoles", Model.RoleName)
+            @Html.ValidationMessageFor(m => Model.RoleName)
+        </div>
+
+        <p>
+            <input type="submit" class="btn" value="Add" />
+        </p>
+    </fieldset>
+}

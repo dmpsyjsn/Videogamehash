@@ -1,0 +1,30 @@
+﻿
+@model VideoGameHash.Models.LatestInfoModels
+@{
+    Layout = null;
+    int index = 0;    
+}
+
+@if (Model.Entries != null && Model.Entries.Count() > 0)
+{
+    <h6 class="subheader"><span>@Html.Raw(@Model.Source)</span></h6>
+    foreach (QDFeedParser.BaseFeedItem item in Model.Entries)
+    {
+        string className = "LatestNewsItem";
+
+        if (Model.Small)
+        {
+            className += " small";
+        }
+
+        if (index % 2 == 1)
+        {
+            className += " grey_back";
+        }
+        <div class="@className">
+            <a href="@item.Link" target="_blank" data-html="true">@Html.Raw(@item.Title)</a>
+        </div>
+        
+        index++;
+    }
+}

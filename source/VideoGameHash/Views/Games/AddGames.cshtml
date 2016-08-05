@@ -1,0 +1,32 @@
+﻿@model VideoGameHash.Models.GameFormViewModel
+
+@{
+    ViewBag.Title = "Add Games";
+}
+
+<h2>Download Games</h2>
+
+
+@using (Html.BeginForm(Model.ActionName, "Games"))
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Download Game List from theGamesDB.net</legend>
+
+        <div class="editor-label">
+            @Html.Label("Select Game System: ")
+        </div>
+        <div class="editor-field">
+            @Html.DropDownList("GameSystem", Model.GameSystems)
+        </div>
+
+        <p>
+            <input type="submit" class="btn" value="Create" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>

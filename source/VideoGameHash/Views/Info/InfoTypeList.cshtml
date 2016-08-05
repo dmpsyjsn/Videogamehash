@@ -1,0 +1,11 @@
+﻿@model VideoGameHash.Models.InfoTypeSortOrderEdit
+
+@{
+    ViewBag.Title = "InfoTypeList";
+}
+
+@using (Html.BeginForm())
+{
+    @Html.EditorFor(u => u.InfoTypeSortOrders)
+    <input type="submit" value="Update" />
+}

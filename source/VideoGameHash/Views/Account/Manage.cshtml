@@ -1,0 +1,44 @@
+﻿@model VideoGameHash.Models.LocalPasswordModel
+@{
+    ViewBag.Title = "Manage Account";
+}
+
+<hgroup class="title">
+    <h1>@ViewBag.Title.</h1>
+</hgroup>
+
+<p>You're logged in as <strong>@User.Identity.Name</strong>.</p>
+
+<p class="message-success">@ViewBag.StatusMessage</p>
+<div class="container container-static wrapper">
+    <div class="container container-static">
+        <div class="row">
+
+    @*@Html.Partial("_ChangePasswordPartial")*@
+
+    
+        @if (ViewBag.IsAdmin == true)
+        {
+            <p>Administrator Options:</p>
+            <ul>
+                <li>@Html.ActionLink("Upload Games", "Index", "Games")</li>
+                <li>@Html.ActionLink("Manage Game Systems", "Index", "GameSystems")</li>
+                <li>@Html.ActionLink("Manage Info", "Index", "Info")</li>
+                <li>@Html.ActionLink("Manage Users", "Index", "Users")</li>
+            </ul>
+        }
+        @if (ViewBag.IsEditor)
+        {
+            
+        }
+        <p>User Options:</p>
+    <ul>
+        <li>@Html.ActionLink("Change Password", "ChangePassword")</li>
+    </ul>
+
+    </div>
+    </div>
+    </div>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

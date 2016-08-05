@@ -1,0 +1,211 @@
+﻿@using VideoGameHash.Helpers;
+@model VideoGameHash.Models.GameDetailsModel
+
+@{
+    ViewBag.Title = "Game Details - " + Model.Game.GameTitle;
+    int i = 0;
+    string link = string.Format("http://thegamesdb.net/game/{0}/", Model.GamesDBNetId);
+    string display, imageLink, className, iconTitle;
+    bool firstTab = true, firstPane = true, showInfometrics = false;
+    //string metacritic = NewsHelper.GetMetacriticScore(ViewBag.GameSystem, Model.Game.GameTitle);
+    
+    if (Model.Articles.ContainsKey(1) && Model.Articles[1].Count() > 5)
+    {
+        showInfometrics = true;
+    }
+}
+
+<div class="row">
+    <div class="col-xs-6">
+        <div class="toolbox">
+            <h3 class="toolbox_header">@Model.Game.GameTitle</h3>
+            <div class="toolbox_info">
+                @if (Model.USReleaseDate != DateTime.MinValue)
+                {
+                    string releaseDate = String.Format("{0}/{1}/{2}", Model.USReleaseDate.Month, Model.USReleaseDate.Day, Model.USReleaseDate.Year);
+                    <div>Release Date: @releaseDate</div>
+                }
+        
+                @if (!String.IsNullOrEmpty(Model.Publisher))
+                {
+                    <div>Publisher: @Model.Publisher</div>
+                }
+        
+                @if (!String.IsNullOrEmpty(Model.Developer))
+                {
+                    <div>Developer: @Model.Developer</div>
+                }
+        
+                @if (!String.IsNullOrEmpty(Model.Overview))
+                {
+                    <h6>Synopsis:</h6>
+                    <div class="synopsis" id="scrollbar1">
+                        <div class="scrollbar" style="height: 150px;">
+                            <div class="track" style="height: 150px;">
+                                <div class="thumb" style="top: 0px; height: 39.3701px;">
+                                    <div class="end"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="viewport viewport1">
+                            <div class="overview overview1" id="detailsview">
+                                @Html.Raw(@Model.Overview)
+                            </div>
+                        </div>
+                    </div>
+                    
+                }
+            </div>
+        </div>
+        <div class="NewsItem">
+            <div class="NewsItemText pull-right">
+                @if (Model.GamesDBNetId > 0)
+                {
+                    @:Source: <a href="@link" target="_blank">ThegamesDB.net</a>
+                }
+                else
+                {
+                    @:Source: ThegamesDB.net, <a href="http://en.wikipedia.org/wiki/Wikipedia">Wikipedia</a>
+                }
+            </div>
+        </div>
+            <ul class="nav nav-pills" style="margin-top: 5px; margin-bottom: 5px">
+                @foreach (string gameSystem in Model.AvailableGameSystems)
+                {
+                    if (gameSystem == ViewBag.GameSystem)
+                    {
+                        <li class="active"><a>@gameSystem</a></li>
+                    }
+                    else
+                    {   
+                        <li><a class="game-details-systems" href="#!" data-url="@Url.Action("GetGameDetails", new { Id = Model.Game.Id, GameSystem = gameSystem })">@gameSystem</a></li>
+                    }
+                }
+            </ul>
+    </div>
+    @if (!String.IsNullOrEmpty(Model.ImageLink))
+    {
+        <div class="col-xs-3 pull-right">
+            <img alt="" src="@Model.ImageLink" style="height: 300px; width: 180px;" class="img-polaroid" />
+        </div>
+    }
+    <br/>
+
+</div>
+
+@if (Model.Articles != null)
+{
+  <div class="row">
+    <ul class="nav nav-tabs" id="myTab" style="width: 95%">     
+        @foreach (int tabKey in Model.Articles.Keys)
+        {
+            string sectionTitle = NewsHelper.SectionTitle(tabKey);
+            if (firstTab == true)
+            {
+                firstTab = false;
+                <li class="active"><a data-toggle="tab" href="#@sectionTitle">@sectionTitle</a></li>
+            }
+            else
+            {
+                <li><a data-toggle="tab" href="#@sectionTitle">@sectionTitle</a></li>
+            }
+        }
+        @if (showInfometrics)
+        {
+            <li id="infometricstab"><a data-toggle="tab" href="#Infometrics">Infometrics</a></li>
+        }
+    </ul>
+    <div class="tab-content" style="width: 95%">
+        @foreach (int paneKey in Model.Articles.Keys)
+        {
+            i = 0;
+            string tabClassName = "tab-pane fade";
+            string sectionName = NewsHelper.SectionTitle(paneKey);
+            if (firstPane == true)
+            {
+                firstPane = false;
+                tabClassName += " in active";
+            }
+            <div class="@tabClassName" id="@sectionName">
+                
+                    @foreach (var item in Model.Articles[paneKey])
+                    {
+                        display = HtmlHelpers.ParseContent(sectionName, item.InfoSource.InfoSourceName, item.Content);
+                        imageLink = HtmlHelpers.ParseImageLink(item.InfoSource.InfoSourceName, item.Content);
+                        className = "article_body";
+                        string idName = string.Format("{0}_{1}", sectionName, i);
+                        string loadingIdName = string.Format("{0}_Loading_{1}", sectionName, i);
+                        string rightBarIdName = string.Format("{0}_Right_Bar_{1}", sectionName, i);
+
+                        if (item.GameSystem.GameSystemName == "All")
+                        {
+                            iconTitle = string.Format("View latest {0} from {1}", sectionName, item.InfoSource.InfoSourceName);
+                        }
+                        else
+                        {
+                            iconTitle = string.Format("View latest {0} {1} from {2}", item.GameSystem.GameSystemName, sectionName, item.InfoSource.InfoSourceName);
+                        }
+
+                        if (imageLink.IsEmpty())
+                        {
+                            className = "article_body_small";
+                        }
+                        <div class="col-xs-12" style="margin-left:0; margin-top: 15px">
+                            <div class="row">
+                                <div class="col-xs-8">
+                                    <div class="NewsItemWrapper">
+                                        <div class="@className" data-GameSystem="@item.GameSystem.GameSystemName" data-rightbarid="@rightBarIdName">
+                                            <div class="thumbnailrightwrapper" id="@rightBarIdName" data-url="@Url.Action("GetLatestArticles", new { Section = paneKey, Source = item.InfoSourceId, GameSystem = item.GameSystemId, Small = false })" data-mainid="@idName" data-loadingid="@loadingIdName" title="@iconTitle">
+                                                <div class="right-bar-chevron">
+                                                    <span class="glyphicon glyphicon-chevron-right"></span>
+                                                </div>
+                                            </div>
+                                            <h4 class="NewsHeadline"><a href="@item.Link" target="_blank" title="Continue reading at @item.InfoSource.InfoSourceName">@(new HtmlString(item.Title))</a></h4>
+                                                
+                                            @if (imageLink.Length > 0)
+                                            {
+                                                <img alt="" src="@imageLink" style="height: 240px; width: 360px;" class="img-polaroid" />
+                                            }
+                                            <div>
+                                                <br /> <br /><p class="NewsContentList gradient">@MvcHtmlString.Create(display)</p>
+                                            </div>
+                                        </div>
+                                        <div class="NewsItem">
+                                            <div class="NewsItemText pull-right">
+                                                Continue article at <a href="@item.Link" target="_blank"><b>@item.InfoSource.InfoSourceName</b></a>. Published on <b>@(new HtmlString(String.Format("{0}/{1}/{2}", item.DatePublished.Month, item.DatePublished.Day, item.DatePublished.Year)))</b>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="LatestInfoWrapper">
+                                        <div class="loadingdiv" id="@loadingIdName"><img src="~/content/images/ajax-loader.gif" alt="" /></div>
+                                        <div class="second-window" id="@idName"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                                            i++;
+                    }
+                
+            </div>
+        }
+        @if (showInfometrics)
+        {
+            <div class="tab-pane fade" id="Infometrics">
+                    <div class="col-xs-12" id="gameinfometrics" style="margin-left:0; margin-top: 15px">
+                        <div id="piechart" class="row">
+                            <div id="loadingpiechart"><img style="margin-left: 45%; margin-top: 190px" src="~/content/images/ajax-loader1.gif" alt="" /></div>
+                            <div id="infometricspiechart" style="height:400px;width:95%; min-height:400px" data-url="@Url.Action("GetGameInfometricsPieChart", "Home", new { GameTitle = Model.Game.GameTitle, GameSystem = ViewBag.GameSystem})"></div>
+                        </div>
+                        <div class="section-div" style="margin-top: 5px; margin-bottom: 5px"></div>
+                        <div id="linechart" class="row">
+                            <div id="loadinglinechart"><img style="margin-left: 45%; margin-top: 190px" src="~/content/images/ajax-loader1.gif" alt="" /></div>
+                            <div id="infometricslinechart" style="height:400px;width:95%; " data-url="@Url.Action("GetGameInfometricsLineChart", "Home", new { GameTitle = Model.Game.GameTitle, GameSystem = ViewBag.GameSystem})"></div>
+                        </div>
+                    </div>
+            </div>
+        }
+    </div>
+</div>
+}

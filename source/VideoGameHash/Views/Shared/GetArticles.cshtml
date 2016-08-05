@@ -1,0 +1,163 @@
+﻿@using VideoGameHash.Helpers;
+@model VideoGameHash.Models.ArticleModel
+@{
+    int i = 0;
+    string sectionTitle = NewsHelper.SectionTitle(Model.Section);
+    
+}
+
+@if (Model.ViewType == "List")
+{
+    i = 0;
+    <div class="row">
+        @foreach (var item in Model.Articles)
+        {
+            string display = HtmlHelpers.ParseContent(sectionTitle, item.InfoSource.InfoSourceName, item.Content);
+            string imageLink = HtmlHelpers.ParseImageLink(item.InfoSource.InfoSourceName, item.Content);
+            string className = "article_body";
+            string idName = string.Format("{0}_{1}", item.InfoType.InfoTypeName, i);
+            string loadingIdName = string.Format("{0}_Loading_{1}", item.InfoType.InfoTypeName, i);
+            string rightBarIdName = string.Format("{0}_Right_Bar_{1}", item.InfoType.InfoTypeName, i);
+            string iconTitle;
+           
+            if (item.GameSystem.GameSystemName == "All")
+            {
+                iconTitle = string.Format("View latest News from {0}", item.InfoSource.InfoSourceName);
+            }
+            else
+            {
+                iconTitle = string.Format("View latest {0} News from {1}", item.GameSystem.GameSystemName, item.InfoSource.InfoSourceName);
+            }
+
+            if (imageLink.IsEmpty())
+            {
+                className = "article_body_small";
+            }
+            <div class="col-xs-12" style="margin-left:0">
+                <div class="row">
+                    <div class="col-xs-8">
+                        <div class="NewsItemWrapper">
+                            <div class="@className gradient" data-GameSystem="@item.GameSystem.GameSystemName" data-rightbarid="@rightBarIdName">
+                                <div class="thumbnailrightwrapper" id="@rightBarIdName" data-url="@Url.Action("GetLatestArticles", new { Section = item.InfoTypeId, Source = item.InfoSourceId, GameSystem = item.GameSystemId, Small = false })" data-mainid="@idName" data-loadingid="@loadingIdName" title="@iconTitle">
+                                    <div class="right-bar-chevron">
+                                        <span class="glyphicon glyphicon-chevron-right"></span>
+                                    </div>
+                                </div>
+                                <h4 class="NewsHeadline"><a href="@item.Link" target="_blank" title="Continue reading at @item.InfoSource.InfoSourceName">@(new HtmlString(item.Title))</a></h4>
+                                                
+                                @if (imageLink.Length > 0)
+                                {
+                                    <img alt="" src="@imageLink" style="height: 240px; width: 360px;" class="img-polaroid" />
+                                }
+                                <div>
+                                    <br /> <br /><p class="NewsContentList gradient">@MvcHtmlString.Create(display)</p>
+                                </div>
+                            </div>
+                            <div class="NewsItem">
+                                <div class="NewsItemText pull-right">
+                                    Continue article at <a href="@item.Link" target="_blank"><b>@item.InfoSource.InfoSourceName</b></a>. Published on <b>@(new HtmlString(String.Format("{0}/{1}/{2}", item.DatePublished.Month, item.DatePublished.Day, item.DatePublished.Year)))</b>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-4">
+                        <div class="LatestInfoWrapper">
+                            <div class="loadingdiv" id="@loadingIdName"><img src="~/content/images/ajax-loader.gif" alt="" /></div>
+                            <div class="second-window" id="@idName"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                                i++;
+        }
+    </div>
+}
+else // ViewType == Grid
+{
+    i = 0;
+    bool imageFound = false;
+            
+    <div class="row" style="margin-left: 0px; padding-left: 0px">
+        <div class="col-xs-12" style="margin-left: 0px; padding-left: 0px">
+            <ul class="thumbnails" style="margin-left: 0px; padding-left: 0px">
+            @foreach (var item in Model.Articles)
+            {
+                string display = HtmlHelpers.ParseContent(sectionTitle, item.InfoSource.InfoSourceName, item.Content);
+                string imageLink = HtmlHelpers.ParseImageLink(item.InfoSource.InfoSourceName, item.Content);
+                string classMasterName = "thumbnail-master";
+                string className = "thumbnail thumbnail_extra";
+                string classId = string.Format("{0}_Class_{1}", item.InfoType.InfoTypeName, i);
+                string idGridName = string.Format("{0}_{1}", item.InfoType.InfoTypeName, i);
+                string loadingIdGridName = string.Format("{0}_Loading_{1}", item.InfoType.InfoTypeName, i);
+                string rightBarIdGridName = string.Format("{0}_Right_Bar_{1}", item.InfoType.InfoTypeName, i);
+                string iconGridContentId = string.Format("{0}_Content_{1}", item.InfoType.InfoTypeName, i);
+                string iconGridTitle;
+                bool small = imageLink.Length == 0;
+                
+                if (item.GameSystem.GameSystemName == "All")
+                {
+                    iconGridTitle = string.Format("View latest News from {0}", item.InfoSource.InfoSourceName);
+                }
+                else
+                {
+                    iconGridTitle = string.Format("View latest {0} News from {1}", item.GameSystem.GameSystemName, item.InfoSource.InfoSourceName);
+                }
+
+                if (imageLink.IsEmpty())
+                {
+                    className += " thumbnail_small";
+                }
+                else
+                {
+                    imageFound = true;
+                }
+
+                if ((i + 1) % 3 == 0)
+                {
+                    if (imageFound == true)
+                    {
+                        imageFound = false;
+                        if (imageLink.IsEmpty())
+                        {
+                            classMasterName += " thumbnail_wrap";
+                        }
+                    }
+                }
+                        
+                <li class="col-xs-4" style="list-style: none">
+                    <div class="@classMasterName">
+                        <div class="@className gradient" id="@classId" data-GameSystem="@item.GameSystem.GameSystemName" data-rightbarid="@rightBarIdGridName">
+                            <div class="thumbnailheaderleft">@(new HtmlString(item.GameSystem.GameSystemName))</div>
+                            <div class="thumbnailrightwrappergrid" id="@rightBarIdGridName" data-classwrapper="@classId" data-contentid="@iconGridContentId" data-url="@Url.Action("GetLatestArticles", new { Section = item.InfoTypeId, Source = item.InfoSourceId, GameSystem = item.GameSystemId, Small = small })" data-mainid="@idGridName" data-loadingid="@loadingIdGridName" title="@iconGridTitle">
+                                <div class="right-bar-chevron">
+                                    <span class="glyphicon glyphicon-chevron-left"></span>
+                                </div>
+                            </div>
+                            <div class="gridcontent" id="@iconGridContentId">
+                                <div class="caption">
+                                    <h5 class="NewsHeadline"><a href="@item.Link" target="_blank" title="Continue reading at @item.InfoSource.InfoSourceName">@(new HtmlString(item.Title))</a></h5>
+                                </div>
+                                @if (imageLink.Length > 0)
+                                {
+                                    
+                                    <img alt="" src="@imageLink" style="height: 180px; width: 260px;" class="img-polaroid img-centered" />
+                                }
+                                <br />
+                                <p class="NewsContentGrid">@(new HtmlString(display))</p>
+                            </div>
+                            <div class="loadingdiv" id="@loadingIdGridName"><img class="img-centered" src="~/content/images/ajax-loader.gif" alt="" /></div>
+                            <div class="second-window-grid" id="@idGridName"></div>
+                        </div>
+                        <div class="NewsItemThumb">Continue article at <a href="@item.Link" target="_blank"><b>@item.InfoSource.InfoSourceName</b></a>. Published on <b>@(new HtmlString(String.Format("{0}/{1}/{2}", item.DatePublished.Month, item.DatePublished.Day, item.DatePublished.Year)))</b></div>
+                    </div>
+                </li>
+                            i++;
+            }
+            </ul>
+        </div>
+    </div>
+}
+
+    <div>
+        
+    </div>

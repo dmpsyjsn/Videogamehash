@@ -1,0 +1,52 @@
+﻿@using VideoGameHash.Helpers;
+@model VideoGameHash.Models.Games
+
+@{
+    ViewBag.Title = "Game Database";
+}
+
+<h2 class="sec_heading">Game Database</h2>
+
+<div class="navbar no-zindex">
+    <div>
+        <div class="btn-toolbar">
+            <div class="btn-group">
+                <a class="btn btn-small database-button" data-url="@Url.Action("GetDatabaseList", new { Letter = '0' })">0-9</a>
+                @foreach (char letter in NewsHelper.Alphabet())
+                {
+                    <a class="btn btn-small database-button" data-url="@Url.Action("GetDatabaseList", new { Letter = @letter })">@letter</a>
+                }
+            </div>
+            @using (Html.BeginForm("SearchDatabase", "Home", null, FormMethod.Post, new { @class = "navbar-form navbar-right pull-right", @role = "search", @style="text-align:right; padding-left: 0px" }))
+            {
+                <input type="text" class="form-control input-75" placeholder="Search Database" name="Search" />
+            }
+        
+        </div>  
+    </div>
+</div>
+
+<div class="container container-static" style="min-height: 1000px">
+    <div class="row">
+        <div class="col-md-2">
+            @{
+                string url = "";
+                if (!String.IsNullOrEmpty(Model.GameTitle))
+                {
+                    url = Url.Action("GetDatabaseList", new { Letter = Model.GameTitle.Substring(0, 1) });
+                }
+            }
+            <div id="database-list" data-url="@url"></div>
+        </div>
+        <div class="col-md-10">
+            @{
+                string gameTitle = "";
+                if (!String.IsNullOrEmpty(Model.GameTitle))
+                {
+                    gameTitle = Url.Action("GetGameDetails", new { Id = Model.Id });
+                }
+            }
+            <div id="database-details" data-url="@gameTitle"></div>
+        </div>
+    </div>
+</div>

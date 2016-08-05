@@ -1,0 +1,33 @@
+﻿@model VideoGameHash.Models.SecurityAnswerModel
+
+@{
+    ViewBag.Title = "Recover User name";
+}
+
+<h2>Recover User name</h2>
+
+<section id="loginForm">
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Please answer the following security question</legend>
+        <ol>
+            <li>
+                @Html.LabelFor(m => m.SecurityQuestion)
+                @Html.TextBoxFor(m => m.SecurityQuestion, new {@readonly="readonly"})
+            </li>    
+            <li>
+                @Html.LabelFor(m => m.SecurityAnswer)
+                @Html.TextBoxFor(m => m.SecurityAnswer)
+            </li>        
+        </ol>
+        <input type="submit" class="btn" value="Continue" />
+    </fieldset>
+    
+    <br />
+    <p>@ViewBag.Message</p>
+}
+</section>

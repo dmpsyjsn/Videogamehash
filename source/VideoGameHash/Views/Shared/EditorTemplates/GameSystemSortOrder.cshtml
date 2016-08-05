@@ -1,0 +1,6 @@
+﻿@model VideoGameHash.Models.GameSystemSortOrder
+
+<p>
+@Model.GameSystem.GameSystemName order:  @Html.TextBoxFor(x => x.SortOrder)
+@Html.HiddenFor(x => x.Id)
+</p>

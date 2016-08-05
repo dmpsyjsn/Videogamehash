@@ -1,0 +1,31 @@
+﻿@model VideoGameHash.Models.AddPollModel
+
+@{
+    ViewBag.Title = "Add Poll";
+}
+
+<h2>Add Poll</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Add Poll</legend>
+        <div class="editor-label">
+            @Html.LabelFor(m => m.Title)
+        </div>
+        <div class="editor-field">
+            @Html.TextBoxFor(m => Model.Title)
+        </div>
+        <div class="editor-label">
+            @Html.LabelFor(m => m.Answers)
+        </div>
+        <div class="editor-field">
+            @Html.TextAreaFor(m => Model.Answers)
+        </div>
+        <p>
+            <input type="submit" class="btn" value="Add" />
+        </p>
+    </fieldset>
+}

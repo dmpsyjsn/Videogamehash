@@ -1,0 +1,29 @@
+﻿@model VideoGameHash.Models.EditModel
+
+@{
+    ViewBag.Title = "Edit Info";
+}
+
+<h2>Edit Info</h2>
+
+@using (Html.BeginForm(Model.ActionLink, "Info")) {
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Edit Section</legend>
+
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Name)
+        </div>
+        <div class="editor-field">
+            @Html.TextAreaFor(model => model.Name)
+            @Html.ValidationMessageFor(model => model.Name)
+        </div>
+
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    </fieldset>
+}

@@ -1,0 +1,51 @@
+﻿@model IEnumerable<VideoGameHash.Models.Games>
+
+@{
+    ViewBag.Title = "Index";
+    int i = 0;
+    string className;
+}
+
+<h2>Index</h2>
+
+@Html.ActionLink("Download game list from the TheGamesDb.net database", "AddGames")<br />
+@Html.ActionLink("Download game list from Wikipedia", "AddGamesWikiPedia")
+
+<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.GameTitle)
+        </th>
+        <th>
+            Options
+        </th>
+    </tr>
+
+@if (Model != null)
+{
+    foreach (var item in Model)
+    {
+        if (i % 2 == 0)
+        {
+            className = "white_back";
+        }
+        else
+        {
+            className = "grey_back";
+        }
+        <tr>
+            <td class="@className">
+                @Html.DisplayFor(modelItem => item.GameTitle)
+            </td>
+            <td class="@className">
+                @Html.ActionLink("Delete", "Delete", new { Id = item.Id })
+            </td>
+        </tr>
+        i++;
+    }
+}
+
+
+
+</table>
+

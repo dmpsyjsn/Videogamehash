@@ -1,0 +1,26 @@
+﻿@model VideoGameHash.Models.GameSystemModel
+
+@{
+    ViewBag.Title = "AddGameSystem";
+}
+
+<h2>AddGameSystem</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+    <legend>Add Game System</legend>
+    <div class="editor-label">
+            @Html.LabelFor(m => m.GameSystem)
+        </div>
+        <div class="editor-field">
+            @Html.TextBoxFor(m => Model.GameSystem)
+            @Html.ValidationMessageFor(m => m.GameSystem)
+        </div>
+        <p>
+            <input type="submit" class="btn" value="Create" />
+        </p>
+    </fieldset>
+}

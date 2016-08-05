@@ -1,0 +1,11 @@
+﻿@model VideoGameHash.Models.GameSystemSortOrderEdit
+
+@{
+    ViewBag.Title = "GameSystemList";
+}
+
+@using (Html.BeginForm())
+{
+    @Html.EditorFor(u => u.GameSystemSortOrders)
+    <input type="submit" value="Update" />
+}

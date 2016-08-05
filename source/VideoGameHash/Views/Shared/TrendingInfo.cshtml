@@ -1,0 +1,46 @@
+﻿@model VideoGameHash.Models.TrendingInfoModel
+@{
+    Layout = null;
+    int index = 0;
+    int sourceId = -1;    
+}
+
+@if (Model.TrendingArticles != null && Model.TrendingArticles.Count() > 0)
+{
+    string trendingScrollId = string.Format("{0}_Scrollbar_{1}", Model.Section, Model.TrendingGameId);
+    string scrollGraphic = string.Format("{0}_ScrollGraphic{1}", Model.Section, Model.TrendingGameId);
+    string detailsId = string.Format("{0}_Details_{1}", Model.Section, Model.TrendingGameId);
+    <div class="test" id="@trendingScrollId">
+        <div class="scrollbar" id="@scrollGraphic" style="height: 350px; display:none;">
+            <div class="track" style="height: 350px;">
+                <div class="thumb" style="top: 0px; height: 39.3701px;">
+                    <div class="end"></div>
+                </div>
+            </div>
+        </div>
+        <div class="viewport viewport2">
+            <div class="overview overview2" id="@detailsId">
+                @foreach (VideoGameHash.Models.TrendingArticles item in Model.TrendingArticles)
+                {
+                    string className = "LatestNewsItem";
+                    if (sourceId != item.Article.InfoSourceId)
+                    {
+                        <h6 class="subheader"><span>@Html.Raw(item.Article.InfoSource.InfoSourceName)</span></h6>
+                        sourceId = item.Article.InfoSourceId;
+                        index = 0;
+                    }
+
+                    if (index % 2 == 1)
+                    {
+                        className += " grey_back";
+                    }
+                    <div class="@className">
+                        <a href="@item.Article.Link" target="_blank" data-html="true">@Html.Raw(@item.Article.Title)</a>
+                    </div>
+        
+                    index++;
+                }
+            </div>
+        </div>
+    </div>
+}

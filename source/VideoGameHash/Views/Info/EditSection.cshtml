@@ -1,0 +1,37 @@
+﻿@model VideoGameHash.Models.EditSectionModel
+
+@{
+    ViewBag.Title = "Edit Section";
+}
+
+<h2>Edit Section</h2>
+
+@using (Html.BeginForm("EditInfoType", "Info"))
+{
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>Edit Section</legend>
+
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Name)
+        </div>
+        <div class="editor-field">
+            @Html.TextAreaFor(model => model.Name)
+            @Html.ValidationMessageFor(model => model.Name)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.UseGameSystem)
+        </div>
+        <div class="editor-field">
+            @Html.CheckBoxFor(model => model.UseGameSystem)
+        </div>
+
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    </fieldset>
+}

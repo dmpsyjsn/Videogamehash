@@ -1,0 +1,6 @@
+﻿@model VideoGameHash.Models.InfoTypeSortOrder
+
+<p>
+@Model.InfoType.InfoTypeName order:  @Html.TextBoxFor(x => x.SortOrder)
+@Html.HiddenFor(x => x.Id)
+</p>

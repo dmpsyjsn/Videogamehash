@@ -1,0 +1,47 @@
+﻿@model IEnumerable<VideoGameHash.Models.GameSystem>
+
+@{
+    ViewBag.Title = "Manage Game Systems";
+}
+
+<h2>Manage Game Systems</h2>
+
+<h6>Options:</h6>
+<ul>
+    <li>@Html.ActionLink("Add Game System", "AddGameSystem")</li>
+
+    @if (Model.Count() > 1)
+    {
+        <li>@Html.ActionLink("Manage Game System Display Order", "GameSystemList")</li>
+    }
+</ul>
+<table>
+    <tr>
+        <th>
+            System
+        </th>
+        <th>
+            Order
+        </th>
+    </tr>
+
+@if (Model != null)
+{
+    foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.GameSystemName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.GameSystemSortOrder.SortOrder)
+            </td>
+            <td>
+                @*@Html.ActionLink("Edit", "Edit", new { id = item.Id })*@ |
+                @Html.ActionLink("Delete", "DeleteGameSystem", new { id = item.Id })
+            </td>
+        </tr>
+    }
+}
+
+</table>

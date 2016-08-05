@@ -1,0 +1,100 @@
+﻿@model VideoGameHash.Models.InfoTypeViewModel
+@using VideoGameHash.Helpers;
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Manage Information</h2>
+
+@if (Model != null)
+{
+    <div>
+        <div>
+            <h5>Info Section:</h5>
+            <ul>
+            @foreach (var item in Model.InfoTypes)
+            {
+                <li>@item.InfoTypeName Order: @item.InfoTypeSortOrder.SortOrder (@Html.ActionLink("Edit", "EditInfoType", new { id = item.Id }) @Html.ActionLink("Delete", "DeleteInfoType", new { id = item.Id }))</li>
+            }
+            </ul>
+            <ul>
+                <li>@Html.ActionLink("Add Info Section", "AddInfoType")</li>
+                <li>@Html.ActionLink("Change Order", "InfoTypeList")</li>
+            </ul>
+        </div>
+        <div>
+            <h5>Source:</h5>
+            <ul>
+            @foreach (var item in Model.InfoSources)
+            {
+                <li>@item.InfoSourceName Order: @item.InfoSourceSortOrder.SortOrder (@Html.ActionLink("Edit", "EditInfoSource", new { id = item.Id }) @Html.ActionLink("Delete", "DeleteInfoSource", new { id = item.Id }))</li>
+            }
+            </ul>
+            <ul>
+                <li>@Html.ActionLink("Add Source", "AddInfoSource")</li>
+                <li>@Html.ActionLink("Change Order", "InfoSourceList")</li>
+            </ul>
+        </div>
+        <div>
+            <h5>Polls:</h5>
+            <ul>
+            @foreach (var item in Model.Polls)
+            {
+                @*<li>@item.Title (@Html.ActionLink("Edit", "EditPoll", new { id = item.Id }) @Html.ActionLink("Delete", "DeletePoll", new { id = item.Id }))</li>*@
+            }
+            </ul>
+            <ul>
+                <li>@Html.ActionLink("Add Poll", "AddPoll")</li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="info_options col-md-12">
+            <h5>RSS URL:</h5>
+            <h6>Options:</h6>
+            <ul id="info_actions">
+                <li>@Html.ActionLink("Add URL", "AddUrl")</li>
+                <li>@Html.ActionLink("Get All Articles", "GetAllArticles")</li>
+                <li>@Html.ActionLink("Delete Articles Older Than 6 Months", "DeleteOldArticles")</li>
+                @foreach (string section in NewsHelper.SectionList)
+                {
+                    string name = "Get All " + section;
+                    string featuredName = "Make Featured " + section + " Articles";
+                    string trendingName = "Make Trending " + section + " Articles";
+                    <li>@Html.ActionLink(name, "GetArticles", new {Section = NewsHelper.SectionId(section)})&nbsp&nbsp<span class="glyphicon glyphicon-plus-sign"></span>&nbsp&nbsp @Html.ActionLink(featuredName, "MakeFeatured", new { Section = NewsHelper.SectionId(section) })&nbsp&nbsp<i class="glyphicon-plus-sign"></i>&nbsp&nbsp @Html.ActionLink(trendingName, "MakeTrending", new { Section = NewsHelper.SectionId(section) })</li>
+                }    
+            </ul>
+            <div id="loading"><img src="~/content/images/ajax-loader1.gif" alt="" /></div>
+
+            <table>
+                <tr>
+                    <th>Section</th>
+                    <th>Source</th>
+                    <th>System</th>
+                    <th>URL</th>
+                    <th>Delete</th>
+                </tr>
+                @foreach (var item in Model.InfoSourceRssUrls)
+                {
+                    <tr>
+                        <td>
+                            @item.InfoType.InfoTypeName
+                        </td>
+                        <td>
+                            @item.InfoSource.InfoSourceName
+                        </td>
+                        <td>
+                            @item.GameSystem.GameSystemName
+                        </td>
+                        <td>
+                            @item.URL
+                        </td>
+                        <td>
+                            @Html.ActionLink("Edit", "EditUrl", new { id = item.Id }) @Html.ActionLink("Delete", "DeleteUrl", new { id = item.Id })
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+}
