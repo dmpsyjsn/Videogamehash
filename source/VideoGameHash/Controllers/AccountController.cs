@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 //using System.Transactions;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
 using WebMatrix.WebData;
@@ -13,7 +10,12 @@ namespace VideoGameHash.Controllers
     [Authorize]
     public class AccountController : Controller
     {
-        private UserRepository repository = new UserRepository();
+        private readonly UserRepository _repository;
+
+        public AccountController(UserRepository repository)
+        {
+            _repository = repository;
+        }
 
         //
         // GET: /Account/Login
@@ -95,7 +97,7 @@ namespace VideoGameHash.Controllers
                 // Attempt to register the user
                 try
                 {
-                    WebSecurity.CreateUserAndAccount(model.UserName, model.Password, new { Email = model.Email, SecurityQuestion = model.SecurityQuestion, SecurityAnswer = model.SecurityAnswer });
+                    WebSecurity.CreateUserAndAccount(model.UserName, model.Password, new {model.Email, model.SecurityQuestion, model.SecurityAnswer });
                     WebSecurity.Login(model.UserName, model.Password);
                     return RedirectToAction("Index", "Home");
                 }
@@ -119,8 +121,8 @@ namespace VideoGameHash.Controllers
                 : message == ManageMessageId.SetPasswordSuccess ? "Your password has been set."
                 : "";
 
-            ViewBag.IsAdmin = repository.IsInRole(User.Identity.Name, "Administrator");
-            ViewBag.IsEditor = repository.IsInRole(User.Identity.Name, "Editor");
+            ViewBag.IsAdmin = _repository.IsInRole(User.Identity.Name, "Administrator");
+            ViewBag.IsEditor = _repository.IsInRole(User.Identity.Name, "Editor");
 
             return View();
         }
@@ -181,16 +183,17 @@ namespace VideoGameHash.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Validate(RecoverModel model, string recover)
         {
-            VideoGameHash.Models.Membership member = repository.GetMembershipByEmail(model.Email);
+            var member = _repository.GetMembershipByEmail(model.Email);
 
             ViewBag.Message = String.Empty;
 
             if (member != null)
             {
-                SecurityQuestionModel security = new SecurityQuestionModel();
-
-                security.UserId = member.UserId;
-                security.SecurityQuestion = member.SecurityQuestion;
+                var security = new SecurityQuestionModel
+                {
+                    UserId = member.UserId,
+                    SecurityQuestion = member.SecurityQuestion
+                };
 
                 if (recover == "username")
                     return RedirectToAction("RecoverUsername", security);
@@ -208,11 +211,12 @@ namespace VideoGameHash.Controllers
         [AllowAnonymous]
         public ActionResult RecoverUsername(SecurityQuestionModel member)
         {
-            SecurityAnswerModel security = new SecurityAnswerModel();
-
-            security.UserId = member.UserId;
-            security.SecurityQuestion = member.SecurityQuestion;
-            security.SecurityAnswer = String.Empty;
+            var security = new SecurityAnswerModel
+            {
+                UserId = member.UserId,
+                SecurityQuestion = member.SecurityQuestion,
+                SecurityAnswer = String.Empty
+            };
 
             return View(security);
         }
@@ -224,7 +228,7 @@ namespace VideoGameHash.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult RecoverUsername(SecurityAnswerModel model)
         {
-            VideoGameHash.Models.Membership member = repository.GetMembershipByUserId(model.UserId);
+            var member = _repository.GetMembershipByUserId(model.UserId);
 
             ViewBag.Message = "";
 
@@ -232,7 +236,7 @@ namespace VideoGameHash.Controllers
             {
                 if (String.Compare(member.SecurityAnswer, model.SecurityAnswer, true) == 0)
                 {
-                    if (SendEmail(member.Email, "Username for VideoGameHash", "Your username is " + repository.GetUserNameByUserId(model.UserId)))
+                    if (SendEmail(member.Email, "Username for VideoGameHash", "Your username is " + _repository.GetUserNameByUserId(model.UserId)))
                         return RedirectToAction("RecoverResult", new { Type = "Recover user name", Message = "User name has been sent to " + member.Email });
                     else
                         return RedirectToAction("RecoverResult", new { Type = "Recover user name", Message = "Unable to email username.  Please try again later." });
@@ -249,11 +253,12 @@ namespace VideoGameHash.Controllers
         [AllowAnonymous]
         public ActionResult RecoverPassword(SecurityQuestionModel model)
         {
-            SecurityAnswerModel security = new SecurityAnswerModel();
-
-            security.UserId = model.UserId;
-            security.SecurityQuestion = model.SecurityQuestion;
-            security.SecurityAnswer = String.Empty;
+            var security = new SecurityAnswerModel
+            {
+                UserId = model.UserId,
+                SecurityQuestion = model.SecurityQuestion,
+                SecurityAnswer = String.Empty
+            };
 
             return View(security);
         }
@@ -265,7 +270,7 @@ namespace VideoGameHash.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult RecoverPassword(SecurityAnswerModel model)
         {
-            VideoGameHash.Models.Membership member = repository.GetMembershipByUserId(model.UserId);
+            var member = _repository.GetMembershipByUserId(model.UserId);
 
             ViewBag.Message = "";
 
@@ -273,8 +278,8 @@ namespace VideoGameHash.Controllers
             {
                 if (String.Compare(member.SecurityAnswer, model.SecurityAnswer, true) == 0)
                 {
-                    string newPassword = CreatePassword(8);
-                    repository.ResetPassword(repository.GetUserNameByUserId(member.UserId), newPassword);
+                    var newPassword = CreatePassword(8);
+                    _repository.ResetPassword(_repository.GetUserNameByUserId(member.UserId), newPassword);
                     if (SendEmail(member.Email, "Password reset for VideoGameHash", "Your password has been reset.  It is now " + newPassword + "."))
                         return RedirectToAction("RecoverResult", new { Type = "Reset Password", Message = "Password has been reset. A new password has been sent to " + member.Email + "." });
                     else
@@ -371,10 +376,10 @@ namespace VideoGameHash.Controllers
         private static string CreatePassword(int passwordLength)
         {
             const string allowedChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@$?_-";
-            char[] chars = new char[passwordLength];
+            var chars = new char[passwordLength];
             var rd = new Random();
 
-            for (int i = 0; i < passwordLength; i++)
+            for (var i = 0; i < passwordLength; i++)
             {
                 chars[i] = allowedChars[rd.Next(0, allowedChars.Length)];
             }

@@ -53,13 +53,13 @@ namespace VideoGameHash.Models
         // Constructor
         public AddUrlViewModel(AddUrlModel model)
         {
-            GameSystemsRepository gsr = new GameSystemsRepository();
+            var gsr = new GameSystemsRepository();
             Model = model;
             Section = new SelectList(NewsHelper.SectionList, model.Section);
             Source = new SelectList(NewsHelper.SourceList, model.Source);
 
-            List<string> gameSystems = new List<string>();
-            foreach (GameSystem system in gsr.GetGameSystems())
+            var gameSystems = new List<string>();
+            foreach (var system in gsr.GetGameSystems())
             {
                 gameSystems.Add(system.GameSystemName);
             }

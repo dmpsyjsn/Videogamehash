@@ -1,28 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Text;
 using VideoGameHash.Models;
-using HtmlAgilityPack;
 
 namespace VideoGameHash.Helpers
 {
-    public class NewsHelper
+    public static class NewsHelper
     {
+        private static readonly InfoRepository InfoRepository = new InfoRepository();
+        private static readonly GameSystemsRepository SystemRepository = new GameSystemsRepository();
+
+
         public static IList<string> SectionList
         {
             get
             {
-                InfoRepository repository = new InfoRepository();
-
-                List<string> SectionNames = new List<string>();
-                foreach (InfoType type in repository.GetInfoTypes())
+                var sectionNames = new List<string>();
+                foreach (var type in InfoRepository.GetInfoTypes())
                 {
-                    SectionNames.Add(type.InfoTypeName);
+                    sectionNames.Add(type.InfoTypeName);
                 }
 
-                return SectionNames;
+                return sectionNames;
             }
         }
 
@@ -30,41 +28,35 @@ namespace VideoGameHash.Helpers
         {
             get
             {
-                InfoRepository repository = new InfoRepository();
-
-                List<string> SourceNames = new List<string>();
-                foreach (InfoSource source in repository.GetSources())
+                var sourceNames = new List<string>();
+                foreach (var source in InfoRepository.GetSources())
                 {
-                    SourceNames.Add(source.InfoSourceName);
+                    sourceNames.Add(source.InfoSourceName);
                 }
 
-                return SourceNames;
+                return sourceNames;
             }
         }
 
         public static IList<string> GameSystemList(int section)
         {
-            GameSystemsRepository repository = new GameSystemsRepository();
-            InfoRepository ir = new InfoRepository();
-
-            List<string> GameSystemNames = new List<string>();
-            foreach (GameSystem gameSystem in repository.GetGameSystems())
+            var gameSystemNames = new List<string>();
+            foreach (var gameSystem in SystemRepository.GetGameSystems())
             {
-                if (gameSystem.GameSystemName == "All" || ir.HasArticles(section, gameSystem.Id))
+                if (gameSystem.GameSystemName == "All" || InfoRepository.HasArticles(section, gameSystem.Id))
                 {
-                    GameSystemNames.Add(gameSystem.GameSystemName);
+                    gameSystemNames.Add(gameSystem.GameSystemName);
                 }
             }
 
-            return GameSystemNames;
+            return gameSystemNames;
         }
 
-        public static int GameSystemId(string GameSystem)
+        public static int GameSystemId(string gameSystem)
         {
             try
             {
-                GameSystemsRepository repository = new GameSystemsRepository();
-                return repository.GetGameSystemByGameSystemName(GameSystem).Id;
+                return SystemRepository.GetGameSystemByGameSystemName(gameSystem).Id;
             }
             catch
             {
@@ -74,78 +66,39 @@ namespace VideoGameHash.Helpers
 
         public static bool BadImageCompany(string source)
         {
-            return (source == "CVG" || source == "GameSpot" || source == "VGleaks");
+            return source == "CVG" || source == "GameSpot" || source == "VGleaks";
         }
 
         public static int SectionId(string section)
         {
-            InfoRepository ir = new InfoRepository();
-            return ir.GetInfoTypeId(section);
+            return InfoRepository.GetInfoTypeId(section);
         }
 
         public static string SectionTitle(int sectionId)
         {
-            InfoRepository ir = new InfoRepository();
-            return ir.GetInfoType(sectionId).InfoTypeName;
+            return InfoRepository.GetInfoType(sectionId).InfoTypeName;
         }
 
         public static int SourceId(string source)
         {
-            InfoRepository ir = new InfoRepository();
-            return ir.GetInfoSourceId(source);
+            return InfoRepository.GetInfoSourceId(source);
         }
 
         public static bool UseGameSystem(string section)
         {
-            InfoRepository ir = new InfoRepository();
-            return ir.UseGameSystem(section);
+            return InfoRepository.UseGameSystem(section);
         }
 
         public static List<char> Alphabet()
         {
-            List<char> alpha = new List<char>();
+            var alpha = new List<char>();
 
-            for (int i = 0; i < 26; i++)
+            for (var i = 0; i < 26; i++)
             {
                 alpha.Add(Convert.ToChar(i + 65));
             }
 
             return alpha;
         }
-
-        //public static string GetMetacriticScore(string gameSystem, string gameTitle)
-        //{
-        //    gameSystem = gameSystem.Replace(' ', '-').ToLower();
-        //    StringBuilder sb = new StringBuilder();
-        //    for (int i = 0; i < gameTitle.Length; i++)
-        //    {
-        //        if ((gameTitle[i] >= '0' && gameTitle[i] <= '9') || (gameTitle[i] >= 'a' && gameTitle[i] <= 'z') ||(gameTitle[i] >= 'A' && gameTitle[i] <= 'Z') || gameTitle[i] == ' ')
-        //            sb.Append(gameTitle[i]);
-        //    }
-
-        //    gameTitle = sb.ToString().Replace(' ', '-').ToLower();
-
-        //    string url = string.Format("http://www.metacritic.com/game/{0}/{1}", gameSystem, gameTitle);
-
-        //    try
-        //    {
-        //        HtmlDocument doc = new HtmlDocument();
-
-        //        using (var webClient = new System.Net.WebClient())
-        //        {
-        //            using (var stream = webClient.OpenRead(url))
-        //            {
-        //                doc.Load(stream);
-        //                string test1 = "";
-        //            }
-        //        }
-
-        //        return "";
-        //    }
-        //    catch
-        //    {
-        //        return string.Empty;
-        //    }
-        //}
     }
 }

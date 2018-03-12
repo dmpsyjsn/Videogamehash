@@ -9,14 +9,19 @@ namespace VideoGameHash.Controllers
 {
     public class GameSystemsController : Controller
     {
-        private GameSystemsRepository gameSystemsRepository = new GameSystemsRepository();
+        private readonly GameSystemsRepository _gameSystemsRepository;
+
+        public GameSystemsController(GameSystemsRepository gameSystemsRepository)
+        {
+            _gameSystemsRepository = gameSystemsRepository;
+        }
 
         //
         // GET: /GameSystem/
 
         public ActionResult Index()
         {
-            return View(gameSystemsRepository.GetGameSystems());
+            return View(_gameSystemsRepository.GetGameSystems());
         }
 
         // 
@@ -32,16 +37,16 @@ namespace VideoGameHash.Controllers
         public ActionResult AddGameSystem(GameSystemModel model)
         {
 
-            gameSystemsRepository.AddGameSystem(model);
+            _gameSystemsRepository.AddGameSystem(model);
 
             return RedirectToAction("Index");
         }
 
         // 
         // GET: /DeleteGameSystem
-        public ActionResult DeleteGameSystem(int Id)
+        public ActionResult DeleteGameSystem(int id)
         {
-            gameSystemsRepository.DeleteGameSystem(Id);
+            _gameSystemsRepository.DeleteGameSystem(id);
 
             return RedirectToAction("Index");
         }
@@ -49,8 +54,10 @@ namespace VideoGameHash.Controllers
         // GET: /GameSystemList
         public ActionResult GameSystemList()
         {
-            GameSystemSortOrderEdit order = new GameSystemSortOrderEdit();
-            order.GameSystemSortOrders = gameSystemsRepository.GetGameSystemSortOrder();
+            var order = new GameSystemSortOrderEdit
+            {
+                GameSystemSortOrders = _gameSystemsRepository.GetGameSystemSortOrder()
+            };
 
             return View(order);
         }
@@ -61,9 +68,9 @@ namespace VideoGameHash.Controllers
         {
             if (model.GameSystemSortOrders != null)
             {
-                foreach (GameSystemSortOrder order in model.GameSystemSortOrders)
+                foreach (var order in model.GameSystemSortOrders)
                 {
-                    gameSystemsRepository.UpdateOrder(order);
+                    _gameSystemsRepository.UpdateOrder(order);
                 }
             }
 
@@ -72,9 +79,9 @@ namespace VideoGameHash.Controllers
 
         //
         // GET: /Edit/1
-        public ActionResult Edit(int Id)
+        public ActionResult Edit(int id)
         {
-            GameSystem gameSystem = gameSystemsRepository.GetGameSystemById(Id);
+            var gameSystem = _gameSystemsRepository.GetGameSystemById(id);
 
             return View(gameSystem);
         }

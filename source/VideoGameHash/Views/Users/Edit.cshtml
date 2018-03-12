@@ -7,12 +7,12 @@
 <h2>Edit User</h2>
 
 <div>
-    <p>User Name: @Html.DisplayFor(model => model._UserProfile.UserName)</p>
-    <p>Registration Date: @Html.DisplayFor(model => model._UserMembership.CreateDate)</p>
-    <p>Email Address: @Html.DisplayFor(model => model._UserMembership.Email)</p>
+    <p>User Name: @Html.DisplayFor(model => model.UserProfile.UserName)</p>
+    <p>Registration Date: @Html.DisplayFor(model => model.UserMembership.CreateDate)</p>
+    <p>Email Address: @Html.DisplayFor(model => model.UserMembership.Email)</p>
     <p>Roles: </p>
     <ul>
-        @foreach (string item in Model._UsersRoles)
+        @foreach (var item in Model.UsersRoles)
         {
             <li>@item</li>
         }
@@ -23,7 +23,7 @@
 
     <p>Options:</p>
     <ul>
-        <li>@Html.ActionLink("Add addtional roles for this user", "AddRole", new { id = Model._UserProfile.Id })</li>
+        <li>@Html.ActionLink("Add addtional roles for this user", "AddRole", new { id = Model.UserProfile.Id })</li>
     </ul>
     <ul>
         <li>@Html.ActionLink("Back to user list", "Index")</li>

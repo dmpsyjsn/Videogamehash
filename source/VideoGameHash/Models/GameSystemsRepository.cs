@@ -7,82 +7,84 @@ namespace VideoGameHash.Models
 {
     public class GameSystemsRepository
     {
-        private VGHDatabaseContainer db = new VGHDatabaseContainer();
+        private VGHDatabaseContainer _db = new VGHDatabaseContainer();
 
         public IEnumerable<GameSystem> GetGameSystems()
         {
-            return db.GameSystems.OrderBy(u => u.GameSystemSortOrder.SortOrder);
+            return _db.GameSystems.OrderBy(u => u.GameSystemSortOrder.SortOrder);
         }
 
         public void AddGameSystem(GameSystemModel model)
         {
-            GameSystem gameSystem = new GameSystem();
-            gameSystem.GameSystemName = model.GameSystem;
-            db.GameSystems.AddObject(gameSystem);
-            db.SaveChanges();
+            var gameSystem = new GameSystem
+            {
+                GameSystemName = model.GameSystem
+            };
+            _db.GameSystems.AddObject(gameSystem);
+            _db.SaveChanges();
 
-            int? maxValue = db.GameSystemSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
-            GameSystemSortOrder order = new GameSystemSortOrder();
+            int? maxValue = _db.GameSystemSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
+            var order = new GameSystemSortOrder();
             gameSystem = GetGameSystemByGameSystemName(model.GameSystem);
             order.Id = gameSystem.Id;
             order.GameSystem = gameSystem;
             order.SortOrder = maxValue + 1 ?? 1;
 
-            db.GameSystemSortOrders.AddObject(order);
+            _db.GameSystemSortOrders.AddObject(order);
 
-            db.SaveChanges();
+            _db.SaveChanges();
         }
 
-        public GameSystem GetGameSystemById(int Id)
+        public GameSystem GetGameSystemById(int id)
         {
-            return db.GameSystems.SingleOrDefault(u => u.Id == Id);
+            return _db.GameSystems.SingleOrDefault(u => u.Id == id);
         }
 
-        public GameSystem GetGameSystemByGameSystemName(string GameSystemName)
+        public GameSystem GetGameSystemByGameSystemName(string gameSystemName)
         {
-            return db.GameSystems.SingleOrDefault(u => u.GameSystemName == GameSystemName);
+            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystemName);
         }
 
-        public void DeleteGameSystem(int Id)
+        public void DeleteGameSystem(int id)
         {
             try
             {
-                GameSystem gameSystem = GetGameSystemById(Id);
+                var gameSystem = GetGameSystemById(id);
 
                 if (gameSystem != null)
                 {
-                    foreach (Articles article in GetArticlesByGameSystemId(Id))
+                    foreach (var article in GetArticlesByGameSystemId(id))
                     {
-                        FeaturedArticles featured = db.FeaturedArticles.SingleOrDefault(u => u.Id == article.Id);
+                        var featured = _db.FeaturedArticles.SingleOrDefault(u => u.Id == article.Id);
                         if (featured != null)
                         {
-                            db.FeaturedArticles.DeleteObject(featured);
+                            _db.FeaturedArticles.DeleteObject(featured);
                         }
-                        db.Articles.DeleteObject(article);
+                        _db.Articles.DeleteObject(article);
                     }
-                    db.SaveChanges();
+                    _db.SaveChanges();
 
-                    foreach (InfoSourceRssUrls url in GetUrlsByGameSystemId(Id))
+                    foreach (var url in GetUrlsByGameSystemId(id))
                     {
-                        db.InfoSourceRssUrls.DeleteObject(url);
+                        _db.InfoSourceRssUrls.DeleteObject(url);
                     }
-                    db.SaveChanges();
+                    _db.SaveChanges();
 
-                    foreach (GameInfo gameInfo in GetGameInfoByGameSystemId(Id))
+                    foreach (var gameInfo in GetGameInfoByGameSystemId(id))
                     {
-                        db.GameInfoes.DeleteObject(gameInfo);
+                        _db.GameInfoes.DeleteObject(gameInfo);
                     }
-                    db.SaveChanges();
+                    _db.SaveChanges();
 
-                    GameSystemSortOrder sortOrder = db.GameSystemSortOrders.SingleOrDefault(u => u.GameSystem.Id == Id);
+                    var sortOrder = _db.GameSystemSortOrders.SingleOrDefault(u => u.GameSystem.Id == id);
                     if (sortOrder != null)
                     {
-                        db.GameSystemSortOrders.DeleteObject(sortOrder);
-                        db.SaveChanges();
+                        _db.GameSystemSortOrders.DeleteObject(sortOrder);
+                        _db.SaveChanges();
                     }
 
-                    db.GameSystems.DeleteObject(gameSystem);
-                    db.SaveChanges();
+                    _db.GameSystems.DeleteObject(gameSystem);
+                    _db.SaveChanges();
                 }
             }
             catch
@@ -93,33 +95,33 @@ namespace VideoGameHash.Models
 
         private IEnumerable<GameInfo> GetGameInfoByGameSystemId(int gameSystemId)
         {
-            return db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
+            return _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
         }
 
         public IEnumerable<GameSystemSortOrder> GetGameSystemSortOrder()
         {
-            return db.GameSystemSortOrders;
+            return _db.GameSystemSortOrders;
         }
 
         internal void UpdateOrder(GameSystemSortOrder order)
         {
-            GameSystemSortOrder dbOrder = (from t in db.GameSystemSortOrders
+            var dbOrder = (from t in _db.GameSystemSortOrders
                                            where t.Id == order.Id
                                            select t).SingleOrDefault();
 
             dbOrder.SortOrder = order.SortOrder;
 
-            db.SaveChanges();
+            _db.SaveChanges();
         }
 
         private IEnumerable<Articles> GetArticlesByGameSystemId(int gameSystemId)
         {
-            return db.Articles.Where(u => u.GameSystemId == gameSystemId);
+            return _db.Articles.Where(u => u.GameSystemId == gameSystemId);
         }
 
         private IEnumerable<InfoSourceRssUrls> GetUrlsByGameSystemId(int gameSystemId)
         {
-            return db.InfoSourceRssUrls.Where(u => u.GameSystemId == gameSystemId);
+            return _db.InfoSourceRssUrls.Where(u => u.GameSystemId == gameSystemId);
         }
     }
 }

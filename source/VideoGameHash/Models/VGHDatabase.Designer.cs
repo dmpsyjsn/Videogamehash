@@ -9,10 +9,8 @@
 
 using System;
 using System.ComponentModel;
-using System.Data.EntityClient;
 using System.Data.Objects;
 using System.Data.Objects.DataClasses;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
 
@@ -44,7 +42,7 @@ using System.Xml.Serialization;
 namespace VideoGameHash.Models
 {
     #region Contexts
-    
+
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
@@ -61,24 +59,7 @@ namespace VideoGameHash.Models
             OnContextCreated();
         }
     
-        /// <summary>
-        /// Initialize a new VGHDatabaseContainer object.
-        /// </summary>
-        public VGHDatabaseContainer(string connectionString) : base(connectionString, "VGHDatabaseContainer")
-        {
-            this.ContextOptions.LazyLoadingEnabled = true;
-            OnContextCreated();
-        }
-    
-        /// <summary>
-        /// Initialize a new VGHDatabaseContainer object.
-        /// </summary>
-        public VGHDatabaseContainer(EntityConnection connection) : base(connection, "VGHDatabaseContainer")
-        {
-            this.ContextOptions.LazyLoadingEnabled = true;
-            OnContextCreated();
-        }
-    
+   
         #endregion
     
         #region Partial Methods

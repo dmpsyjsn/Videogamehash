@@ -11,7 +11,7 @@ namespace VideoGameHash.Models
 {
     public class CustomMembershipProvider : ExtendedMembershipProvider
     {
-        private UserRepository repository = new UserRepository();
+        private UserRepository _repository = new UserRepository();
 
         public override bool ConfirmAccount(string accountConfirmationToken)
         {
@@ -30,8 +30,8 @@ namespace VideoGameHash.Models
 
         public override string CreateUserAndAccount(string userName, string password, bool requireConfirmation, IDictionary<string, object> values)
         {
-            MembershipCreateStatus status = MembershipCreateStatus.Success;
-            MembershipUser user = CreateUser(userName, password, values["Email"].ToString(), values["SecurityQuestion"].ToString(), values["SecurityAnswer"].ToString(), true, null, out status);
+            var status = MembershipCreateStatus.Success;
+            var user = CreateUser(userName, password, values["Email"].ToString(), values["SecurityQuestion"].ToString(), values["SecurityAnswer"].ToString(), true, null, out status);
 
             if (user == null)
             {
@@ -58,28 +58,28 @@ namespace VideoGameHash.Models
 
         public override DateTime GetCreateDate(string userName)
         {
-            Membership membership = repository.GetMembershipByUsername(userName);
+            var membership = _repository.GetMembershipByUsername(userName);
             
             return membership.CreateDate;
         }
 
         public override DateTime GetLastPasswordFailureDate(string userName)
         {
-            Membership membership = repository.GetMembershipByUsername(userName);
+            var membership = _repository.GetMembershipByUsername(userName);
 
             return membership.LastPasswordFailureDate ?? membership.CreateDate;
         }
 
         public override DateTime GetPasswordChangedDate(string userName)
         {
-            Membership membership = repository.GetMembershipByUsername(userName);
+            var membership = _repository.GetMembershipByUsername(userName);
 
             return membership.PasswordChangeDate ?? membership.CreateDate;
         }
 
         public override int GetPasswordFailuresSinceLastSuccess(string userName)
         {
-            Membership membership = repository.GetMembershipByUsername(userName);
+            var membership = _repository.GetMembershipByUsername(userName);
 
             return membership.PasswordFailuresSinceLastSuccess ?? 0;
         }
@@ -91,7 +91,7 @@ namespace VideoGameHash.Models
 
         public override bool IsConfirmed(string userName)
         {
-            UserProfile user = repository.GetUserByUserName(userName);
+            var user = _repository.GetUserByUserName(userName);
 
             if (user != null)
                 return true;
@@ -118,7 +118,7 @@ namespace VideoGameHash.Models
 
         public override bool ChangePassword(string username, string oldPassword, string newPassword)
         {
-            repository.UpdatePassword(username, oldPassword, newPassword);
+            _repository.UpdatePassword(username, oldPassword, newPassword);
 
             return true;
         }
@@ -130,7 +130,7 @@ namespace VideoGameHash.Models
 
         public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out MembershipCreateStatus status)
         {
-            ValidatePasswordEventArgs args =
+            var args =
            new ValidatePasswordEventArgs(username, password, true);
             OnValidatingPassword(args);
 
@@ -146,7 +146,7 @@ namespace VideoGameHash.Models
                 return null;
             }
 
-            RegexUtilities utility = new RegexUtilities();
+            var utility = new RegexUtilities();
 
             if (!utility.IsValidEmail(email))
             {
@@ -154,19 +154,20 @@ namespace VideoGameHash.Models
                 return null;
             }
 
-            int userId = repository.CreateUserProfile(username);
+            var userId = _repository.CreateUserProfile(username);
 
             if (userId != -1)
             {
-                Member member = new Member();
+                var member = new Member
+                {
+                    UserId = userId,
+                    Password = password,
+                    Email = email,
+                    SecurityQuestion = passwordQuestion,
+                    SecurityAnswer = passwordAnswer
+                };
 
-                member.UserId = userId;
-                member.Password = password;
-                member.Email = email;
-                member.SecurityQuestion = passwordQuestion;
-                member.SecurityAnswer = passwordAnswer;
-
-                repository.RegisterUser(member);
+                _repository.RegisterUser(member);
 
                 status = MembershipCreateStatus.Success;
 
@@ -222,7 +223,7 @@ namespace VideoGameHash.Models
 
         public override MembershipUser GetUser(string username, bool userIsOnline)
         {
-            UserProfile user = repository.GetUserByUserName(username);
+            var user = _repository.GetUserByUserName(username);
 
             if (user != null)
                 return new MembershipUser("CustomMembershipProvider", username, null, null, String.Empty, String.Empty, true, false, DateTime.Now, DateTime.Now, DateTime.Now, DateTime.Now, DateTime.Now);
@@ -237,10 +238,10 @@ namespace VideoGameHash.Models
 
         public override string GetUserNameByEmail(string email)
         {
-            int userId = repository.GetUserIdByEmail(email);
+            var userId = _repository.GetUserIdByEmail(email);
 
             if (userId != -1)
-                return repository.GetUserNameByUserId(userId);
+                return _repository.GetUserNameByUserId(userId);
             else
                 return string.Empty;
         }
@@ -302,45 +303,45 @@ namespace VideoGameHash.Models
 
         public override bool ValidateUser(string username, string password)
         {
-            return repository.VerifyUser(username, password);
+            return _repository.VerifyUser(username, password);
         }
     }
 
     public class Member
     {
-        private int userId;
+        private int _userId;
         public int UserId
         {
-            get { return userId; }
-            set { userId = value; }
+            get { return _userId; }
+            set { _userId = value; }
         }
 
-        private string password;
+        private string _password;
         public string Password
         {
-            get { return password; }
-            set { password = value; }
+            get { return _password; }
+            set { _password = value; }
         }
 
-        private string email;
+        private string _email;
         public string Email
         {
-            get { return email; }
-            set { email = value; }
+            get { return _email; }
+            set { _email = value; }
         }
 
-        private string securityQuestion;
+        private string _securityQuestion;
         public string SecurityQuestion
         {
-            get { return securityQuestion; }
-            set { securityQuestion = value; }
+            get { return _securityQuestion; }
+            set { _securityQuestion = value; }
         }
 
-        private string securityAnswer;
+        private string _securityAnswer;
         public string SecurityAnswer
         {
-            get { return securityAnswer; }
-            set { securityAnswer = value; }
+            get { return _securityAnswer; }
+            set { _securityAnswer = value; }
         }
     }
 }

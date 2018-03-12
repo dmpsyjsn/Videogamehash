@@ -15,27 +15,27 @@
         }
         else
         {
-            <li>@Html.ActionLink("All", "ViewArticlesN", new { Section = Model.Section, GameSystem = Model.GameSystem, ViewType = Model.ViewType })</li>
+            <li>@Html.ActionLink("All", "ViewArticlesN", new {Model.Section, Model.GameSystem, Model.ViewType })</li>
         }
-        @foreach (string source in Model.SourceList)
+        @foreach (var source in Model.SourceList)
         {
-            int id = NewsHelper.SourceId(source);
+            var id = NewsHelper.SourceId(source);
             if (id == Model.Source)
             {
                 <li class="active"><a>@source</a></li>
             }
             else
             {
-                <li>@Html.ActionLink(@source, "ViewArticles", new { Section = Model.Section, Source = id, GameSystem = Model.GameSystem, ViewType = Model.ViewType })</li>
+                <li>@Html.ActionLink(@source, "ViewArticles", new {Model.Section, Source = id, Model.GameSystem, Model.ViewType })</li>
             }
         }
     </ul>
 
     <div>
         <ul class="nav nav-pills">
-            @foreach (string gameSystem in Model.GameSystemList)
+            @foreach (var gameSystem in Model.GameSystemList)
             {
-                int id = NewsHelper.GameSystemId(gameSystem);
+                var id = NewsHelper.GameSystemId(gameSystem);
                 if (id == Model.GameSystem)
                 {
                     <li class="active"><a>@gameSystem</a></li>
@@ -44,11 +44,11 @@
                 {
                     if (Model.Source >= 0)
                     {
-                        <li>@Html.ActionLink(@gameSystem, "ViewArticles", new { Section = Model.Section, Source = Model.Source, GameSystem = id, ViewType = Model.ViewType })</li>
+                        <li>@Html.ActionLink(@gameSystem, "ViewArticles", new {Model.Section, Model.Source, GameSystem = id, Model.ViewType })</li>
                     }
                     else
                     {
-                        <li>@Html.ActionLink(@gameSystem, "ViewArticlesN", new { Section = Model.Section, GameSystem = id, ViewType = Model.ViewType })</li>
+                        <li>@Html.ActionLink(@gameSystem, "ViewArticlesN", new {Model.Section, GameSystem = id, Model.ViewType })</li>
                     }
                 }
             }
@@ -57,7 +57,7 @@
             
 
 
-    @Html.Action("GetArticles", new { Section = Model.Section, Source = Model.Source, GameSystem = Model.GameSystem, Search = Model.Search, ViewType = Model.ViewType, CurrentPage = Model.CurrentPage})
+    @Html.Action("GetArticles", new {Model.Section, Model.Source, Model.GameSystem, Model.Search, Model.ViewType, articleIndex = Model.CurrentPage})
 
 
         

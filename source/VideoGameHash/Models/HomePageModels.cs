@@ -60,9 +60,9 @@ namespace VideoGameHash.Models
 
     public class PieChartModel
     {
-        public string type;
-        public string name;
-        public List<PieChartSourceModel> data;
+        public string Type;
+        public string Name;
+        public List<PieChartSourceModel> Data;
     }
 
     public class PieChartSourceModel

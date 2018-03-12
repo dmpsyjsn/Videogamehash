@@ -3,8 +3,8 @@
 
 @{
     ViewBag.Title = "Game Details - " + Model.Game.GameTitle;
-    int i = 0;
-    string link = string.Format("http://thegamesdb.net/game/{0}/", Model.GamesDBNetId);
+    var i = 0;
+    var link = string.Format("http://thegamesdb.net/game/{0}/", Model.GamesDbNetId);
     string display, imageLink, className, iconTitle;
     bool firstTab = true, firstPane = true, showInfometrics = false;
     //string metacritic = NewsHelper.GetMetacriticScore(ViewBag.GameSystem, Model.Game.GameTitle);
@@ -20,9 +20,9 @@
         <div class="toolbox">
             <h3 class="toolbox_header">@Model.Game.GameTitle</h3>
             <div class="toolbox_info">
-                @if (Model.USReleaseDate != DateTime.MinValue)
+                @if (Model.UsReleaseDate != DateTime.MinValue)
                 {
-                    string releaseDate = String.Format("{0}/{1}/{2}", Model.USReleaseDate.Month, Model.USReleaseDate.Day, Model.USReleaseDate.Year);
+                    var releaseDate = String.Format("{0}/{1}/{2}", Model.UsReleaseDate.Month, Model.UsReleaseDate.Day, Model.UsReleaseDate.Year);
                     <div>Release Date: @releaseDate</div>
                 }
         
@@ -59,7 +59,7 @@
         </div>
         <div class="NewsItem">
             <div class="NewsItemText pull-right">
-                @if (Model.GamesDBNetId > 0)
+                @if (Model.GamesDbNetId > 0)
                 {
                     @:Source: <a href="@link" target="_blank">ThegamesDB.net</a>
                 }
@@ -70,7 +70,7 @@
             </div>
         </div>
             <ul class="nav nav-pills" style="margin-top: 5px; margin-bottom: 5px">
-                @foreach (string gameSystem in Model.AvailableGameSystems)
+                @foreach (var gameSystem in Model.AvailableGameSystems)
                 {
                     if (gameSystem == ViewBag.GameSystem)
                     {
@@ -78,7 +78,7 @@
                     }
                     else
                     {   
-                        <li><a class="game-details-systems" href="#!" data-url="@Url.Action("GetGameDetails", new { Id = Model.Game.Id, GameSystem = gameSystem })">@gameSystem</a></li>
+                        <li><a class="game-details-systems" href="#!" data-url="@Url.Action("GetGameDetails", new {Model.Game.Id, GameSystem = gameSystem })">@gameSystem</a></li>
                     }
                 }
             </ul>
@@ -97,9 +97,9 @@
 {
   <div class="row">
     <ul class="nav nav-tabs" id="myTab" style="width: 95%">     
-        @foreach (int tabKey in Model.Articles.Keys)
+        @foreach (var tabKey in Model.Articles.Keys)
         {
-            string sectionTitle = NewsHelper.SectionTitle(tabKey);
+            var sectionTitle = NewsHelper.SectionTitle(tabKey);
             if (firstTab == true)
             {
                 firstTab = false;
@@ -116,11 +116,11 @@
         }
     </ul>
     <div class="tab-content" style="width: 95%">
-        @foreach (int paneKey in Model.Articles.Keys)
+        @foreach (var paneKey in Model.Articles.Keys)
         {
             i = 0;
-            string tabClassName = "tab-pane fade";
-            string sectionName = NewsHelper.SectionTitle(paneKey);
+            var tabClassName = "tab-pane fade";
+            var sectionName = NewsHelper.SectionTitle(paneKey);
             if (firstPane == true)
             {
                 firstPane = false;
@@ -133,9 +133,9 @@
                         display = HtmlHelpers.ParseContent(sectionName, item.InfoSource.InfoSourceName, item.Content);
                         imageLink = HtmlHelpers.ParseImageLink(item.InfoSource.InfoSourceName, item.Content);
                         className = "article_body";
-                        string idName = string.Format("{0}_{1}", sectionName, i);
-                        string loadingIdName = string.Format("{0}_Loading_{1}", sectionName, i);
-                        string rightBarIdName = string.Format("{0}_Right_Bar_{1}", sectionName, i);
+                        var idName = string.Format("{0}_{1}", sectionName, i);
+                        var loadingIdName = string.Format("{0}_Loading_{1}", sectionName, i);
+                        var rightBarIdName = string.Format("{0}_Right_Bar_{1}", sectionName, i);
 
                         if (item.GameSystem.GameSystemName == "All")
                         {
@@ -196,12 +196,12 @@
                     <div class="col-xs-12" id="gameinfometrics" style="margin-left:0; margin-top: 15px">
                         <div id="piechart" class="row">
                             <div id="loadingpiechart"><img style="margin-left: 45%; margin-top: 190px" src="~/content/images/ajax-loader1.gif" alt="" /></div>
-                            <div id="infometricspiechart" style="height:400px;width:95%; min-height:400px" data-url="@Url.Action("GetGameInfometricsPieChart", "Home", new { GameTitle = Model.Game.GameTitle, GameSystem = ViewBag.GameSystem})"></div>
+                            <div id="infometricspiechart" style="height:400px;width:95%; min-height:400px" data-url="@Url.Action("GetGameInfometricsPieChart", "Home", new {Model.Game.GameTitle, ViewBag.GameSystem})"></div>
                         </div>
                         <div class="section-div" style="margin-top: 5px; margin-bottom: 5px"></div>
                         <div id="linechart" class="row">
                             <div id="loadinglinechart"><img style="margin-left: 45%; margin-top: 190px" src="~/content/images/ajax-loader1.gif" alt="" /></div>
-                            <div id="infometricslinechart" style="height:400px;width:95%; " data-url="@Url.Action("GetGameInfometricsLineChart", "Home", new { GameTitle = Model.Game.GameTitle, GameSystem = ViewBag.GameSystem})"></div>
+                            <div id="infometricslinechart" style="height:400px;width:95%; " data-url="@Url.Action("GetGameInfometricsLineChart", "Home", new {Model.Game.GameTitle, ViewBag.GameSystem})"></div>
                         </div>
                     </div>
             </div>

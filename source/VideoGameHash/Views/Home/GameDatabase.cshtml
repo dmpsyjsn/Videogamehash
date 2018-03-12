@@ -12,7 +12,7 @@
         <div class="btn-toolbar">
             <div class="btn-group">
                 <a class="btn btn-small database-button" data-url="@Url.Action("GetDatabaseList", new { Letter = '0' })">0-9</a>
-                @foreach (char letter in NewsHelper.Alphabet())
+                @foreach (var letter in NewsHelper.Alphabet())
                 {
                     <a class="btn btn-small database-button" data-url="@Url.Action("GetDatabaseList", new { Letter = @letter })">@letter</a>
                 }
@@ -30,7 +30,7 @@
     <div class="row">
         <div class="col-md-2">
             @{
-                string url = "";
+                var url = "";
                 if (!String.IsNullOrEmpty(Model.GameTitle))
                 {
                     url = Url.Action("GetDatabaseList", new { Letter = Model.GameTitle.Substring(0, 1) });
@@ -40,10 +40,10 @@
         </div>
         <div class="col-md-10">
             @{
-                string gameTitle = "";
+                var gameTitle = "";
                 if (!String.IsNullOrEmpty(Model.GameTitle))
                 {
-                    gameTitle = Url.Action("GetGameDetails", new { Id = Model.Id });
+                    gameTitle = Url.Action("GetGameDetails", new {Model.Id });
                 }
             }
             <div id="database-details" data-url="@gameTitle"></div>

@@ -11,7 +11,7 @@ namespace VideoGameHash.Helpers
         {
             get
             {
-                Dictionary<string, string> urls = new Dictionary<string, string>();
+                var urls = new Dictionary<string, string>();
                 urls.Add("IGN.com", "http://feeds.ign.com/ign/games-articles");
                 urls.Add("GameSpot", "http://www.gamespot.com/rss/game_updates.php?type=3");
                 urls.Add("N4G", "http://n4g.com/rss/news?channel=&sort=latest");
@@ -25,7 +25,7 @@ namespace VideoGameHash.Helpers
         {
             get
             {
-                Dictionary<string, string> urls = new Dictionary<string, string>();
+                var urls = new Dictionary<string, string>();
                 urls.Add("IGN.com", "http://feeds.ign.com/ign/game-reviews");
                 urls.Add("GameSpot", "http://www.gamespot.com/rss/game_updates.php?type=5");
                 urls.Add("Destructoid", "http://www.destructoid.com/elephant/index.phtml?t=reviews&mode=atom");
@@ -39,7 +39,7 @@ namespace VideoGameHash.Helpers
         {
             get
             {
-                Dictionary<string, string> urls = new Dictionary<string, string>();
+                var urls = new Dictionary<string, string>();
                 urls.Add("IGN.com", "http://feeds.ign.com/ign/games-videos");
                 urls.Add("GameSpot", "http://www.gamespot.com/rss/game_updates.php?type=14");
                 urls.Add("Eurogamer", "http://www.eurogamer.net/?format=rss&type=video");

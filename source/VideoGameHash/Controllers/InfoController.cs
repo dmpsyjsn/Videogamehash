@@ -13,24 +13,33 @@ namespace VideoGameHash.Controllers
         //
         // GET: /Info/
 
-        private InfoRepository ir = new InfoRepository();
+        private readonly InfoRepository _infoRepository;
+
+        public InfoController(InfoRepository infoRepository)
+        {
+            _infoRepository = infoRepository;
+        }
 
         public ActionResult Index()
         {
-            InfoTypeViewModel model = new InfoTypeViewModel();
-            model.InfoSources = ir.GetSources();
-            model.InfoTypes = ir.GetInfoTypes();
-            model.InfoSourceRssUrls = ir.GetRssUrls();
-            model.Polls = ir.GetPolls();
-            
+            var model = new InfoTypeViewModel
+            {
+                InfoSources = _infoRepository.GetSources(),
+                InfoTypes = _infoRepository.GetInfoTypes(),
+                InfoSourceRssUrls = _infoRepository.GetRssUrls(),
+                Polls = _infoRepository.GetPolls()
+            };
+
             return View(model);
         }
 
         // GET: AddInfoType
         public ActionResult AddInfoType()
         {
-            AddInfoModel model = new AddInfoModel();
-            model.InfoType = "AddInfoType";
+            var model = new AddInfoModel
+            {
+                InfoType = "AddInfoType"
+            };
             return View("AddInfo", model);
         }
 
@@ -38,15 +47,17 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public ActionResult AddInfoType(AddInfoModel model)
         {
-            ir.AddInfoType(model);
+            _infoRepository.AddInfoType(model);
             return RedirectToAction("Index");
         }
 
         // GET: AddInfoSource
         public ActionResult AddInfoSource()
         {
-            AddInfoModel model = new AddInfoModel();
-            model.InfoType = "AddInfoSource";
+            var model = new AddInfoModel
+            {
+                InfoType = "AddInfoSource"
+            };
             return View("AddInfo", model);
         }
 
@@ -54,7 +65,7 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public ActionResult AddInfoSource(AddInfoModel model)
         {
-            ir.AddInfoSource(model);
+            _infoRepository.AddInfoSource(model);
 
             return RedirectToAction("Index");
         }
@@ -62,28 +73,30 @@ namespace VideoGameHash.Controllers
         // GET: AddUrl
         public ActionResult AddUrl()
         {
-            AddUrlModel urlModel = new AddUrlModel();
-            AddUrlViewModel model = new AddUrlViewModel(urlModel);
+            var urlModel = new AddUrlModel();
+            var model = new AddUrlViewModel(urlModel);
             return View(model);
         }
 
         [HttpPost]
         public ActionResult AddUrl(FormCollection collection)
         {
-            AddUrlModel model = new AddUrlModel();
-            model.Section = collection["Section"];
-            model.Source = collection["Source"];
-            model.GameSystem = collection["GameSystem"];
-            model.Url = collection["Url"];
-            ir.AddUrl(model);
+            var model = new AddUrlModel
+            {
+                Section = collection["Section"],
+                Source = collection["Source"],
+                GameSystem = collection["GameSystem"],
+                Url = collection["Url"]
+            };
+            _infoRepository.AddUrl(model);
 
             return RedirectToAction("Index");
         }
 
         public ActionResult EditInfoType(int id)
         {
-            EditSectionModel model = new EditSectionModel();
-            InfoType infoType = ir.GetInfoType(id);
+            var model = new EditSectionModel();
+            var infoType = _infoRepository.GetInfoType(id);
 
             model.Id = infoType.Id;
             model.Name = infoType.InfoTypeName;
@@ -95,15 +108,15 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public ActionResult EditInfoType(EditSectionModel model)
         {
-            ir.EditSectionInfo(model);
+            _infoRepository.EditSectionInfo(model);
 
             return RedirectToAction("Index");
         }
 
         public ActionResult EditInfoSource(int id)
         {
-            EditModel model = new EditModel();
-            InfoSource infoSource = ir.GetInfoSource(id);
+            var model = new EditModel();
+            var infoSource = _infoRepository.GetInfoSource(id);
 
             model.Id = infoSource.Id;
             model.Name = infoSource.InfoSourceName;
@@ -115,15 +128,15 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public ActionResult EditInfoSource(EditModel model)
         {
-            ir.EditInfo("Source", model);
+            _infoRepository.EditInfo("Source", model);
 
             return RedirectToAction("Index");
         }
 
         public ActionResult EditUrl(int id)
         {
-            EditModel model = new EditModel();
-            InfoSourceRssUrls url = ir.GetRssUrl(id);
+            var model = new EditModel();
+            var url = _infoRepository.GetRssUrl(id);
 
             model.Id = url.Id;
             model.Name = url.URL;
@@ -135,7 +148,7 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public ActionResult EditUrl(EditModel model)
         {
-            ir.EditInfo("URL", model);
+            _infoRepository.EditInfo("URL", model);
 
             return RedirectToAction("Index");
         }
@@ -143,8 +156,10 @@ namespace VideoGameHash.Controllers
         // GET: /GameSystemList
         public ActionResult InfoTypeList()
         {
-            InfoTypeSortOrderEdit order = new InfoTypeSortOrderEdit();
-            order.InfoTypeSortOrders = ir.GetInfoTypeSortOrder();
+            var order = new InfoTypeSortOrderEdit
+            {
+                InfoTypeSortOrders = _infoRepository.GetInfoTypeSortOrder()
+            };
 
             return View(order);
         }
@@ -155,9 +170,9 @@ namespace VideoGameHash.Controllers
         {
             if (model.InfoTypeSortOrders != null)
             {
-                foreach (InfoTypeSortOrder order in model.InfoTypeSortOrders)
+                foreach (var order in model.InfoTypeSortOrders)
                 {
-                    ir.UpdateOrder(order);
+                    _infoRepository.UpdateOrder(order);
                 }
             }
 
@@ -167,8 +182,10 @@ namespace VideoGameHash.Controllers
         // GET: /GameSystemList
         public ActionResult InfoSourceList()
         {
-            InfoSourceSortOrderEdit order = new InfoSourceSortOrderEdit();
-            order.InfoSourceSortOrders = ir.GetInfoSourceSortOrder();
+            var order = new InfoSourceSortOrderEdit
+            {
+                InfoSourceSortOrders = _infoRepository.GetInfoSourceSortOrder()
+            };
 
             return View(order);
         }
@@ -179,9 +196,9 @@ namespace VideoGameHash.Controllers
         {
             if (model.InfoSourceSortOrders != null)
             {
-                foreach (InfoSourceSortOrder order in model.InfoSourceSortOrders)
+                foreach (var order in model.InfoSourceSortOrders)
                 {
-                    ir.UpdateOrder(order);
+                    _infoRepository.UpdateOrder(order);
                 }
             }
 
@@ -190,45 +207,45 @@ namespace VideoGameHash.Controllers
 
         public ActionResult GetArticles(int section)
         {
-            ir.AddFeedItems(section);
+            _infoRepository.AddFeedItems(section);
 
             return RedirectToAction("Index");
         }
 
         public ActionResult GetAllArticles()
         {
-            ir.AddFeedItems();
+            _infoRepository.AddFeedItems();
             return RedirectToAction("Index");
         }
 
         public ActionResult DeleteOldArticles()
         {
-            ir.DeleteOldArticles();
+            _infoRepository.DeleteOldArticles();
             return RedirectToAction("Index");
         }
 
         public ActionResult MakeFeatured(int section)
         {
-            ir.MakeFeatured(section);
+            _infoRepository.MakeFeatured(section);
             return RedirectToAction("Index");
         }
 
         public ActionResult MakeTrending(int section)
         {
-            ir.MakeTrending(section);
+            _infoRepository.MakeTrending(section);
             return RedirectToAction("Index");
         }
 
         public ActionResult DeleteInfoType(int id)
         {
-            ir.DeleteInfoType(id);
+            _infoRepository.DeleteInfoType(id);
 
             return RedirectToAction("Index");
         }
 
         public ActionResult DeleteInfoSource(int id)
         {
-            ir.DeleteInfoSource(id);
+            _infoRepository.DeleteInfoSource(id);
 
             return RedirectToAction("Index");
         }
@@ -241,13 +258,20 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public ActionResult AddPoll(AddPollModel model)
         {
-            ir.AddPoll(model);
+            _infoRepository.AddPoll(model);
             return RedirectToAction("Index");
         }
 
         public ActionResult DeleteUrl(int id)
         {
-            ir.DeleteUrl(id);
+            _infoRepository.DeleteUrl(id);
+            return RedirectToAction("Index");
+        }
+
+        // Http Post
+        [HttpPost]
+        public ActionResult JsonImport()
+        {
             return RedirectToAction("Index");
         }
     }

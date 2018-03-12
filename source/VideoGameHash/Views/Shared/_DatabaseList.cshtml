@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<VideoGameHash.Models.Games>
 
 @{
-    int i = 0;
+    var i = 0;
     string colorClass;
 }
 
@@ -23,7 +23,7 @@ else
         }
         <div class="@colorClass clipped-text">
             @*@Html.ActionLink(Model.ElementAt(i).GameTitle, "GameDetails", new { Id = Model.ElementAt(i).Id })*@
-            <a class="game-details" href="#!" data-url="@Url.Action("GetGameDetails", new { Id = Model.ElementAt(i).Id })">@Model.ElementAt(i).GameTitle</a>
+            <a class="game-details" href="#!" data-url="@Url.Action("GetGameDetails", new {Model.ElementAt(i).Id })">@Model.ElementAt(i).GameTitle</a>
         </div>
         i++;
     }

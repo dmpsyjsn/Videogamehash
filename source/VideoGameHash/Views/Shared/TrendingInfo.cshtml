@@ -1,15 +1,15 @@
 ﻿@model VideoGameHash.Models.TrendingInfoModel
 @{
     Layout = null;
-    int index = 0;
-    int sourceId = -1;    
+    var index = 0;
+    var sourceId = -1;    
 }
 
 @if (Model.TrendingArticles != null && Model.TrendingArticles.Count() > 0)
 {
-    string trendingScrollId = string.Format("{0}_Scrollbar_{1}", Model.Section, Model.TrendingGameId);
-    string scrollGraphic = string.Format("{0}_ScrollGraphic{1}", Model.Section, Model.TrendingGameId);
-    string detailsId = string.Format("{0}_Details_{1}", Model.Section, Model.TrendingGameId);
+    var trendingScrollId = string.Format("{0}_Scrollbar_{1}", Model.Section, Model.TrendingGameId);
+    var scrollGraphic = string.Format("{0}_ScrollGraphic{1}", Model.Section, Model.TrendingGameId);
+    var detailsId = string.Format("{0}_Details_{1}", Model.Section, Model.TrendingGameId);
     <div class="test" id="@trendingScrollId">
         <div class="scrollbar" id="@scrollGraphic" style="height: 350px; display:none;">
             <div class="track" style="height: 350px;">
@@ -20,9 +20,9 @@
         </div>
         <div class="viewport viewport2">
             <div class="overview overview2" id="@detailsId">
-                @foreach (VideoGameHash.Models.TrendingArticles item in Model.TrendingArticles)
+                @foreach (var item in Model.TrendingArticles)
                 {
-                    string className = "LatestNewsItem";
+                    var className = "LatestNewsItem";
                     if (sourceId != item.Article.InfoSourceId)
                     {
                         <h6 class="subheader"><span>@Html.Raw(item.Article.InfoSource.InfoSourceName)</span></h6>

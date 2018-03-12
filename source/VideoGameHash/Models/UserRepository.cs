@@ -9,19 +9,21 @@ namespace VideoGameHash.Models
 {
     public class UserRepository
     {
-        private VGHDatabaseContainer db = new VGHDatabaseContainer();
+        private VGHDatabaseContainer _db = new VGHDatabaseContainer();
 
         public int CreateUserProfile(string userName)
         {
-            UserProfile user = GetUserByUserName(userName);
+            var user = GetUserByUserName(userName);
 
             if (user == null)
             {
-                user = new UserProfile();
-                user.UserName = userName;
+                user = new UserProfile
+                {
+                    UserName = userName
+                };
 
-                db.UserProfiles.AddObject(user);
-                db.SaveChanges();
+                _db.UserProfiles.AddObject(user);
+                _db.SaveChanges();
 
                 user = GetUserByUserName(userName);
 
@@ -35,14 +37,14 @@ namespace VideoGameHash.Models
 
         public UserProfile GetUserByUserId(int userId)
         {
-            return db.UserProfiles.SingleOrDefault(u => u.Id == userId);
+            return _db.UserProfiles.SingleOrDefault(u => u.Id == userId);
         }
 
         public UserProfile GetUserByUserName(string userName)
         {
             try
             {
-                return db.UserProfiles.SingleOrDefault(u => u.UserName == userName);
+                return _db.UserProfiles.SingleOrDefault(u => u.UserName == userName);
             }
             catch
             {
@@ -52,17 +54,17 @@ namespace VideoGameHash.Models
 
         public string GetUserNameByUserId(int userId)
         {
-            return db.UserProfiles.SingleOrDefault(u => u.Id == userId).UserName;
+            return _db.UserProfiles.SingleOrDefault(u => u.Id == userId).UserName;
         }
 
         public string GetPasswordByUserId(int userId)
         {
-            return db.Memberships.SingleOrDefault(u => u.UserId == userId).Password;
+            return _db.Memberships.SingleOrDefault(u => u.UserId == userId).Password;
         }
 
         public int GetUserIdByEmail(string email)
         {
-            Membership membership = db.Memberships.SingleOrDefault(u => u.Email == email);
+            var membership = _db.Memberships.SingleOrDefault(u => u.Email == email);
 
             if (membership != null)
                 return membership.UserId;
@@ -72,23 +74,23 @@ namespace VideoGameHash.Models
 
         public void UpdatePassword(string userName, string oldPassword, string newPassword)
         {
-            SaltedHash saltedHash = new SaltedHash();
+            var saltedHash = new SaltedHash();
 
-            string passwordSalt = GetPasswordSalt(userName);
-            string passwordHash = GetPassword(userName);
+            var passwordSalt = GetPasswordSalt(userName);
+            var passwordHash = GetPassword(userName);
 
             if (saltedHash.VerifyHashString(oldPassword, passwordHash, passwordSalt))
             {
                 string salt, hash;
 
                 saltedHash.GetHashAndSaltString(newPassword, out hash, out salt);
-                Membership member = GetMembershipByUsername(userName);
+                var member = GetMembershipByUsername(userName);
 
                 member.Password = hash;
                 member.PasswordSalt = salt;
                 member.PasswordChangeDate = DateTime.Now;
 
-                db.SaveChanges();
+                _db.SaveChanges();
             }
             else
                 throw new Exception("Password provided is incorrect.");
@@ -96,49 +98,49 @@ namespace VideoGameHash.Models
 
         public void ResetPassword(string userName, string newPassword)
         {
-            SaltedHash saltedHash = new SaltedHash();
+            var saltedHash = new SaltedHash();
             string salt, hash;
 
             saltedHash.GetHashAndSaltString(newPassword, out hash, out salt);
 
-            Membership member = GetMembershipByUsername(userName);
+            var member = GetMembershipByUsername(userName);
 
             member.Password = hash;
             member.PasswordSalt = salt;
             member.PasswordChangeDate = DateTime.Now;
 
-            db.SaveChanges();
+            _db.SaveChanges();
         }
 
         public Membership GetMembershipByUsername(string userName)
         {
-            UserProfile userProfile = GetUserByUserName(userName);
+            var userProfile = GetUserByUserName(userName);
 
-            return db.Memberships.SingleOrDefault(u => u.UserId == userProfile.Id);
+            return _db.Memberships.SingleOrDefault(u => u.UserId == userProfile.Id);
         }
 
         public Membership GetMembershipByEmail(string email)
         {
-            return db.Memberships.SingleOrDefault(u => u.Email == email);
+            return _db.Memberships.SingleOrDefault(u => u.Email == email);
         }
 
         public Membership GetMembershipByUserId(int userId)
         {
-            return db.Memberships.SingleOrDefault(u => u.UserId == userId);
+            return _db.Memberships.SingleOrDefault(u => u.UserId == userId);
         }
 
         public IEnumerable<UserProfile> GetAllUserProfile()
         {
-            return db.UserProfiles.AsEnumerable();
+            return _db.UserProfiles.AsEnumerable();
         }
 
         public List<string> GetUserRolesByUserName(string userName)
         {
-            UserProfile user = GetUserByUserName(userName);
-            List<UsersInRoles> userRoles = new List<UsersInRoles>();
-            userRoles = db.UsersInRoles.Where(d => d.UserProfileId == user.Id).ToList();
-            List<string> roles = new List<string>();
-            for (int i = 0; i < userRoles.Count; i++)
+            var user = GetUserByUserName(userName);
+            var userRoles = new List<UsersInRoles>();
+            userRoles = _db.UsersInRoles.Where(d => d.UserProfileId == user.Id).ToList();
+            var roles = new List<string>();
+            for (var i = 0; i < userRoles.Count; i++)
             {
                 roles.Add(GetRole(userRoles[i].RolesId));
             }
@@ -148,12 +150,12 @@ namespace VideoGameHash.Models
 
         public List<string> GetAllRoles()
         {
-            List<Roles> roles = new List<Roles>();
-            roles = db.Roles.ToList();
+            var roles = new List<Roles>();
+            roles = _db.Roles.ToList();
 
-            List<string> rolesList = new List<string>();
+            var rolesList = new List<string>();
 
-            foreach (Roles role in roles)
+            foreach (var role in roles)
                 rolesList.Add(role.RoleName);
 
             return rolesList;
@@ -161,13 +163,13 @@ namespace VideoGameHash.Models
 
         public string GetRole(int roleId)
         {
-            return db.Roles.SingleOrDefault(u => u.Id == roleId).RoleName;
+            return _db.Roles.SingleOrDefault(u => u.Id == roleId).RoleName;
         }
 
         public void RegisterUser(Member member)
         {
-            Membership membership = new Membership();
-            SaltedHash saltedHash = new SaltedHash();
+            var membership = new Membership();
+            var saltedHash = new SaltedHash();
             String salt, hash;
             saltedHash.GetHashAndSaltString(member.Password, out hash, out salt);
 
@@ -180,16 +182,16 @@ namespace VideoGameHash.Models
             membership.Email = member.Email;
             membership.SecurityQuestion = member.SecurityQuestion;
             membership.SecurityAnswer = member.SecurityAnswer;
-            db.Memberships.AddObject(membership);
-            db.SaveChanges();
+            _db.Memberships.AddObject(membership);
+            _db.SaveChanges();
         }
 
         public string GetPassword(string userName)
         {
-            UserProfile user = GetUserByUserName(userName);
+            var user = GetUserByUserName(userName);
             if (user != null)
             {
-                string password = db.Memberships.SingleOrDefault(u => u.UserId == user.Id).Password;
+                var password = _db.Memberships.SingleOrDefault(u => u.UserId == user.Id).Password;
                 return password;
             }
             else
@@ -198,11 +200,11 @@ namespace VideoGameHash.Models
 
         public string GetPasswordSalt(string userName)
         {
-            UserProfile user = GetUserByUserName(userName);
+            var user = GetUserByUserName(userName);
             if (user != null)
             {
-                int userId = user.Id;
-                return db.Memberships.SingleOrDefault(u => u.UserId == userId).PasswordSalt;
+                var userId = user.Id;
+                return _db.Memberships.SingleOrDefault(u => u.UserId == userId).PasswordSalt;
             }
             else
                 return string.Empty;
@@ -210,14 +212,14 @@ namespace VideoGameHash.Models
 
         public bool VerifyUser(string userName, string password)
         {
-            UserProfile user = GetUserByUserName(userName);
+            var user = GetUserByUserName(userName);
 
             if (user != null)
             {
-                SaltedHash saltedHash = new SaltedHash();
+                var saltedHash = new SaltedHash();
 
-                string passwordSalt = GetPasswordSalt(userName);
-                string passwordDb = GetPassword(userName);
+                var passwordSalt = GetPasswordSalt(userName);
+                var passwordDb = GetPassword(userName);
 
                 return saltedHash.VerifyHashString(password, passwordDb, passwordSalt);
             }
@@ -227,11 +229,11 @@ namespace VideoGameHash.Models
 
         public bool IsInRole(string userName, string role)
         {
-            List<string> roles = GetUserRolesByUserName(userName);
+            var roles = GetUserRolesByUserName(userName);
 
-            bool isInRole = false;
+            var isInRole = false;
 
-            foreach (string userRole in roles)
+            foreach (var userRole in roles)
             {
                 if (userRole == role)
                 {
@@ -245,40 +247,41 @@ namespace VideoGameHash.Models
 
         public int GetRoleIdByRoleName(string roleName)
         {
-            return db.Roles.SingleOrDefault(u => u.RoleName == roleName).Id;
+            return _db.Roles.SingleOrDefault(u => u.RoleName == roleName).Id;
         }
 
         public void AddRole(int userId, string role)
         {
-            int roleId = GetRoleIdByRoleName(role);
+            var roleId = GetRoleIdByRoleName(role);
 
-            UsersInRoles usersInRoles = new UsersInRoles();
+            var usersInRoles = new UsersInRoles
+            {
+                UserProfileId = userId,
+                RolesId = roleId
+            };
 
-            usersInRoles.UserProfileId = userId;
-            usersInRoles.RolesId = roleId;
-
-            db.UsersInRoles.AddObject(usersInRoles);
-            db.SaveChanges();
+            _db.UsersInRoles.AddObject(usersInRoles);
+            _db.SaveChanges();
         }
     }
 
     class SaltedHash
     {
-        HashAlgorithm HashProvider;
-        int SalthLength;
+        HashAlgorithm _hashProvider;
+        int _salthLength;
 
         /// <summary>
         /// The constructor takes a HashAlgorithm as a parameter.
         /// </summary>
-        /// <param name="HashAlgorithm">
+        /// <param name="hashAlgorithm">
         /// A <see cref="HashAlgorithm"/> HashAlgorihm which is derived from HashAlgorithm. C# provides
         /// the following classes: SHA1Managed,SHA256Managed, SHA384Managed, SHA512Managed and MD5CryptoServiceProvider
         /// </param>
 
-        public SaltedHash(HashAlgorithm HashAlgorithm, int theSaltLength)
+        public SaltedHash(HashAlgorithm hashAlgorithm, int theSaltLength)
         {
-            HashProvider = HashAlgorithm;
-            SalthLength = theSaltLength;
+            _hashProvider = hashAlgorithm;
+            _salthLength = theSaltLength;
         }
 
         /// <summary>
@@ -294,97 +297,97 @@ namespace VideoGameHash.Models
         /// <summary>
         /// The actual hash calculation is shared by both GetHashAndSalt and the VerifyHash functions
         /// </summary>
-        /// <param name="Data">A byte array of the Data to Hash</param>
-        /// <param name="Salt">A byte array of the Salt to add to the Hash</param>
+        /// <param name="data">A byte array of the Data to Hash</param>
+        /// <param name="salt">A byte array of the Salt to add to the Hash</param>
         /// <returns>A byte array with the calculated hash</returns>
 
-        private byte[] ComputeHash(byte[] Data, byte[] Salt)
+        private byte[] ComputeHash(byte[] data, byte[] salt)
         {
             // Allocate memory to store both the Data and Salt together
-            byte[] DataAndSalt = new byte[Data.Length + SalthLength];
+            var dataAndSalt = new byte[data.Length + _salthLength];
 
             // Copy both the data and salt into the new array
-            Array.Copy(Data, DataAndSalt, Data.Length);
-            Array.Copy(Salt, 0, DataAndSalt, Data.Length, SalthLength);
+            Array.Copy(data, dataAndSalt, data.Length);
+            Array.Copy(salt, 0, dataAndSalt, data.Length, _salthLength);
 
             // Calculate the hash
             // Compute hash value of our plain text with appended salt.
-            return HashProvider.ComputeHash(DataAndSalt);
+            return _hashProvider.ComputeHash(dataAndSalt);
         }
 
         /// <summary>
         /// Given a data block this routine returns both a Hash and a Salt
         /// </summary>
-        /// <param name="Data">
+        /// <param name="data">
         /// A <see cref="System.Byte"/>byte array containing the data from which to derive the salt
         /// </param>
-        /// <param name="Hash">
+        /// <param name="hash">
         /// A <see cref="System.Byte"/>byte array which will contain the hash calculated
         /// </param>
-        /// <param name="Salt">
+        /// <param name="salt">
         /// A <see cref="System.Byte"/>byte array which will contain the salt generated
         /// </param>
 
-        public void GetHashAndSalt(byte[] Data, out byte[] Hash, out byte[] Salt)
+        public void GetHashAndSalt(byte[] data, out byte[] hash, out byte[] salt)
         {
             // Allocate memory for the salt
-            Salt = new byte[SalthLength];
+            salt = new byte[_salthLength];
 
             // Strong runtime pseudo-random number generator, on Windows uses CryptAPI
             // on Unix /dev/urandom
-            RNGCryptoServiceProvider random = new RNGCryptoServiceProvider();
+            var random = new RNGCryptoServiceProvider();
 
             // Create a random salt
-            random.GetNonZeroBytes(Salt);
+            random.GetNonZeroBytes(salt);
 
             // Compute hash value of our data with the salt.
-            Hash = ComputeHash(Data, Salt);
+            hash = ComputeHash(data, salt);
         }
 
         /// <summary>
         /// The routine provides a wrapper around the GetHashAndSalt function providing conversion
         /// from the required byte arrays to strings. Both the Hash and Salt are returned as Base-64 encoded strings.
         /// </summary>
-        /// <param name="Data">
+        /// <param name="data">
         /// A <see cref="System.String"/> string containing the data to hash
         /// </param>
-        /// <param name="Hash">
+        /// <param name="hash">
         /// A <see cref="System.String"/> base64 encoded string containing the generated hash
         /// </param>
-        /// <param name="Salt">
+        /// <param name="salt">
         /// A <see cref="System.String"/> base64 encoded string containing the generated salt
         /// </param>
 
-        public void GetHashAndSaltString(string Data, out string Hash, out string Salt)
+        public void GetHashAndSaltString(string data, out string hash, out string salt)
         {
-            byte[] HashOut;
-            byte[] SaltOut;
+            byte[] hashOut;
+            byte[] saltOut;
 
             // Obtain the Hash and Salt for the given string
-            GetHashAndSalt(Encoding.UTF8.GetBytes(Data), out HashOut, out SaltOut);
+            GetHashAndSalt(Encoding.UTF8.GetBytes(data), out hashOut, out saltOut);
 
             // Transform the byte[] to Base-64 encoded strings
-            Hash = Convert.ToBase64String(HashOut);
-            Salt = Convert.ToBase64String(SaltOut);
+            hash = Convert.ToBase64String(hashOut);
+            salt = Convert.ToBase64String(saltOut);
         }
 
         /// <summary>
         /// This routine verifies whether the data generates the same hash as we had stored previously
         /// </summary>
-        /// <param name="Data">The data to verify </param>
-        /// <param name="Hash">The hash we had stored previously</param>
-        /// <param name="Salt">The salt we had stored previously</param>
+        /// <param name="data">The data to verify </param>
+        /// <param name="hash">The hash we had stored previously</param>
+        /// <param name="salt">The salt we had stored previously</param>
         /// <returns>True on a succesfull match</returns>
 
-        public bool VerifyHash(byte[] Data, byte[] Hash, byte[] Salt)
+        public bool VerifyHash(byte[] data, byte[] hash, byte[] salt)
         {
-            byte[] NewHash = ComputeHash(Data, Salt);
+            var newHash = ComputeHash(data, salt);
 
             //  No easy array comparison in C# -- we do the legwork
-            if (NewHash.Length != Hash.Length) return false;
+            if (newHash.Length != hash.Length) return false;
 
-            for (int Lp = 0; Lp < Hash.Length; Lp++)
-                if (!Hash[Lp].Equals(NewHash[Lp]))
+            for (var lp = 0; lp < hash.Length; lp++)
+                if (!hash[lp].Equals(newHash[lp]))
                     return false;
 
             return true;
@@ -394,17 +397,17 @@ namespace VideoGameHash.Models
         /// This routine provides a wrapper around VerifyHash converting the strings containing the
         /// data, hash and salt into byte arrays before calling VerifyHash.
         /// </summary>
-        /// <param name="Data">A UTF-8 encoded string containing the data to verify</param>
-        /// <param name="Hash">A base-64 encoded string containing the previously stored hash</param>
-        /// <param name="Salt">A base-64 encoded string containing the previously stored salt</param>
+        /// <param name="data">A UTF-8 encoded string containing the data to verify</param>
+        /// <param name="hash">A base-64 encoded string containing the previously stored hash</param>
+        /// <param name="salt">A base-64 encoded string containing the previously stored salt</param>
         /// <returns></returns>
 
-        public bool VerifyHashString(string Data, string Hash, string Salt)
+        public bool VerifyHashString(string data, string hash, string salt)
         {
-            byte[] HashToVerify = Convert.FromBase64String(Hash);
-            byte[] SaltToVerify = Convert.FromBase64String(Salt);
-            byte[] DataToVerify = Encoding.UTF8.GetBytes(Data);
-            return VerifyHash(DataToVerify, HashToVerify, SaltToVerify);
+            var hashToVerify = Convert.FromBase64String(hash);
+            var saltToVerify = Convert.FromBase64String(salt);
+            var dataToVerify = Encoding.UTF8.GetBytes(data);
+            return VerifyHash(dataToVerify, hashToVerify, saltToVerify);
         }
 
     }

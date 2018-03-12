@@ -9,23 +9,23 @@ namespace VideoGameHash.Models
 {
     public class InfoRepository
     {
-        private VGHDatabaseContainer db = new VGHDatabaseContainer();
+        private VGHDatabaseContainer _db = new VGHDatabaseContainer();
 
         public IEnumerable<InfoType> GetInfoTypes()
         {
-            return db.InfoTypes;
+            return _db.InfoTypes;
         }
 
-        public InfoType GetInfoType(int Id)
+        public InfoType GetInfoType(int id)
         {
-            return db.InfoTypes.SingleOrDefault(u => u.Id == Id);
+            return _db.InfoTypes.SingleOrDefault(u => u.Id == id);
         }
 
         public string GetInfoTypeName(int id)
         {
             try
             {
-                return db.InfoTypes.SingleOrDefault(u => u.Id == id).InfoTypeName;
+                return _db.InfoTypes.SingleOrDefault(u => u.Id == id).InfoTypeName;
             }
             catch
             {
@@ -35,29 +35,29 @@ namespace VideoGameHash.Models
 
         public InfoType GetInfoType(string name)
         {
-            return db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == name);
+            return _db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == name);
         }
 
         public IEnumerable<InfoSource> GetSources()
         {
-            return db.InfoSources;
+            return _db.InfoSources;
         }
 
         public IEnumerable<InfoSource> GetSources(int section)
         {
-            return db.InfoSources;
+            return _db.InfoSources;
         }
 
-        public InfoSource GetInfoSource(int Id)
+        public InfoSource GetInfoSource(int id)
         {
-            return db.InfoSources.SingleOrDefault(u => u.Id == Id);
+            return _db.InfoSources.SingleOrDefault(u => u.Id == id);
         }
 
-        public string GetInfoSourceName(int Id)
+        public string GetInfoSourceName(int id)
         {
             try
             {
-                return db.InfoSources.SingleOrDefault(u => u.Id == Id).InfoSourceName;
+                return _db.InfoSources.SingleOrDefault(u => u.Id == id).InfoSourceName;
             }
             catch
             {
@@ -67,73 +67,75 @@ namespace VideoGameHash.Models
 
         public InfoSource GetInfoSource(string name)
         {
-            return db.InfoSources.SingleOrDefault(u => u.InfoSourceName == name);
+            return _db.InfoSources.SingleOrDefault(u => u.InfoSourceName == name);
         }
 
         public IEnumerable<InfoSourceRssUrls> GetRssUrls()
         {
-            return db.InfoSourceRssUrls;
+            return _db.InfoSourceRssUrls;
         }
 
-        public InfoSourceRssUrls GetRssUrl(int Id)
+        public InfoSourceRssUrls GetRssUrl(int id)
         {
-            return db.InfoSourceRssUrls.SingleOrDefault(u => u.Id == Id);
+            return _db.InfoSourceRssUrls.SingleOrDefault(u => u.Id == id);
         }
 
         public IEnumerable<FeaturedArticles> GetFeaturedArticles()
         {
-            return db.FeaturedArticles;
+            return _db.FeaturedArticles;
         }
 
         public IEnumerable<FeaturedArticles> GetFeaturedArticles(int sectionId)
         {
-            return db.FeaturedArticles.Where(u => u.Article.InfoTypeId == sectionId);
+            return _db.FeaturedArticles.Where(u => u.Article.InfoTypeId == sectionId);
         }
 
         public IEnumerable<TrendingGames> GetTrendingGames()
         {
-            return db.TrendingGames;
+            return _db.TrendingGames;
         }
 
         public IEnumerable<TrendingGames> GetTrendingGames(int sectionId)
         {
-            return db.TrendingGames.Where(u => u.InfoTypeId == sectionId);
+            return _db.TrendingGames.Where(u => u.InfoTypeId == sectionId);
         }
 
         public IEnumerable<TrendingArticles> GetTrendingArticles(int sectionId)
         {
-            return db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId);
+            return _db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId);
         }
 
         public IEnumerable<TrendingArticles> GetTrendingArticles(int sectionId, int trendingGameId)
         {
-            return db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId && u.TrendingGamesId == trendingGameId).GroupBy(u => u.Article.Title).Select(u => u.FirstOrDefault()).OrderBy(u => u.Article.InfoSourceId).ThenByDescending(u => u.Article.DatePublished);
+            return _db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId && u.TrendingGamesId == trendingGameId).GroupBy(u => u.Article.Title).Select(u => u.FirstOrDefault()).OrderBy(u => u.Article.InfoSourceId).ThenByDescending(u => u.Article.DatePublished);
         }
 
         public IEnumerable<TrendingArticles> GetTrendingArticles(int sectionId, int trendingGameId, int gameSystemId)
         {
-            return db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId && u.TrendingGamesId == trendingGameId && (u.Article.GameSystemId == gameSystemId || u.Article.GameSystem.GameSystemName == "All")).OrderBy(u => u.Article.InfoSourceId).ThenByDescending(u => u.Article.DatePublished);
+            return _db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId && u.TrendingGamesId == trendingGameId && (u.Article.GameSystemId == gameSystemId || u.Article.GameSystem.GameSystemName == "All")).OrderBy(u => u.Article.InfoSourceId).ThenByDescending(u => u.Article.DatePublished);
         }
 
         public void AddInfoType(AddInfoModel model)
         {
             try
             {
-                InfoType infoType = new InfoType();
-                infoType.InfoTypeName = model.Name;
-                infoType.UseGameSystem = true;
-                db.InfoTypes.AddObject(infoType);
-                db.SaveChanges();
+                var infoType = new InfoType
+                {
+                    InfoTypeName = model.Name,
+                    UseGameSystem = true
+                };
+                _db.InfoTypes.AddObject(infoType);
+                _db.SaveChanges();
 
-                int? maxValue = db.InfoTypeSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
-                InfoTypeSortOrder order = new InfoTypeSortOrder();
+                int? maxValue = _db.InfoTypeSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
+                var order = new InfoTypeSortOrder();
                 infoType = GetInfoType(model.Name);
                 order.Id = infoType.Id;
                 order.InfoType = infoType;
                 order.SortOrder = maxValue + 1 ?? 1;
 
-                db.InfoTypeSortOrders.AddObject(order);
-                db.SaveChanges();
+                _db.InfoTypeSortOrders.AddObject(order);
+                _db.SaveChanges();
             }
             catch
             {
@@ -145,20 +147,22 @@ namespace VideoGameHash.Models
         {
             try
             {
-                InfoSource infoSource = new InfoSource();
-                infoSource.InfoSourceName = model.Name;
-                db.InfoSources.AddObject(infoSource);
-                db.SaveChanges();
+                var infoSource = new InfoSource
+                {
+                    InfoSourceName = model.Name
+                };
+                _db.InfoSources.AddObject(infoSource);
+                _db.SaveChanges();
 
-                int? maxValue = db.InfoSourceSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
-                InfoSourceSortOrder order = new InfoSourceSortOrder();
+                int? maxValue = _db.InfoSourceSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
+                var order = new InfoSourceSortOrder();
                 infoSource = GetInfoSource(model.Name);
                 order.Id = infoSource.Id;
                 order.InfoSource = infoSource;
                 order.SortOrder = maxValue + 1 ?? 1;
 
-                db.InfoSourceSortOrders.AddObject(order);
-                db.SaveChanges();
+                _db.InfoSourceSortOrders.AddObject(order);
+                _db.SaveChanges();
             }
             catch
             {
@@ -170,14 +174,16 @@ namespace VideoGameHash.Models
         {
             try
             {
-                InfoSourceRssUrls url = new InfoSourceRssUrls();
-                url.InfoTypeId = GetInfoTypeId(model.Section);
-                url.InfoSourceId = GetInfoSourceId(model.Source);
-                url.GameSystemId = GetGameSystemId(model.GameSystem);
-                url.URL = model.Url;
+                var url = new InfoSourceRssUrls
+                {
+                    InfoTypeId = GetInfoTypeId(model.Section),
+                    InfoSourceId = GetInfoSourceId(model.Source),
+                    GameSystemId = GetGameSystemId(model.GameSystem),
+                    URL = model.Url
+                };
 
-                db.InfoSourceRssUrls.AddObject(url);
-                db.SaveChanges();
+                _db.InfoSourceRssUrls.AddObject(url);
+                _db.SaveChanges();
             }
             catch
             {
@@ -191,16 +197,16 @@ namespace VideoGameHash.Models
             {
                 if (section == "Source")
                 {
-                    InfoSource infoSource = GetInfoSource(model.Id);
+                    var infoSource = GetInfoSource(model.Id);
                     infoSource.InfoSourceName = model.Name;
                 }
                 else // section == "Url"
                 {
-                    InfoSourceRssUrls url = GetRssUrl(model.Id);
+                    var url = GetRssUrl(model.Id);
                     url.URL = model.Name;
                 }
 
-                db.SaveChanges();
+                _db.SaveChanges();
             }
             catch
             {
@@ -212,10 +218,10 @@ namespace VideoGameHash.Models
         {
             try
             {
-                InfoType infoType = GetInfoType(model.Id);
+                var infoType = GetInfoType(model.Id);
                 infoType.InfoTypeName = model.Name;
                 infoType.UseGameSystem = model.UseGameSystem;
-                db.SaveChanges();
+                _db.SaveChanges();
             }
             catch
             {
@@ -225,33 +231,33 @@ namespace VideoGameHash.Models
 
         public int GetInfoTypeId(string infoType)
         {
-            return db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == infoType).Id;
+            return _db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == infoType).Id;
         }
 
         public int GetInfoSourceId(string source)
         {
-            return db.InfoSources.SingleOrDefault(u => u.InfoSourceName == source).Id;
+            return _db.InfoSources.SingleOrDefault(u => u.InfoSourceName == source).Id;
         }
 
         public int GetGameSystemId(string gameSystem)
         {
-            return db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem).Id;
+            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem).Id;
         }
 
-        internal int GetNumSourceEntriesByGameSystem(int Section, int Source, int GameSystem)
+        internal int GetNumSourceEntriesByGameSystem(int section, int source, int gameSystem)
         {
-            int count = (from tempDb in db.Articles
-                         where tempDb.InfoTypeId == Section && tempDb.InfoSourceId == Source && tempDb.GameSystemId == GameSystem
+            var count = (from tempDb in _db.Articles
+                         where tempDb.InfoTypeId == section && tempDb.InfoSourceId == source && tempDb.GameSystemId == gameSystem
                          select tempDb).Count();
 
             return count;
         }
 
-        internal int GetNumEntriesBySectionAndSource(int Section, string source)
+        internal int GetNumEntriesBySectionAndSource(int section, string source)
         {
-            int sourceId = GetInfoSourceId(source);
-            int count = (from tempDb in db.Articles
-                         where tempDb.InfoTypeId == Section && tempDb.InfoSourceId == sourceId
+            var sourceId = GetInfoSourceId(source);
+            var count = (from tempDb in _db.Articles
+                         where tempDb.InfoTypeId == section && tempDb.InfoSourceId == sourceId
                          select tempDb).Count();
 
             return count;
@@ -259,7 +265,7 @@ namespace VideoGameHash.Models
 
         internal int GetNumSourceEntriesByGameSystem(int section, int gameSystem)
         {
-            int count = (from tempDb in db.Articles
+            var count = (from tempDb in _db.Articles
                          where tempDb.InfoTypeId == section && tempDb.GameSystemId == gameSystem
                          select tempDb).Count();
 
@@ -268,41 +274,41 @@ namespace VideoGameHash.Models
 
         public IQueryable<Articles> GetArticles(int section)
         {
-            return db.Articles.Where(u => u.InfoTypeId == section);
+            return _db.Articles.Where(u => u.InfoTypeId == section);
         }
 
         public IQueryable<Articles> GetArticles(int section, int gameSystem)
         {
-            return db.Articles.Where(u => u.InfoTypeId == section && u.GameSystemId == gameSystem);
+            return _db.Articles.Where(u => u.InfoTypeId == section && u.GameSystemId == gameSystem);
         }
 
-        public IQueryable<Articles> GetArticles(int Section, int Source, int GameSystem)
+        public IQueryable<Articles> GetArticles(int section, int source, int gameSystem)
         {
-            if (Source < 0 && GameSystem == GetGameSystemId("All"))
-                return GetArticles(Section).OrderByDescending(d => d.DatePublished).Take(210);
+            if (source < 0 && gameSystem == GetGameSystemId("All"))
+                return GetArticles(section).OrderByDescending(d => d.DatePublished).Take(210);
             else
             {
-                if (Source < 0)
-                    return GetArticles(Section).Where(u => u.GameSystemId == GameSystem).OrderByDescending(u => u.DatePublished).Take(210);
-                else if (GameSystem == GetGameSystemId("All"))
-                    return GetArticles(Section).Where(u => u.InfoSourceId == Source).OrderByDescending(u => u.DatePublished).Take(210);
+                if (source < 0)
+                    return GetArticles(section).Where(u => u.GameSystemId == gameSystem).OrderByDescending(u => u.DatePublished).Take(210);
+                else if (gameSystem == GetGameSystemId("All"))
+                    return GetArticles(section).Where(u => u.InfoSourceId == source).OrderByDescending(u => u.DatePublished).Take(210);
                 else
-                    return GetArticles(Section).Where(u => u.InfoSourceId == Source && u.GameSystemId == GameSystem).OrderByDescending(u => u.DatePublished).Take(210);
+                    return GetArticles(section).Where(u => u.InfoSourceId == source && u.GameSystemId == gameSystem).OrderByDescending(u => u.DatePublished).Take(210);
             }
         }
 
-        public IQueryable<Articles> GetArticles(int Section, int Source, int GameSystem, string Search)
+        public IQueryable<Articles> GetArticles(int section, int source, int gameSystem, string search)
         {
-            if (Source < 0 && GameSystem == GetGameSystemId("All"))
-                return GetArticles(Section).Where(u => u.Title.Contains(Search)).OrderByDescending(d => d.DatePublished).Take(210);
+            if (source < 0 && gameSystem == GetGameSystemId("All"))
+                return GetArticles(section).Where(u => u.Title.Contains(search)).OrderByDescending(d => d.DatePublished).Take(210);
             else
             {
-                if (Source < 0)
-                    return GetArticles(Section).Where(u => u.GameSystemId == GameSystem && u.Title.Contains(Search)).OrderByDescending(u => u.DatePublished).Take(210);
-                else if (GameSystem == GetGameSystemId("All"))
-                    return GetArticles(Section).Where(u => u.InfoSourceId == Source && u.Title.Contains(Search)).OrderByDescending(u => u.DatePublished).Take(210);
+                if (source < 0)
+                    return GetArticles(section).Where(u => u.GameSystemId == gameSystem && u.Title.Contains(search)).OrderByDescending(u => u.DatePublished).Take(210);
+                else if (gameSystem == GetGameSystemId("All"))
+                    return GetArticles(section).Where(u => u.InfoSourceId == source && u.Title.Contains(search)).OrderByDescending(u => u.DatePublished).Take(210);
                 else
-                    return GetArticles(Section).Where(u => u.InfoSourceId == Source && u.GameSystemId == GameSystem && u.Title.Contains(Search)).OrderByDescending(u => u.DatePublished).Take(210);
+                    return GetArticles(section).Where(u => u.InfoSourceId == source && u.GameSystemId == gameSystem && u.Title.Contains(search)).OrderByDescending(u => u.DatePublished).Take(210);
             }
         }
 
@@ -310,7 +316,7 @@ namespace VideoGameHash.Models
         {
             try
             {
-                return db.Articles.Where(u => u.InfoTypeId == section && u.Title.Contains(gameTitle)).GroupBy(u => u.Title).Select(u => u.FirstOrDefault()).OrderByDescending(u => u.DatePublished);
+                return _db.Articles.Where(u => u.InfoTypeId == section && u.Title.Contains(gameTitle)).GroupBy(u => u.Title).Select(u => u.FirstOrDefault()).OrderByDescending(u => u.DatePublished);
             }
             catch
             {
@@ -323,9 +329,9 @@ namespace VideoGameHash.Models
             try
             {
                 if (section != 2)
-                    return db.Articles.Where(u => u.InfoTypeId == section && u.Title.ToUpper().Contains(gameTitle.ToUpper())).GroupBy(u => u.Title).Select(u => u.FirstOrDefault()).OrderByDescending(u => u.DatePublished);
+                    return _db.Articles.Where(u => u.InfoTypeId == section && u.Title.ToUpper().Contains(gameTitle.ToUpper())).GroupBy(u => u.Title).Select(u => u.FirstOrDefault()).OrderByDescending(u => u.DatePublished);
                 else
-                    return db.Articles.Where(u => u.InfoTypeId == section && u.Title.ToUpper().Contains(gameTitle.ToUpper())).OrderByDescending(u => u.DatePublished);
+                    return _db.Articles.Where(u => u.InfoTypeId == section && u.Title.ToUpper().Contains(gameTitle.ToUpper())).OrderByDescending(u => u.DatePublished);
             }
             catch
             {
@@ -335,10 +341,10 @@ namespace VideoGameHash.Models
 
         public IEnumerable<Articles> GetGameArticles(int section, string gameTitle, string gameSystem)
         {
-            int gameSystemId = GetGameSystemId(gameSystem);
+            var gameSystemId = GetGameSystemId(gameSystem);
             try
             {
-                return db.Articles.Where(u => u.InfoTypeId == section && u.Title.Contains(gameTitle) && u.GameSystemId == gameSystemId).OrderByDescending(u => u.DatePublished);
+                return _db.Articles.Where(u => u.InfoTypeId == section && u.Title.Contains(gameTitle) && u.GameSystemId == gameSystemId).OrderByDescending(u => u.DatePublished);
             }
             catch
             {
@@ -348,13 +354,13 @@ namespace VideoGameHash.Models
 
         public bool ContainsArticles(string gameTitle)
         {
-            var temp = from tempArticles in db.Articles
+            var temp = from tempArticles in _db.Articles
                        where tempArticles.Title.Contains(gameTitle)
                        select tempArticles;
             bool success;
             try
             {
-                System.Text.RegularExpressions.Regex searchTerm =
+                var searchTerm =
                     new System.Text.RegularExpressions.Regex(@"\b" + gameTitle + @"\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
                 var matched = temp.AsEnumerable().Where(d => searchTerm.IsMatch(d.Title)).ToList();
@@ -371,9 +377,9 @@ namespace VideoGameHash.Models
 
         public bool ContainsArticles(string gameTitle, string gameSystem)
         {
-            int gameSystemId = GetGameSystemId(gameSystem);
+            var gameSystemId = GetGameSystemId(gameSystem);
 
-            var temp = from tempArticles in db.Articles
+            var temp = from tempArticles in _db.Articles
                        where tempArticles.Title.Contains(gameTitle) && tempArticles.GameSystemId == gameSystemId
                        select tempArticles;
             return temp != null && temp.Count() > 0;
@@ -381,9 +387,9 @@ namespace VideoGameHash.Models
 
         public bool ContainsArticles(int section, string gameTitle, string gameSystem)
         {
-            int gameSystemId = GetGameSystemId(gameSystem);
+            var gameSystemId = GetGameSystemId(gameSystem);
 
-            var temp = from tempArticles in db.Articles
+            var temp = from tempArticles in _db.Articles
                        where tempArticles.Title.Contains(gameTitle) && tempArticles.GameSystemId == gameSystemId && tempArticles.InfoTypeId == section
                        select tempArticles;
             return temp != null && temp.Count() > 0;
@@ -391,72 +397,73 @@ namespace VideoGameHash.Models
 
         public IEnumerable<InfoTypeSortOrder> GetInfoTypeSortOrder()
         {
-            return db.InfoTypeSortOrders;
+            return _db.InfoTypeSortOrders;
         }
 
         public IEnumerable<InfoSourceSortOrder> GetInfoSourceSortOrder()
         {
-            return db.InfoSourceSortOrders;
+            return _db.InfoSourceSortOrders;
         }
 
         public void UpdateOrder(InfoTypeSortOrder order)
         {
-            InfoTypeSortOrder dbOrder = (from t in db.InfoTypeSortOrders
+            var dbOrder = (from t in _db.InfoTypeSortOrders
                                        where t.Id == order.Id
                                        select t).SingleOrDefault();
 
             dbOrder.SortOrder = order.SortOrder;
 
-            db.SaveChanges();
+            _db.SaveChanges();
         }
 
         public void UpdateOrder(InfoSourceSortOrder order)
         {
-            InfoSourceSortOrder dbOrder = (from t in db.InfoSourceSortOrders
+            var dbOrder = (from t in _db.InfoSourceSortOrders
                                          where t.Id == order.Id
                                          select t).SingleOrDefault();
 
             dbOrder.SortOrder = order.SortOrder;
 
-            db.SaveChanges();
+            _db.SaveChanges();
         }
 
         public bool UseGameSystem(string section)
         {
-            return db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == section).UseGameSystem;
+            return _db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == section).UseGameSystem;
         }
 
         public int AddRssFeed(InfoSourceRssUrls model)
         {
-            InfoSourceRssUrls rssUrl = GetRssUrl(model.Id);
-            int i = 0;
+            var rssUrl = GetRssUrl(model.Id);
+            var i = 0;
 
             if (rssUrl != null)
             {
                 try
                 {
-                    Uri feedUri = new Uri(rssUrl.URL);
+                    var feedUri = new Uri(rssUrl.URL);
                     IFeedFactory feedFactory = new HttpFeedFactory();
-                    IFeed feed = feedFactory.CreateFeed(feedUri);
+                    var feed = feedFactory.CreateFeed(feedUri);
 
                     if (feed.Items.Count > 0)
                     {
-                        foreach (BaseFeedItem item in feed.Items)
+                        foreach (var item in feed.Items)
                         {
-                            Articles article = new Articles();
-
-                            article.InfoTypeId = rssUrl.InfoTypeId;
-                            article.InfoSourceId = rssUrl.InfoSourceId;
-                            article.GameSystemId = rssUrl.GameSystemId;
-                            article.Content = item.Content;
-                            article.DatePublished = item.DatePublished;
-                            article.Link = item.Link;
-                            article.Title = item.Title;
+                            var article = new Articles
+                            {
+                                InfoTypeId = rssUrl.InfoTypeId,
+                                InfoSourceId = rssUrl.InfoSourceId,
+                                GameSystemId = rssUrl.GameSystemId,
+                                Content = item.Content,
+                                DatePublished = item.DatePublished,
+                                Link = item.Link,
+                                Title = item.Title
+                            };
 
                             if (!IsDuplicateArticle(article) && SourceSpecificBypass(model.InfoTypeId, model.InfoSourceId, article))
                             {
-                                db.Articles.AddObject(article);
-                                db.SaveChanges();
+                                _db.Articles.AddObject(article);
+                                _db.SaveChanges();
                                 i++;
                             }
                             else
@@ -475,11 +482,11 @@ namespace VideoGameHash.Models
 
         private bool SourceSpecificBypass(int infoTypeId, int infoSourceId, Articles article)
         {
-            bool byPass = true;
+            var byPass = true;
 
             if (GetInfoSourceName(infoSourceId) == "N4G")
             {
-                string title = article.Title.ToUpper();
+                var title = article.Title.ToUpper();
                 
                 if (GetInfoTypeName(infoTypeId) == "Reviews")
                 {
@@ -496,12 +503,12 @@ namespace VideoGameHash.Models
             return byPass;
         }
 
-        public int AddFeedItems(int SectionId)
+        public int AddFeedItems(int sectionId)
         {
-            int i = 0;
+            var i = 0;
 
-            IList<InfoSourceRssUrls> RssList = GetRssUrls(SectionId).ToList();
-            foreach (InfoSourceRssUrls model in RssList)
+            IList<InfoSourceRssUrls> rssList = GetRssUrls(sectionId).ToList();
+            foreach (var model in rssList)
             {
                 i += AddRssFeed(model);
             }
@@ -511,10 +518,10 @@ namespace VideoGameHash.Models
 
         public int AddFeedItems()
         {
-            int i = 0;
+            var i = 0;
 
-            IList<InfoSourceRssUrls> RssList = GetRssUrls().ToList();
-            foreach (InfoSourceRssUrls model in RssList)
+            IList<InfoSourceRssUrls> rssList = GetRssUrls().ToList();
+            foreach (var model in rssList)
             {
                 i += AddRssFeed(model);
             }
@@ -522,9 +529,9 @@ namespace VideoGameHash.Models
             return i;
         }
 
-        public IEnumerable<InfoSourceRssUrls> GetRssUrls(int SectionId)
+        public IEnumerable<InfoSourceRssUrls> GetRssUrls(int sectionId)
         {
-            return db.InfoSourceRssUrls.Where(u => u.InfoTypeId == SectionId);
+            return _db.InfoSourceRssUrls.Where(u => u.InfoTypeId == sectionId);
         }
 
         /// <summary>
@@ -536,7 +543,7 @@ namespace VideoGameHash.Models
         {
             try
             {
-                return db.Articles.Where(u => article.InfoTypeId == u.InfoTypeId &&
+                return _db.Articles.Where(u => article.InfoTypeId == u.InfoTypeId &&
                                               article.InfoSourceId == u.InfoSourceId &&
                                               article.GameSystemId == u.GameSystemId &&
                                               article.Title == u.Title &&
@@ -558,55 +565,55 @@ namespace VideoGameHash.Models
         {
             try
             {
-                DateTime cutoff = DateTime.Now.AddDays(-180);
+                var cutoff = DateTime.Now.AddDays(-180);
 
-                List<Articles> articlesToDelete = db.Articles.Where(u => u.DatePublished < cutoff).ToList();
+                var articlesToDelete = _db.Articles.Where(u => u.DatePublished < cutoff).ToList();
 
-                foreach (Articles article in articlesToDelete)
+                foreach (var article in articlesToDelete)
                 {
-                    foreach (TrendingArticles trendingArticles in db.TrendingArticles.ToList())
+                    foreach (var trendingArticles in _db.TrendingArticles.ToList())
                     {
                         if (trendingArticles.ArticlesId == article.Id)
                         {
-                            db.TrendingArticles.DeleteObject(trendingArticles);
-                            db.SaveChanges();
+                            _db.TrendingArticles.DeleteObject(trendingArticles);
+                            _db.SaveChanges();
                         }
                     }
 
-                    foreach (FeaturedArticles featuredArticle in db.FeaturedArticles.ToList())
+                    foreach (var featuredArticle in _db.FeaturedArticles.ToList())
                     {
                         if (featuredArticle.Article.Id == article.Id)
                         {
-                            db.FeaturedArticles.DeleteObject(featuredArticle);
-                            db.SaveChanges();
+                            _db.FeaturedArticles.DeleteObject(featuredArticle);
+                            _db.SaveChanges();
                         }
                     }
 
-                    db.Articles.DeleteObject(article);
-                    db.SaveChanges();
+                    _db.Articles.DeleteObject(article);
+                    _db.SaveChanges();
                 }
 
-                db.SaveChanges();
+                _db.SaveChanges();
 
-                foreach (Games game in db.Games.ToList())
+                foreach (var game in _db.Games.ToList())
                 {
-                    List<Articles> gameArticles = db.Articles.Where(u => u.Title.ToUpper().Contains(game.GameTitle.ToUpper())).ToList();
+                    var gameArticles = _db.Articles.Where(u => u.Title.ToUpper().Contains(game.GameTitle.ToUpper())).ToList();
 
                     if (gameArticles.Count() == 0)
                     {
-                        IEnumerable<GameInfo> gameInfoes = db.GameInfoes.Where(u => u.GamesId == game.Id);
+                        IEnumerable<GameInfo> gameInfoes = _db.GameInfoes.Where(u => u.GamesId == game.Id);
 
-                        foreach (GameInfo gameInfo in gameInfoes.ToList())
+                        foreach (var gameInfo in gameInfoes.ToList())
                         {
-                            db.GameInfoes.DeleteObject(gameInfo);
+                            _db.GameInfoes.DeleteObject(gameInfo);
                         }
-                        db.SaveChanges();
+                        _db.SaveChanges();
 
-                        db.Games.DeleteObject(game);
+                        _db.Games.DeleteObject(game);
                     }
                 }
 
-                db.SaveChanges();
+                _db.SaveChanges();
             }
             catch
             {
@@ -640,7 +647,7 @@ namespace VideoGameHash.Models
                             break;
                         }
 
-                        string image = GetImage(dbItem.InfoSource.InfoSourceName, dbItem.Content);
+                        var image = GetImage(dbItem.InfoSource.InfoSourceName, dbItem.Content);
                         if (image.Length > 0)
                         {
                             featuredStoryCount++;
@@ -659,49 +666,51 @@ namespace VideoGameHash.Models
             if (featuredArticles.Any())
             {
                 // Delete previous entries for this section
-                foreach (FeaturedArticles oldArticle in db.FeaturedArticles.Where(u => u.Article.InfoTypeId == section))
-                    db.FeaturedArticles.DeleteObject(oldArticle);
+                foreach (var oldArticle in _db.FeaturedArticles.Where(u => u.Article.InfoTypeId == section))
+                    _db.FeaturedArticles.DeleteObject(oldArticle);
 
-                db.SaveChanges();
+                _db.SaveChanges();
 
                 // Add in the new entries
-                foreach (FeaturedClass newArticle in featuredArticles)
+                foreach (var newArticle in featuredArticles)
                 {
-                    var story = new FeaturedArticles();
-                    story.Id = newArticle.Id;
-                    story.Article = newArticle.Article;
-                    story.ImageLink = newArticle.Image;
-                    db.FeaturedArticles.AddObject(story);
+                    var story = new FeaturedArticles
+                    {
+                        Id = newArticle.Id,
+                        Article = newArticle.Article,
+                        ImageLink = newArticle.Image
+                    };
+                    _db.FeaturedArticles.AddObject(story);
                 }
 
-                db.SaveChanges();
+                _db.SaveChanges();
             }
         }
 
         public void MakeTrending(int section)
         {
-            foreach (TrendingArticles article in db.TrendingArticles.Where(u => u.Article.InfoTypeId == section))
+            foreach (var article in _db.TrendingArticles.Where(u => u.Article.InfoTypeId == section))
             {
-                db.TrendingArticles.DeleteObject(article);
+                _db.TrendingArticles.DeleteObject(article);
             }
 
-            db.SaveChanges();
+            _db.SaveChanges();
 
-            foreach (TrendingGames game in db.TrendingGames.Where(u => u.InfoTypeId == section))
+            foreach (var game in _db.TrendingGames.Where(u => u.InfoTypeId == section))
             {
-                foreach (TrendingArticles article in db.TrendingArticles.Where(u => u.TrendingGamesId == game.Id))
-                    db.TrendingArticles.DeleteObject(article);
+                foreach (var article in _db.TrendingArticles.Where(u => u.TrendingGamesId == game.Id))
+                    _db.TrendingArticles.DeleteObject(article);
 
-                db.TrendingGames.DeleteObject(game);
+                _db.TrendingGames.DeleteObject(game);
             }
 
-            db.SaveChanges();
+            _db.SaveChanges();
 
-            List<Games> gameList = new List<Games>();
-            foreach (Games game in db.Games)
+            var gameList = new List<Games>();
+            foreach (var game in _db.Games)
             {
-                bool oldGame = false;
-                foreach (GameInfo info in game.GameInfoes)
+                var oldGame = false;
+                foreach (var info in game.GameInfoes)
                 {
                     if (info != null)
                     {
@@ -718,16 +727,16 @@ namespace VideoGameHash.Models
                 }
             }
 
-            Dictionary<Games, int> gameInfos = new Dictionary<Games, int>();
+            var gameInfos = new Dictionary<Games, int>();
 
-            int cutoffDays = (section == 1) ? -7 : -28;
-            DateTime cutoff = DateTime.Now.AddDays(cutoffDays);
+            var cutoffDays = (section == 1) ? -7 : -28;
+            var cutoff = DateTime.Now.AddDays(cutoffDays);
             
-            foreach (Games game in gameList)
+            foreach (var game in gameList)
             {
-                List<Articles> recentArticles = GetTrendingGameArticles(section, game.GameTitle).Where(u => u.DatePublished >= cutoff).ToList();
-                int count = recentArticles.Count();
-                foreach (Articles article in recentArticles)
+                var recentArticles = GetTrendingGameArticles(section, game.GameTitle).Where(u => u.DatePublished >= cutoff).ToList();
+                var count = recentArticles.Count();
+                foreach (var article in recentArticles)
                 {
                     if (article.Title.ToUpper().Contains(game.GameTitle.ToUpper()))
                     {
@@ -745,8 +754,8 @@ namespace VideoGameHash.Models
 
             gameInfos = gameInfos.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
 
-            int counter = 0;
-            foreach (Games game in gameInfos.Keys)
+            var counter = 0;
+            foreach (var game in gameInfos.Keys)
             {
                 if (counter > 5)
                     break;
@@ -754,36 +763,40 @@ namespace VideoGameHash.Models
                 if (gameInfos[game] < 5)
                     continue;
 
-                TrendingGames trendingGame = new TrendingGames();
-                trendingGame.InfoTypeId = section;
-                trendingGame.GamesId = game.Id;
+                var trendingGame = new TrendingGames
+                {
+                    InfoTypeId = section,
+                    GamesId = game.Id
+                };
 
-                db.TrendingGames.AddObject(trendingGame);
+                _db.TrendingGames.AddObject(trendingGame);
 
                 counter++;
             }
-            db.SaveChanges();
+            _db.SaveChanges();
 
-            foreach (TrendingGames game in db.TrendingGames)
+            foreach (var game in _db.TrendingGames)
             {
-                string gameTitle = GetGameTitle(game.GamesId).ToUpper();
-                List<Articles> articleList = GetArticles(section).Where(u => u.Title.ToUpper().Contains(gameTitle.ToUpper())).OrderByDescending(u => u.DatePublished).ToList();
+                var gameTitle = GetGameTitle(game.GamesId).ToUpper();
+                var articleList = GetArticles(section).Where(u => u.Title.ToUpper().Contains(gameTitle.ToUpper())).OrderByDescending(u => u.DatePublished).ToList();
 
-                foreach (Articles article in articleList)
+                foreach (var article in articleList)
                 {
-                    TrendingArticles trendingArticle = new TrendingArticles();
-                    trendingArticle.TrendingGamesId = game.Id;
-                    trendingArticle.ArticlesId = article.Id;
+                    var trendingArticle = new TrendingArticles
+                    {
+                        TrendingGamesId = game.Id,
+                        ArticlesId = article.Id
+                    };
 
-                    db.TrendingArticles.AddObject(trendingArticle);
+                    _db.TrendingArticles.AddObject(trendingArticle);
                 }
             }
-            db.SaveChanges();
+            _db.SaveChanges();
         }
 
         public IEnumerable<Articles> GetArticlesWithImagesOnly(int section)
         {
-            var temp = (from tempDb in db.Articles
+            var temp = (from tempDb in _db.Articles
                         where tempDb.InfoTypeId == section &&
                               (tempDb.InfoSourceId != 1 /*IGN*/ && tempDb.InfoSourceId != 2 /*Gamespot*/ && tempDb.InfoSourceId != 5 /*CGV*/ && tempDb.InfoSourceId != 8 /*N4G*/)
                         select tempDb);
@@ -793,18 +806,18 @@ namespace VideoGameHash.Models
 
         public string GetImage(string source, string content)
         {
-            int imageIndex = content.IndexOf("img");
-            string image = "";
+            var imageIndex = content.IndexOf("img");
+            var image = "";
             // Add companies that have images, but are not display-able
             if (!NewsHelper.BadImageCompany(source))
             {
                 if (imageIndex > 0)
                 {
                     // Get the dimensions of the image
-                    int srcIndex = content.IndexOf("src=\"", imageIndex);
+                    var srcIndex = content.IndexOf("src=\"", imageIndex);
                     if (srcIndex > 0)
                     {
-                        int srcEndIndex = content.IndexOf("\"", srcIndex + 5);
+                        var srcEndIndex = content.IndexOf("\"", srcIndex + 5);
 
                         if (srcEndIndex > 0)
                         {
@@ -821,14 +834,14 @@ namespace VideoGameHash.Models
 
         private string GetGameTitle(int gameId)
         {
-            return db.Games.SingleOrDefault(u => u.Id == gameId).GameTitle;
+            return _db.Games.SingleOrDefault(u => u.Id == gameId).GameTitle;
         }
 
         public string GetUrl(int sectionId, int sourceId, int gameSystemId)
         {
             try
             {
-                return db.InfoSourceRssUrls.SingleOrDefault(u => u.InfoTypeId == sectionId && u.InfoSourceId == sourceId && u.GameSystemId == gameSystemId).URL;
+                return _db.InfoSourceRssUrls.SingleOrDefault(u => u.InfoTypeId == sectionId && u.InfoSourceId == sourceId && u.GameSystemId == gameSystemId).URL;
             }
             catch
             {
@@ -840,7 +853,7 @@ namespace VideoGameHash.Models
         {
             try
             {
-                return db.GameSystems.SingleOrDefault(u => u.Id == gameSystemId).GameSystemName;
+                return _db.GameSystems.SingleOrDefault(u => u.Id == gameSystemId).GameSystemName;
             }
             catch
             {
@@ -852,7 +865,7 @@ namespace VideoGameHash.Models
         {
             try
             {
-                var count = from tempArticle in db.Articles
+                var count = from tempArticle in _db.Articles
                             where tempArticle.InfoTypeId == sectionId &&
                                   tempArticle.GameSystemId == gameSystemId
                             select tempArticle;
@@ -869,35 +882,35 @@ namespace VideoGameHash.Models
         {
             try
             {
-                InfoType infoType = GetInfoType(id);
+                var infoType = GetInfoType(id);
 
-                foreach (Articles article in GetArticles(id))
+                foreach (var article in GetArticles(id))
                 {
-                    FeaturedArticles featured = db.FeaturedArticles.SingleOrDefault(u => u.Id == article.Id);
+                    var featured = _db.FeaturedArticles.SingleOrDefault(u => u.Id == article.Id);
                     if (featured != null)
                     {
-                        db.FeaturedArticles.DeleteObject(featured);
+                        _db.FeaturedArticles.DeleteObject(featured);
                     }
 
-                    db.Articles.DeleteObject(article);
+                    _db.Articles.DeleteObject(article);
                 }
-                db.SaveChanges();
+                _db.SaveChanges();
 
-                foreach (InfoSourceRssUrls url in GetUrlsByInfoType(id))
+                foreach (var url in GetUrlsByInfoType(id))
                 {
-                    db.InfoSourceRssUrls.DeleteObject(url);
+                    _db.InfoSourceRssUrls.DeleteObject(url);
                 }
-                db.SaveChanges();
+                _db.SaveChanges();
 
-                InfoTypeSortOrder sortOrder = db.InfoTypeSortOrders.SingleOrDefault(u => u.InfoType.Id == id);
+                var sortOrder = _db.InfoTypeSortOrders.SingleOrDefault(u => u.InfoType.Id == id);
                 if (sortOrder != null)
                 {
-                    db.InfoTypeSortOrders.DeleteObject(sortOrder);
-                    db.SaveChanges();
+                    _db.InfoTypeSortOrders.DeleteObject(sortOrder);
+                    _db.SaveChanges();
                 }
                 
-                db.InfoTypes.DeleteObject(infoType);
-                db.SaveChanges();
+                _db.InfoTypes.DeleteObject(infoType);
+                _db.SaveChanges();
             }
             catch
             {
@@ -907,40 +920,40 @@ namespace VideoGameHash.Models
 
         private IEnumerable<InfoSourceRssUrls> GetUrlsByInfoType(int infoTypeId)
         {
-            return db.InfoSourceRssUrls.Where(u => u.InfoTypeId == infoTypeId);
+            return _db.InfoSourceRssUrls.Where(u => u.InfoTypeId == infoTypeId);
         }
 
         internal void DeleteInfoSource(int id)
         {
             try
             {
-                InfoSource infoSource = GetInfoSource(id);
+                var infoSource = GetInfoSource(id);
 
-                foreach (Articles article in GetArticlesBySourceId(id))
+                foreach (var article in GetArticlesBySourceId(id))
                 {
-                    FeaturedArticles featured = db.FeaturedArticles.SingleOrDefault(u => u.Id == article.Id);
+                    var featured = _db.FeaturedArticles.SingleOrDefault(u => u.Id == article.Id);
                     if (featured != null)
                     {
-                        db.FeaturedArticles.DeleteObject(featured);
+                        _db.FeaturedArticles.DeleteObject(featured);
                     }
-                    db.Articles.DeleteObject(article);
+                    _db.Articles.DeleteObject(article);
                 }
 
-                foreach (InfoSourceRssUrls url in GetUrlsBySourceId(id))
+                foreach (var url in GetUrlsBySourceId(id))
                 {
-                    db.InfoSourceRssUrls.DeleteObject(url);
+                    _db.InfoSourceRssUrls.DeleteObject(url);
                 }
-                db.SaveChanges();
+                _db.SaveChanges();
 
-                InfoSourceSortOrder sortOrder = db.InfoSourceSortOrders.SingleOrDefault(u => u.InfoSource.Id == id);
+                var sortOrder = _db.InfoSourceSortOrders.SingleOrDefault(u => u.InfoSource.Id == id);
                 if (sortOrder != null)
                 {
-                    db.InfoSourceSortOrders.DeleteObject(sortOrder);
-                    db.SaveChanges();
+                    _db.InfoSourceSortOrders.DeleteObject(sortOrder);
+                    _db.SaveChanges();
                 }
 
-                db.InfoSources.DeleteObject(infoSource);
-                db.SaveChanges();
+                _db.InfoSources.DeleteObject(infoSource);
+                _db.SaveChanges();
             }
             catch
             {
@@ -950,73 +963,75 @@ namespace VideoGameHash.Models
 
         private IEnumerable<InfoSourceRssUrls> GetUrlsBySourceId(int sourceId)
         {
-            return db.InfoSourceRssUrls.Where(u => u.InfoSourceId == sourceId);
+            return _db.InfoSourceRssUrls.Where(u => u.InfoSourceId == sourceId);
         }
 
         private IEnumerable<Articles> GetArticlesBySourceId(int id)
         {
-            return db.Articles.Where(u => u.InfoSourceId == id);
+            return _db.Articles.Where(u => u.InfoSourceId == id);
         }
 
         internal void AddPoll(AddPollModel model)
         {
-            Poll poll = new Poll();
-            
-
-            poll.Title = model.Title;
-            db.Polls.AddObject(poll);
-
-            db.SaveChanges();
-
-            string[] items = model.Answers.Split('\n');
-
-            foreach (string item in items)
+            var poll = new Poll
             {
-                PollAnswers answers = new PollAnswers();
-                answers.PollId = poll.Id;
+                Title = model.Title
+            };
+            _db.Polls.AddObject(poll);
 
-                answers.Answer = item.TrimEnd('\r');
-                answers.NumVotes = 0;
+            _db.SaveChanges();
 
-                db.PollAnswers.AddObject(answers);
+            var items = model.Answers.Split('\n');
+
+            foreach (var item in items)
+            {
+                var answers = new PollAnswers
+                {
+                    PollId = poll.Id,
+
+                    Answer = item.TrimEnd('\r'),
+                    NumVotes = 0
+                };
+
+                _db.PollAnswers.AddObject(answers);
             }
 
-            db.SaveChanges();
+            _db.SaveChanges();
         }
 
         internal IEnumerable<Poll> GetPolls()
         {
-            return db.Polls;
+            return _db.Polls;
         }
 
-        public Poll GetPoll(int Id)
+        public Poll GetPoll(int id)
         {
-            return db.Polls.SingleOrDefault(u => u.Id == Id);
+            return _db.Polls.SingleOrDefault(u => u.Id == id);
         }
 
-        internal void UpdatePoll(int PollId, int PollValue)
+        internal void UpdatePoll(int pollId, int pollValue)
         {
-            Poll poll = GetPoll(PollId);
+            var poll = GetPoll(pollId);
 
-            foreach (PollAnswers answer in poll.PollAnswers)
+            foreach (var answer in poll.PollAnswers)
             {
-                if (answer.Id == PollValue)
+                if (answer.Id == pollValue)
                 {
                     answer.NumVotes++;
                 }
             }
 
-            db.SaveChanges();
+            _db.SaveChanges();
         }
 
         internal void DeleteUrl(int id)
         {
             try
             {
-                InfoSourceRssUrls url = GetRssUrl(id);
+                var url = GetRssUrl(id);
 
-                db.InfoSourceRssUrls.DeleteObject(url);
-                db.SaveChanges();
+                _db.InfoSourceRssUrls.DeleteObject(url);
+                _db.SaveChanges();
             }
             catch
             {

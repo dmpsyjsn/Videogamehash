@@ -112,13 +112,13 @@ namespace VideoGameHash.Models
 
     public class UserMasterModel
     {
-        public UserProfile _UserProfile { get; set; }
-        public Membership _UserMembership { get; set; }
-        public List<string> _UsersRoles;
+        public UserProfile UserProfile { get; set; }
+        public Membership UserMembership { get; set; }
+        public List<string> UsersRoles;
 
         public UserMasterModel()
         {
-            _UsersRoles = new List<string>();
+            UsersRoles = new List<string>();
         }
     }
 
@@ -130,8 +130,8 @@ namespace VideoGameHash.Models
 
     public class UserRole
     {
-        public UserProfile _UserProfile { get; set; }
+        public UserProfile UserProfile { get; set; }
 
-        public Models.Roles _Roles { get; set; }
+        public Models.Roles Roles { get; set; }
     }
 }

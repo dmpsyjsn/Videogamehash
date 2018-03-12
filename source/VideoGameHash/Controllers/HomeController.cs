@@ -2,55 +2,62 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
-using System.Web;
 using System.Web.Mvc;
 using PagedList;
 using VideoGameHash.Models;
 using VideoGameHash.Helpers;
 using DotNet.Highcharts;
 using DotNet.Highcharts.Enums;
-using DotNet.Highcharts.Helpers;
 using DotNet.Highcharts.Options;
-using Point = DotNet.Highcharts.Options.Point;
 
 namespace VideoGameHash.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly InfoRepository _infoRepository;
+        private readonly GameSystemsRepository _gameSystemsRepository;
+        private readonly GamesRepository _gamesRepository;
+
+        public HomeController(InfoRepository infoRepository, GameSystemsRepository gameSystemsRepository, GamesRepository gamesRepository)
+        {
+            _infoRepository = infoRepository;
+            _gameSystemsRepository = gameSystemsRepository;
+            _gamesRepository = gamesRepository;
+        }
+
         public ActionResult Index()
         {
             ViewBag.Message = "Welcome to VideoGameHash!";
-            InfoRepository ir = new InfoRepository();
 
-            HomePageModels model = new HomePageModels();
-            Dictionary<int, IEnumerable<FeaturedArticles>> featured = new Dictionary<int, IEnumerable<FeaturedArticles>>();
-            Dictionary<int, IEnumerable<TrendingGames>> trendingGames = new Dictionary<int, IEnumerable<TrendingGames>>();
-            Dictionary<int, Dictionary<int, List<GameInfo>>> gameInfoes = new Dictionary<int, Dictionary<int, List<GameInfo>>>();
+            var model = new HomePageModels();
+            var featured = new Dictionary<int, IEnumerable<FeaturedArticles>>();
+            var trendingGames = new Dictionary<int, IEnumerable<TrendingGames>>();
+            var gameInfoes = new Dictionary<int, Dictionary<int, List<GameInfo>>>();
 
-            int index = 0;
-            foreach (InfoType section in ir.GetInfoTypes())
+            var index = 0;
+            foreach (var section in _infoRepository.GetInfoTypes())
             {
                 if (index >= 3)
                     break;
-                featured.Add(section.Id, ir.GetFeaturedArticles(section.Id));
-                trendingGames.Add(section.Id, ir.GetTrendingGames(section.Id));
+                featured.Add(section.Id, _infoRepository.GetFeaturedArticles(section.Id));
+                trendingGames.Add(section.Id, _infoRepository.GetTrendingGames(section.Id));
                 index++;
             }
 
             model.Featured = featured;
             model.TrendingGames = trendingGames;
-            var gamesToRemove = new List<int>();
-            foreach (int sectionId in trendingGames.Keys)
+
+            foreach (var sectionId in trendingGames.Keys)
             {
                 gameInfoes.Add(sectionId, new Dictionary<int, List<GameInfo>>());
                 var localList = new Dictionary<int, List<GameInfo>>();
-                foreach (TrendingGames tr in trendingGames[sectionId])
+                foreach (var tr in trendingGames[sectionId])
                 {
                     localList.Add(tr.Id, new List<GameInfo>());
-                    List<GameInfo> localGameList = new List<GameInfo>();
-                    foreach (GameInfo info in tr.Game.GameInfoes)
+                    var localGameList = new List<GameInfo>();
+                    foreach (var info in tr.Game.GameInfoes)
                     {
-                        if (ir.GetTrendingArticles(sectionId, tr.Id, info.GameSystemId).Count() > 0)
+                        if (_infoRepository.GetTrendingArticles(sectionId, tr.Id, info.GameSystemId).Any())
                         {
                             localGameList.Add(info);
                         }
@@ -62,7 +69,7 @@ namespace VideoGameHash.Controllers
 
             model.TrendGamesDesc = gameInfoes;
 
-            model.Polls = ir.GetPolls();
+            model.Polls = _infoRepository.GetPolls();
 
             return View(model);
         }
@@ -77,30 +84,30 @@ namespace VideoGameHash.Controllers
             return View();
         }
 
-        public ActionResult ViewArticlesN(int Section, int GameSystem, string Search, string ViewType)
+        public ActionResult ViewArticlesN(int section, int gameSystem, string search, string viewType)
         {
-            GameSystemsRepository gameSystemsRepository = new GameSystemsRepository();
-            InfoRepository ir = new InfoRepository();
-            MainPageViewModel model = new MainPageViewModel();
-
-            model.GameSystemList = new List<string>();
-            model.SourceList = new List<string>();
-
-            model.Section = Section;
-            model.Source = -1;
-            model.GameSystem = GameSystem;
-            model.Search = Search;
-            model.ViewType = ViewType ?? "List";  // TO DO: Get this from database
-
-            foreach (GameSystem gameSystem in gameSystemsRepository.GetGameSystems())
+            var model = new MainPageViewModel
             {
-                if (gameSystem.GameSystemName == "All" || ir.GetNumSourceEntriesByGameSystem(Section, gameSystem.Id) > 0)
-                    model.GameSystemList.Add(gameSystem.GameSystemName);
+                GameSystemList = new List<string>(),
+                SourceList = new List<string>(),
+
+                Section = section,
+                Source = -1,
+                GameSystem = gameSystem,
+                Search = search,
+                ViewType = viewType ?? "List",  // TO DO: Get this from database
+                CurrentPage = 1
+            };
+
+            foreach (var system in _gameSystemsRepository.GetGameSystems())
+            {
+                if (system.GameSystemName == "All" || _infoRepository.GetNumSourceEntriesByGameSystem(section, system.Id) > 0)
+                    model.GameSystemList.Add(system.GameSystemName);
             }
 
-            foreach (InfoSource source in ir.GetSources())
+            foreach (var source in _infoRepository.GetSources())
             {
-                if (ir.GetNumEntriesBySectionAndSource(Section, source.InfoSourceName) > 0)
+                if (_infoRepository.GetNumEntriesBySectionAndSource(section, source.InfoSourceName) > 0)
                     model.SourceList.Add(source.InfoSourceName);
             }
 
@@ -109,34 +116,33 @@ namespace VideoGameHash.Controllers
 
         //
         // GET: News
-        public ActionResult ViewArticles(int Section, int Source, int GameSystem, string Search, string ViewType)
+        public ActionResult ViewArticles(int section, int source, int gameSystem, string search, string viewType)
         {
-            InfoRepository ir = new InfoRepository();
-            GameSystemsRepository gameSystemsRepository = new GameSystemsRepository();
-            MainPageViewModel model = new MainPageViewModel();
-
-            model.GameSystemList = new List<string>();
-            model.SourceList = new List<string>();
-
-            if (Source > 0 && ir.GetNumSourceEntriesByGameSystem(Section, Source, GameSystem) == 0)
-                GameSystem = ir.GetGameSystemId("All");
-
-            model.Section = Section;
-            model.Source = Source;
-            model.GameSystem = GameSystem;
-            model.Search = Search;
-            model.ViewType = ViewType ?? "List";  // TO DO: Get this from database
-
-            foreach (GameSystem gameSystem in gameSystemsRepository.GetGameSystems())
+            var model = new MainPageViewModel
             {
-                if (gameSystem.GameSystemName == "All" || ir.GetNumSourceEntriesByGameSystem(Section, Source, gameSystem.Id) > 0)
-                    model.GameSystemList.Add(gameSystem.GameSystemName);
+                GameSystemList = new List<string>(),
+                SourceList = new List<string>()
+            };
+
+            if (source > 0 && _infoRepository.GetNumSourceEntriesByGameSystem(section, source, gameSystem) == 0)
+                gameSystem = _infoRepository.GetGameSystemId("All");
+
+            model.Section = section;
+            model.Source = source;
+            model.GameSystem = gameSystem;
+            model.Search = search;
+            model.ViewType = viewType ?? "List";  // TO DO: Get this from database
+
+            foreach (var system in _gameSystemsRepository.GetGameSystems())
+            {
+                if (system.GameSystemName == "All" || _infoRepository.GetNumSourceEntriesByGameSystem(section, source, system.Id) > 0)
+                    model.GameSystemList.Add(system.GameSystemName);
             }
 
-            foreach (InfoSource source in ir.GetSources())
+            foreach (var src in _infoRepository.GetSources())
             {
-                if (ir.GetNumEntriesBySectionAndSource(Section, source.InfoSourceName) > 0)
-                    model.SourceList.Add(source.InfoSourceName);
+                if (_infoRepository.GetNumEntriesBySectionAndSource(section, src.InfoSourceName) > 0)
+                    model.SourceList.Add(src.InfoSourceName);
             }
 
             return View(model);
@@ -144,74 +150,72 @@ namespace VideoGameHash.Controllers
 
         //
         // ChangeView
-        public ActionResult ChangeView(string ViewType, int Section, int GameSystem, int Source)
+        public ActionResult ChangeView(string viewType, int section, int gameSystem, int source)
         {
-            if (Source < 0)
-                return RedirectToAction("ViewArticlesN", new { Section = Section, GameSystem = GameSystem, ViewType = ViewType });
+            if (source < 0)
+                return RedirectToAction("ViewArticlesN", new { Section = section, GameSystem = gameSystem, ViewType = viewType });
             else
-                return RedirectToAction("ViewArticles", new { Section = Section, Source = Source, GameSystem = GameSystem, ViewType = ViewType });
+                return RedirectToAction("ViewArticles", new { Section = section, Source = source, GameSystem = gameSystem, ViewType = viewType });
         }
 
         //
         // POST: SearchNews
         [HttpPost]
-        public ActionResult SearchArticles(string Search, int Section, int Source, int GameSystem, string ViewType)
+        public ActionResult SearchArticles(string search, int section, int source, int gameSystem, string viewType)
         {
-            if (Search.Trim().Length == 0)
-                Search = null;
-            if (Source < 0)
-                return RedirectToAction("ViewArticlesN", new { Section = Section, GameSystem = GameSystem, Search = Search, ViewType = ViewType });
+            if (search.Trim().Length == 0)
+                search = null;
+            if (source < 0)
+                return RedirectToAction("ViewArticlesN", new { Section = section, GameSystem = gameSystem, Search = search, ViewType = viewType });
             else
-                return RedirectToAction("ViewArticles", new { Section = Section, Source = Source, GameSystem = GameSystem, Search = Search, ViewType = ViewType });
+                return RedirectToAction("ViewArticles", new { Section = section, Source = source, GameSystem = gameSystem, Search = search, ViewType = viewType });
         }
 
-        public ActionResult GameDatabase(string GameTitle)
+        public ActionResult GameDatabase(string gameTitle)
         {
-            GamesRepository gr = new GamesRepository();
-            Games Game = new Games();
-            if (!String.IsNullOrEmpty(GameTitle))
-                Game = gr.GetGameByGameTitle(GameTitle);
-            return View(Game);
+            var game = new Games();
+            if (!String.IsNullOrEmpty(gameTitle))
+                game = _gamesRepository.GetGameByGameTitle(gameTitle);
+            return View(game);
         }
 
         [HttpPost]
-        public ActionResult GetGameDetails(int Id, string GameSystem)
+        public ActionResult GetGameDetails(int id, string gameSystem)
         {
-            GamesRepository gameRepository = new GamesRepository();
-            InfoRepository ir = new InfoRepository();
+            var game = _gamesRepository.GetGame(id);
 
-            Games game = gameRepository.GetGame(Id);
+            var model = new GameDetailsModel
+            {
+                Game = game,
 
-            GameDetailsModel model = new GameDetailsModel();
-            model.Game = game;
-
-            model.AvailableGameSystems = gameRepository.GetGameSystemsForThisGame(game);
+                AvailableGameSystems = _gamesRepository.GetGameSystemsForThisGame(game)
+            };
 
             string currentGameSystem;
-            if (String.IsNullOrEmpty(GameSystem))
+            if (String.IsNullOrEmpty(gameSystem))
                 currentGameSystem = model.AvailableGameSystems[0];
             else
-                currentGameSystem = GameSystem;
+                currentGameSystem = gameSystem;
 
-            Dictionary<int, IEnumerable<Articles>> details = new Dictionary<int, IEnumerable<Articles>>();
+            var details = new Dictionary<int, IEnumerable<Articles>>();
 
-            foreach (InfoType type in ir.GetInfoTypes())
+            foreach (var type in _infoRepository.GetInfoTypes())
             {
-                if (ir.ContainsArticles(type.Id, game.GameTitle, currentGameSystem))
-                    details.Add(type.Id, ir.GetGameArticles(type.Id, game.GameTitle, currentGameSystem));
+                if (_infoRepository.ContainsArticles(type.Id, game.GameTitle, currentGameSystem))
+                    details.Add(type.Id, _infoRepository.GetGameArticles(type.Id, game.GameTitle, currentGameSystem));
             }
 
-            if (ir.GetInfoTypeName(Id) == "News" && ir.ContainsArticles(Id, game.GameTitle, currentGameSystem))
+            if (_infoRepository.GetInfoTypeName(id) == "News" && _infoRepository.ContainsArticles(id, game.GameTitle, currentGameSystem))
                 model.UseInfoMetrics = true;
             else
                 model.UseInfoMetrics = false;
 
-            model.ImageLink = gameRepository.GetImage(game.Id, currentGameSystem);
-            model.Publisher = gameRepository.GetPublisher(game.Id, currentGameSystem);
-            model.Developer = gameRepository.GetDeveloper(game.Id, currentGameSystem);
-            model.USReleaseDate = gameRepository.GetReleaseDate(game.Id, currentGameSystem);
-            model.Overview = gameRepository.GetOverview(game.Id, currentGameSystem);
-            model.GamesDBNetId = gameRepository.GetGamesDBNetId(game.Id, currentGameSystem);
+            model.ImageLink = _gamesRepository.GetImage(game.Id, currentGameSystem);
+            model.Publisher = _gamesRepository.GetPublisher(game.Id, currentGameSystem);
+            model.Developer = _gamesRepository.GetDeveloper(game.Id, currentGameSystem);
+            model.UsReleaseDate = _gamesRepository.GetReleaseDate(game.Id, currentGameSystem);
+            model.Overview = _gamesRepository.GetOverview(game.Id, currentGameSystem);
+            model.GamesDbNetId = _gamesRepository.GetGamesDbNetId(game.Id, currentGameSystem);
             model.Articles = details;
             ViewBag.GameSystem = currentGameSystem;
 
@@ -219,27 +223,27 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpPost]
-        public ActionResult GetLatestInfo(string InfoType, string Source)
+        public ActionResult GetLatestInfo(string infoType, string source)
         {
-            List<QDFeedParser.BaseFeedItem> entries = new List<QDFeedParser.BaseFeedItem>();
+            var entries = new List<QDFeedParser.BaseFeedItem>();
 
             Uri feedUri;
-            if (InfoType == "News")
-                feedUri = new Uri(LatestInfoHelper.LatestNewsUrls[Source]);
-            else if (InfoType == "Reviews")
-                feedUri = new Uri(LatestInfoHelper.LatestReviewsUrls[Source]);
+            if (infoType == "News")
+                feedUri = new Uri(LatestInfoHelper.LatestNewsUrls[source]);
+            else if (infoType == "Reviews")
+                feedUri = new Uri(LatestInfoHelper.LatestReviewsUrls[source]);
             else // InfoType == "Media", hopefully
-                feedUri = new Uri(LatestInfoHelper.LatestMediaUrls[Source]);
+                feedUri = new Uri(LatestInfoHelper.LatestMediaUrls[source]);
 
             QDFeedParser.IFeedFactory factory = new QDFeedParser.HttpFeedFactory();
 
             try
             {
-                QDFeedParser.IFeed feed = factory.CreateFeed(feedUri);
+                var feed = factory.CreateFeed(feedUri);
 
                 if (feed.Items.Count() > 0)
                 {
-                    for (int j = 0; j < 10; j++)
+                    for (var j = 0; j < 10; j++)
                     {
                         if (feed.Items.Count() < j)
                             break;
@@ -247,38 +251,39 @@ namespace VideoGameHash.Controllers
                     }
                 }
             }
-            catch { }
+            catch
+            { 
+                // do nothing 
+            }
 
-            LatestInfoModels model = new LatestInfoModels();
+            var model = new LatestInfoModels();
 
             if (entries.Count() > 0)
             {
                 model.Entries = entries;
-                model.Source = Source;
+                model.Source = source;
             }
 
             return PartialView("LatestInfo", model);
         }
 
         [HttpPost]
-        public ActionResult GetLatestArticles(int Section, int Source, int GameSystem, bool Small)
+        public ActionResult GetLatestArticles(int section, int source, int gameSystem, bool small)
         {
-            InfoRepository ir = new InfoRepository();
+            var entries = new List<QDFeedParser.BaseFeedItem>();
 
-            List<QDFeedParser.BaseFeedItem> entries = new List<QDFeedParser.BaseFeedItem>();
+            var url = _infoRepository.GetUrl(section, source, gameSystem);
+            var systemName = _infoRepository.GetGameSystemName(gameSystem);
 
-            string Url = ir.GetUrl(Section, Source, GameSystem);
-            string gameSystem = ir.GetGameSystemName(GameSystem);
-
-            Uri feedUri = new Uri(Url);
+            var feedUri = new Uri(url);
             QDFeedParser.IFeedFactory factory = new QDFeedParser.HttpFeedFactory();
-            QDFeedParser.IFeed feed = factory.CreateFeed(feedUri);
+            var feed = factory.CreateFeed(feedUri);
 
-            int maxItems = Small ? 5 : 10;
+            var maxItems = small ? 5 : 10;
 
-            if (feed.Items.Count() > 0)
+            if (feed.Items.Any())
             {
-                for (int j = 0; j < maxItems; j++)
+                for (var j = 0; j < maxItems; j++)
                 {
                     if (feed.Items.Count() < j)
                         break;
@@ -286,83 +291,83 @@ namespace VideoGameHash.Controllers
                 }
             }
 
-            LatestInfoModels model = new LatestInfoModels();
-            model.Entries = entries;
-            model.Small = Small;
-            if (gameSystem == "All")
-                model.Source = string.Format("Latest News from {0}", ir.GetInfoSourceName(Source));
+            var model = new LatestInfoModels
+            {
+                Entries = entries,
+                Small = small
+            };
+            if (systemName == "All")
+                model.Source = $"Latest News from {_infoRepository.GetInfoSourceName(source)}";
             else
-                model.Source = string.Format("Latest {0} News from {1}", gameSystem, ir.GetInfoSourceName(Source));
+                model.Source = $"Latest {systemName} News from {_infoRepository.GetInfoSourceName(source)}";
 
             return PartialView("LatestInfo", model);
         }
 
-        public ActionResult GetArticles(int Section, int Source, int GameSystem, string Search, string ViewType, int ArticleIndex)
+        public ActionResult GetArticles(int section, int source, int gameSystem, string search, string viewType, int articleIndex)
         {
-            ArticleModel model = new ArticleModel();
-
-            model.Section = Section;
-            model.Source = Source;
-            model.GameSystem = GameSystem;
-            model.Search = Search;
-            model.ViewType = ViewType ?? "List";
-
-            InfoRepository ir = new InfoRepository();
+            var model = new ArticleModel
+            {
+                Section = section,
+                Source = source,
+                GameSystem = gameSystem,
+                Search = search,
+                ViewType = viewType ?? "List"
+            };
 
             const int pageSize = 9;
 
-            IQueryable<Articles> items = null;
+            IQueryable<Articles> items;
 
-            if (!String.IsNullOrEmpty(Search))
-                items = ir.GetArticles(Section, Source, GameSystem, Search).Skip(ArticleIndex * pageSize).Take(pageSize);
+            if (!String.IsNullOrEmpty(search))
+                items = _infoRepository.GetArticles(section, source, gameSystem, search).Skip(articleIndex * pageSize).Take(pageSize);
             else
-                items = ir.GetArticles(Section, Source, GameSystem).Skip(ArticleIndex * pageSize).Take(pageSize);
+                items = _infoRepository.GetArticles(section, source, gameSystem).Skip(articleIndex * pageSize).Take(pageSize);
 
-            model.CurrentPage = items.ToPagedList(ArticleIndex, pageSize);
+            model.CurrentPage = items.ToPagedList(articleIndex, pageSize);
 
             return PartialView(model);
         }
 
         [HttpPost]
-        public ActionResult GetDatabaseList(char Letter)
+        public ActionResult GetDatabaseList(char letter)
         {
-            GamesRepository gamesRepository = new GamesRepository();
-            return PartialView("_DatabaseList", gamesRepository.GetSortedGamesByLetter(Letter));
+            return PartialView("_DatabaseList", _gamesRepository.GetSortedGamesByLetter(letter));
         }
 
         [HttpPost]
-        public ActionResult SearchDatabase(string Search)
+        public ActionResult SearchDatabase(string search)
         {
-            GamesRepository gamesRepository = new GamesRepository();
-            return PartialView("_DatabaseList", gamesRepository.SearchGames(Search));
+            return PartialView("_DatabaseList", _gamesRepository.SearchGames(search));
         }
 
         [HttpPost]
-        public ActionResult GetTrendingInfoBySystem(int Section, int TrendingGameId, int GameSystemId)
+        public ActionResult GetTrendingInfoBySystem(int section, int trendingGameId, int gameSystemId)
         {
-            InfoRepository ir = new InfoRepository();
-            TrendingInfoModel model = new TrendingInfoModel();
-            model.Section = Section;
-            model.TrendingGameId = TrendingGameId;
+            var model = new TrendingInfoModel
+            {
+                Section = section,
+                TrendingGameId = trendingGameId,
 
-            model.TrendingArticles = ir.GetTrendingArticles(Section, TrendingGameId, GameSystemId);
-            List<TrendingArticles> test = model.TrendingArticles.ToList();
+                TrendingArticles = _infoRepository.GetTrendingArticles(section, trendingGameId, gameSystemId)
+            };
             return PartialView("TrendingInfo", model);
         }
 
-        public ActionResult SubmitPollVote(int PollId, int PollVal)
+        public ActionResult SubmitPollVote(int pollId, int pollVal)
         {
-            InfoRepository ir = new InfoRepository();
-            ir.UpdatePoll(PollId, PollVal);
-            Poll poll = ir.GetPoll(PollId);
+            _infoRepository.UpdatePoll(pollId, pollVal);
+            var poll = _infoRepository.GetPoll(pollId);
             var pollVotes = new List<PollGraphModel>();
 
-            foreach (PollAnswers answers in poll.PollAnswers)
+            foreach (var answers in poll.PollAnswers)
             {
-                PollGraphModel model = new PollGraphModel();
-                model.Id = answers.Id.ToString();
-                model.Title = answers.Answer;
-                model.NumVotes = answers.NumVotes;
+                var model = new PollGraphModel
+                {
+                    Id = answers.Id.ToString(),
+                    Title = answers.Answer,
+                    NumVotes = answers.NumVotes
+                };
                 pollVotes.Add(model);
             }
 
@@ -373,10 +378,8 @@ namespace VideoGameHash.Controllers
         {
             try
             {
-                var infoRepository = new InfoRepository();
-
                 // Retreive the relevant articles
-                var gameArticles = infoRepository.GetGameArticles(1, gameTitle, gameSystem).ToList();
+                var gameArticles = _infoRepository.GetGameArticles(1, gameTitle, gameSystem).ToList();
                 var gameArticlesBySource = gameArticles.GroupBy(u => u.InfoSource.InfoSourceName).Select(u => u.FirstOrDefault()).ToList();
                 var count = gameArticlesBySource.Count();
 
@@ -397,7 +400,8 @@ namespace VideoGameHash.Controllers
                 // Create the chart
                 var chart = new Highcharts("infometricspiechart")
                 .InitChart(new Chart { PlotShadow = false })
-                .SetTitle(new Title { Text = String.Format("{0} News Articles By Source - Last 6 Months", gameTitle.Replace("'", "\\\'")) })
+                .SetTitle(new Title { Text = $"{gameTitle.Replace("'", "\\\'")} News Articles By Source - Last 6 Months"
+                    })
                 .SetTooltip(new Tooltip { Enabled = false })
                 .SetPlotOptions(new PlotOptions
                 {
@@ -440,33 +444,31 @@ namespace VideoGameHash.Controllers
             throw new NotImplementedException();
         }
 
-        public ActionResult GetGameInfometricsLineChart(string GameTitle, string GameSystem)
-        {
-            InfoRepository ir = new InfoRepository();
-            
-            string[] categories = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+        public ActionResult GetGameInfometricsLineChart(string gameTitle, string gameSystem)
+        {         
+            var categories = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
             
             // Retreive the relevant articles
-            List<Articles> gameArticles = ir.GetGameArticles(1, GameTitle, GameSystem).ToList(); // 1 = News Section
-            List<Articles> gameArticlesBySource = gameArticles.GroupBy(u => u.DatePublished.Month).Select(u => u.FirstOrDefault()).OrderBy(u => u.DatePublished).ToList();
+            var gameArticles = _infoRepository.GetGameArticles(1, gameTitle, gameSystem).ToList(); // 1 = News Section
+            var gameArticlesBySource = gameArticles.GroupBy(u => u.DatePublished.Month).Select(u => u.First()).OrderBy(u => u.DatePublished).ToList();
             
-            int count = gameArticlesBySource.Count();
-            string[] monthsUsed = new string[count];
-            object[,] chartData = new object[count, 2];
+            var count = gameArticlesBySource.Count();
+            var monthsUsed = new string[count];
+            var chartData = new object[count, 2];
             
             // Populate the data series
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
-                Articles article = gameArticlesBySource[i];
-                monthsUsed[i] = String.Format("{0} {1}", categories[article.DatePublished.Month - 1], article.DatePublished.Year);
+                var article = gameArticlesBySource[i];
+                monthsUsed[i] = $"{categories[article.DatePublished.Month - 1]} {article.DatePublished.Year}";
                 chartData.SetValue(monthsUsed[i], i, 0);
                 chartData.SetValue(gameArticles.Count(u => u.DatePublished.Month == article.DatePublished.Month), i, 1);
             }
             
-            Highcharts chart = new Highcharts("infometricslinechart")
+            var chart = new Highcharts("infometricslinechart")
                 .InitChart(new Chart { DefaultSeriesType = ChartTypes.Line })
                 .SetLegend(new Legend { Enabled = false })
-                .SetTitle(new Title { Text = String.Format("News Articles Per Month for {0}", GameTitle) })
+                .SetTitle(new Title { Text = $"News Articles Per Month for {gameTitle}"})
                 .SetXAxis(new XAxis { Categories = monthsUsed })
                 .SetYAxis(new YAxis { Title = new YAxisTitle { Text = "# of News Articles" } })
                 .SetTooltip(new Tooltip { Enabled = true, Formatter = @"function() { return '<b>'+ this.series.name +'</b><br/>'+ this.x +': '+ this.y; }" })

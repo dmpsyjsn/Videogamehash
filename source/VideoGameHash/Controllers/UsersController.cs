@@ -12,48 +12,48 @@ namespace VideoGameHash.Controllers
     public class UsersController : Controller
     {
 
-        private UserRepository repository = new UserRepository();
+        private UserRepository _repository = new UserRepository();
         
         //
         // GET: /Users/
         public ActionResult Index()
         {
-            return View(repository.GetAllUserProfile());
+            return View(_repository.GetAllUserProfile());
         }
 
         //
         // GET: Users/Edit
-        public ActionResult Edit(int Id)
+        public ActionResult Edit(int id)
         {
-            UserMasterModel userMaster = new UserMasterModel();
-            UserProfile user = repository.GetUserByUserId(Id);
+            var userMaster = new UserMasterModel();
+            var user = _repository.GetUserByUserId(id);
 
-            userMaster._UserProfile = user;
+            userMaster.UserProfile = user;
 
-            userMaster._UserMembership = repository.GetMembershipByUserId(user.Id);
+            userMaster.UserMembership = _repository.GetMembershipByUserId(user.Id);
 
-            userMaster._UsersRoles = repository.GetUserRolesByUserName(user.UserName);
+            userMaster.UsersRoles = _repository.GetUserRolesByUserName(user.UserName);
 
             return View(userMaster);
         }
 
         //
         // GET: Users/AddRole
-        public ActionResult AddRole(int Id)
+        public ActionResult AddRole(int id)
         {
-            RolesModel rolesModel = new Models.RolesModel();
-            List<string> rolesList = repository.GetAllRoles();
-            List<string> userRoles = repository.GetUserRolesByUserName(repository.GetUserNameByUserId(Id));
-            List<string> rolesAvailable = new List<string>();
+            var rolesModel = new Models.RolesModel();
+            var rolesList = _repository.GetAllRoles();
+            var userRoles = _repository.GetUserRolesByUserName(_repository.GetUserNameByUserId(id));
+            var rolesAvailable = new List<string>();
 
-            foreach (string role in rolesList)
+            foreach (var role in rolesList)
             {
                 if (!userRoles.Contains(role))
                     rolesAvailable.Add(role);
             }
 
             ViewData["AvailableRoles"] = new SelectList(rolesAvailable, rolesModel.RoleName);
-            ViewBag.UserId = Id;
+            ViewBag.UserId = id;
 
             return View(rolesModel);
         }
@@ -61,13 +61,13 @@ namespace VideoGameHash.Controllers
         //
         // POST: Users/AddRole
         [HttpPost]
-        public ActionResult AddRole(int Id, FormCollection collection)
+        public ActionResult AddRole(int id, FormCollection collection)
         {
-            string value = collection.Get("AvailableRoles");
+            var value = collection.Get("AvailableRoles");
 
-            repository.AddRole(Id, value);
+            _repository.AddRole(id, value);
 
-            return RedirectToAction("Edit", new { Id = Id });
+            return RedirectToAction("Edit", new { Id = id });
         }
 
     }

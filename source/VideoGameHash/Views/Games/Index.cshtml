@@ -2,14 +2,13 @@
 
 @{
     ViewBag.Title = "Index";
-    int i = 0;
+    var i = 0;
     string className;
 }
 
 <h2>Index</h2>
 
 @Html.ActionLink("Download game list from the TheGamesDb.net database", "AddGames")<br />
-@Html.ActionLink("Download game list from Wikipedia", "AddGamesWikiPedia")
 
 <table>
     <tr>
@@ -38,7 +37,7 @@
                 @Html.DisplayFor(modelItem => item.GameTitle)
             </td>
             <td class="@className">
-                @Html.ActionLink("Delete", "Delete", new { Id = item.Id })
+                @Html.ActionLink("Delete", "Delete", new {item.Id })
             </td>
         </tr>
         i++;

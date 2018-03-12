@@ -8,7 +8,7 @@
 
 <section id="loginForm">
 <h2>Recover user name or password</h2>
-@using (Html.BeginForm(new { Recover = ViewBag.Recover }))
+@using (Html.BeginForm(new {ViewBag.Recover }))
 {
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)

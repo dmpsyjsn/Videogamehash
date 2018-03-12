@@ -432,4 +432,20 @@ $(function () {
         rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
         );
     }
+
+    $("#importDialog").dialog({
+        autoOpen: false,
+        height: 300,
+        width: 600,
+        modal: true,
+        buttons: {
+            "Ok": function () {
+                $(this).dialog("close");
+            }
+        }
+    });
+
+    $("#jsonImportLink").click(function () {
+        $("#importDialog").dialog("open");
+    });
 });

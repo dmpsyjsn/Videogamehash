@@ -31,8 +31,8 @@ namespace VideoGameHash.Models
         public string Developer { get; set; }
         public string Publisher { get; set; }
         public string Overview { get; set; }
-        public int GamesDBNetId { get; set; }
-        public DateTime USReleaseDate { get; set; }
+        public int GamesDbNetId { get; set; }
+        public DateTime UsReleaseDate { get; set; }
         public bool UseInfoMetrics { get; set; }
     }
 
@@ -43,9 +43,9 @@ namespace VideoGameHash.Models
 
         public GameFormViewModel()
         {
-            List<string> gameSystemList = new List<string>();
-            GameSystemsRepository gsr = new GameSystemsRepository();
-            foreach (GameSystem gs in gsr.GetGameSystems())
+            var gameSystemList = new List<string>();
+            var gsr = new GameSystemsRepository();
+            foreach (var gs in gsr.GetGameSystems())
             {
                 if (gs.GameSystemName != "All")
                     gameSystemList.Add(gs.GameSystemName);
@@ -56,9 +56,9 @@ namespace VideoGameHash.Models
 
         public GameFormViewModel(string sourceType)
         {
-            List<string> gameSystemList = new List<string>();
-            GameSystemsRepository gsr = new GameSystemsRepository();
-            foreach (GameSystem gs in gsr.GetGameSystems())
+            var gameSystemList = new List<string>();
+            var gsr = new GameSystemsRepository();
+            foreach (var gs in gsr.GetGameSystems())
             {
                 if (gs.GameSystemName != "All" && !(sourceType == "Wikipedia" && gs.GameSystemName == "PC"))
                     gameSystemList.Add(gs.GameSystemName);

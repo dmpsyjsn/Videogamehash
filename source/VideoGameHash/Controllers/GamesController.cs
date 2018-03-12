@@ -10,29 +10,36 @@ namespace VideoGameHash.Controllers
     public class GamesController : Controller
     {
 
-        private GamesRepository repository = new GamesRepository();
+        private readonly GamesRepository _repository;
+
+        public GamesController(GamesRepository repository)
+        {
+            _repository = repository;
+        }
 
         //
         // GET: /Games/
 
         public ActionResult Index()
         {
-            return View(repository.GetGames());
+            return View(_repository.GetGames());
         }
 
         [HttpGet]
         public ActionResult AddGames()
         {
-            GameFormViewModel model = new GameFormViewModel();
-            model.ActionName = "AddGames";
+            var model = new GameFormViewModel
+            {
+                ActionName = "AddGames"
+            };
 
             return View(model);
         }
 
         [HttpPost]
-        public ActionResult AddGames(string GameSystem)
+        public ActionResult AddGames(string gameSystem)
         {
-            repository.AddGame(GameSystem);
+            _repository.AddGame(gameSystem);
 
             return RedirectToAction("Index");
         }
@@ -40,22 +47,24 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public ActionResult AddGamesWikipedia()
         {
-            GameFormViewModel model = new GameFormViewModel("Wikipedia");
-            model.ActionName = "AddGamesWikipedia";
+            var model = new GameFormViewModel("Wikipedia")
+            {
+                ActionName = "AddGamesWikipedia"
+            };
             return View("AddGames", model);
         }
 
         [HttpPost]
-        public ActionResult AddGamesWikipedia(string GameSystem)
+        public ActionResult AddGamesWikipedia(string gameSystem)
         {
-            repository.AddGameWikipedia(GameSystem);
+            _repository.AddGameWikipedia(gameSystem);
 
             return RedirectToAction("Index");
         }
 
-        public ActionResult Delete(int Id)
+        public ActionResult Delete(int id)
         {
-            repository.DeleteGame(Id);
+            _repository.DeleteGame(id);
 
             return RedirectToAction("Index");
         }

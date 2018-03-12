@@ -11,7 +11,7 @@ using QDFeedParser;
 
 namespace VideoGameHash.Models
 {
-    public class VGHDatabaseRepository
+    public class VghDatabaseRepository
     {
         
 

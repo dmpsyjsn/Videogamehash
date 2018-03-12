@@ -1,71 +1,66 @@
 ﻿using System;
-using System.Globalization;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Net;
-using System.Xml.Serialization;
-using System.Linq;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
-using System.Text.RegularExpressions;
-using VideoGameHash.Helpers;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Linq;
+using System.Net;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
 namespace VideoGameHash.Models
 {
     public class GamesRepository
     {
-        private VGHDatabaseContainer db = new VGHDatabaseContainer();
+        private readonly VGHDatabaseContainer _db;
+        private readonly InfoRepository _infoRepository;
+
+        public GamesRepository(VGHDatabaseContainer db, InfoRepository infoRepository)
+        {
+            _db = db;
+            _infoRepository = infoRepository;
+        }
 
         public IEnumerable<Games> GetGames()
         {
-            return db.Games.OrderBy(u => u.GameTitle);
+            return _db.Games.OrderBy(u => u.GameTitle);
         }
 
         public IEnumerable<Games> GetSortedGames()
         {
-            return db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle);
+            return _db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle);
         }
 
         public IEnumerable<Games> GetSortedGamesByLetter(char letter)
         {
-            //List<Games> filteredGames = db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle).ToList();
-            List<Games> returnedList = new List<Games>();
-            if (letter == '0')
-            {
-                foreach (Games game in db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle))
-                {
-                    if (game.GameTitle[0] >= '0' && game.GameTitle[0] <= '9')
-                        returnedList.Add(game);
-                }
-            }
-            else
-            {
-                foreach (Games game in db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle))
-                {
-                    if (game.GameTitle[0] == letter)
-                        returnedList.Add(game);
-                }
-            }
+            var returnedList = new List<Games>();
+            returnedList.AddRange(letter == '0'
+                ? _db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle)
+                    .Where(game => game.GameTitle[0] >= '0' && game.GameTitle[0] <= '9')
+                : _db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle)
+                    .Where(x => x.GameTitle[0] == letter));
 
             return returnedList.AsEnumerable();
         }
 
         public IEnumerable<Games> SearchGames(string search)
         {
-            return db.Games.Where(u => u.GameInfoes.Count > 0 && u.GameTitle.Contains(search)).Take(20).OrderBy(u => u.GameTitle);
+            return _db.Games.Where(u => u.GameInfoes.Count > 0 && u.GameTitle.Contains(search)).Take(20)
+                .OrderBy(u => u.GameTitle);
         }
 
-        public void AddGame(string GameSystem)
+        public void AddGame(string gameSystem)
         {
             try
             {
-                if (GameSystem != "All")
+                if (gameSystem != "All")
                 {
-                    string url = string.Format("http://thegamesdb.net/api/PlatformGames.php?platform={0}", GetPlatform(GameSystem));
+                    var url = $"http://thegamesdb.net/api/PlatformGames.php?platform={GetPlatform(gameSystem)}";
 
-                    ProcessGamesFromWebService(url, GameSystem);
+                    ProcessGamesFromWebService(url, gameSystem);
 
-                    ProcessAdditionalDetailsFromWebService(GameSystem);
+                    ProcessAdditionalDetailsFromWebService(gameSystem);
                 }
             }
             catch
@@ -74,15 +69,16 @@ namespace VideoGameHash.Models
             }
         }
 
-        public void AddGameWikipedia(string GameSystem)
+        public void AddGameWikipedia(string gameSystem)
         {
             try
             {
-                if (GameSystem != "All")
+                if (gameSystem != "All")
                 {
-                    string url = string.Format("http://en.wikipedia.org/w/api.php?format=json&action=query&titles={0}&prop=revisions&rvprop=content&rvsection=1", GetWikipediaPlatform(GameSystem));
+                    var url =
+                        $"http://en.wikipedia.org/w/api.php?format=json&action=query&titles={GetWikipediaPlatform(gameSystem)}&prop=revisions&rvprop=content&rvsection=1";
 
-                    ProcessGamesFromWikipediaWebService(url, GameSystem);
+                    ProcessGamesFromWikipediaWebService(url, gameSystem);
 
                     //ProcessAdditionalDetailsFromWikipediaWebService(GameSystem);
                 }
@@ -93,32 +89,29 @@ namespace VideoGameHash.Models
             }
         }
 
-        public Games GetGame(int Id)
+        public Games GetGame(int id)
         {
-            return db.Games.SingleOrDefault(u => u.Id == Id);
+            return _db.Games.SingleOrDefault(u => u.Id == id);
         }
 
         public Games GetGameByGameTitle(string gameTitle)
         {
-            return db.Games.SingleOrDefault(u => u.GameTitle == gameTitle);
+            return _db.Games.SingleOrDefault(u => u.GameTitle == gameTitle);
         }
 
         public int GetGameSystemId(string gameSystem)
         {
-            return db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem).Id;
+            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem).Id;
         }
 
         public bool ContainsEntries(string gameTitle)
         {
-            InfoRepository ir = new InfoRepository();
-
-            return ir.ContainsArticles(gameTitle);
+            return _infoRepository.ContainsArticles(gameTitle);
         }
 
         public bool ContainsEntries(string gameTitle, string gameSystem)
         {
-            InfoRepository ir = new InfoRepository();
-            return ir.ContainsArticles(gameTitle, gameSystem);
+            return _infoRepository.ContainsArticles(gameTitle, gameSystem);
         }
 
         public string GetPlatform(string gameSystem)
@@ -148,109 +141,108 @@ namespace VideoGameHash.Models
             else if (gameSystem == "PS3")
                 gameSystem = "List of PlayStation 3 games";
             else if (gameSystem == "PS4")
-                gameSystem = "List of PlayStation 4 games";
+                gameSystem = "List_of_PlayStation_4_games";
 
             return gameSystem;
         }
 
         public void ProcessGamesFromWebService(string url, string gameSystem)
         {
-            WebRequest request = WebRequest.Create(url);
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            var request = WebRequest.Create(url);
+            using (var response = (HttpWebResponse) request.GetResponse())
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(DataByPlatform));
+                var serializer = new XmlSerializer(typeof(DataByPlatform));
 
-                DataByPlatform gameResponse = (DataByPlatform)serializer.Deserialize(response.GetResponseStream());
-                DateTime cutoff = DateTime.Now.AddMonths(-3);
-                DataGameByPlatform[] Items = gameResponse.Items.Where(u => u.ReleaseDate != null && u.ReleaseDate.IndexOf('/') > 0 && Convert.ToDateTime(u.ReleaseDate) >= cutoff).ToArray();
-                foreach (DataGameByPlatform game in Items)
+                var gameResponse = (DataByPlatform) serializer.Deserialize(response.GetResponseStream());
+                var cutoff = DateTime.Now.AddMonths(-3);
+                var items = gameResponse.Items.Where(u =>
+                    u.ReleaseDate != null && u.ReleaseDate.IndexOf('/') > 0 &&
+                    Convert.ToDateTime(u.ReleaseDate) >= cutoff).ToArray();
+                foreach (var game in items)
                 {
-                    Games GameDb = new Games();
-                    DateTime USReleaseDate = new DateTime();
+                    var gameDb = new Games();
+                    var usReleaseDate = new DateTime();
 
                     if (game.GameTitle != null)
-                        GameDb.GameTitle = game.GameTitle;
+                        gameDb.GameTitle = game.GameTitle;
 
                     if (game.ReleaseDate != null && game.ReleaseDate.IndexOf('/') > 0)
-                        USReleaseDate = Convert.ToDateTime(game.ReleaseDate);
+                        usReleaseDate = Convert.ToDateTime(game.ReleaseDate);
 
-                    if (GameDb.GameTitle != null && USReleaseDate != null && USReleaseDate != DateTime.MinValue &&
-                        ContainsEntries(GameDb.GameTitle) && !IgnoreThisGame(GameDb))
+                    if (gameDb.GameTitle != null && usReleaseDate != null && usReleaseDate != DateTime.MinValue &&
+                        ContainsEntries(gameDb.GameTitle) && !IgnoreThisGame(gameDb))
                     {
-                        if (!IsDuplicateGame(GameDb))
+                        if (!IsDuplicateGame(gameDb))
                         {
-                            db.Games.AddObject(GameDb);
-                            db.SaveChanges();
+                            _db.Games.AddObject(gameDb);
+                            _db.SaveChanges();
                         }
                         else
                         {
-                            GameDb = GetGameByGameTitle(GameDb.GameTitle);
+                            gameDb = GetGameByGameTitle(gameDb.GameTitle);
                         }
 
-                        GameInfo gameInfo = new GameInfo();
-                        gameInfo.GamesId = GameDb.Id;
-                        gameInfo.GameSystemId = GetGameSystemId(gameSystem);
-                        gameInfo.USReleaseDate = USReleaseDate;
-                        gameInfo.GamesDbNetId = Convert.ToInt32(game.id);
-
-                        if (game.thumb != null)
+                        var gameInfo = new GameInfo
                         {
-                            // Add box art images
-                            gameInfo.GameImage = "http://thegamesdb.net/banners/" + game.thumb;
-                        }
+                            GamesId = gameDb.Id,
+                            GameSystemId = GetGameSystemId(gameSystem),
+                            USReleaseDate = usReleaseDate,
+                            GamesDbNetId = Convert.ToInt32(game.Id)
+                        };
+
+                        if (game.Thumb != null)
+                            gameInfo.GameImage = "http://thegamesdb.net/banners/" + game.Thumb;
 
                         if (!IsDuplicateGameInfo(gameInfo))
-                        {
-                            if (ContainsEntries(GameDb.GameTitle, gameSystem) && !String.IsNullOrWhiteSpace(gameInfo.GameImage))
+                            if (ContainsEntries(gameDb.GameTitle, gameSystem) &&
+                                !string.IsNullOrWhiteSpace(gameInfo.GameImage))
                             {
-                                db.GameInfoes.AddObject(gameInfo);
-                                db.SaveChanges();
+                                _db.GameInfoes.AddObject(gameInfo);
+                                _db.SaveChanges();
                             }
                             else
                             {
-                                DeleteGameFromGameInfoes(GameDb.Id);
+                                DeleteGameFromGameInfoes(gameDb.Id);
                             }
-                        }
                     }
                 }
             }
         }
 
-        private void DeleteGameFromGameInfoes(int GameId)
+        private void DeleteGameFromGameInfoes(int gameId)
         {
-            IEnumerable<GameInfo> infos = db.GameInfoes.Where(u => u.GamesId == GameId);
+            IEnumerable<GameInfo> infos = _db.GameInfoes.Where(u => u.GamesId == gameId);
 
-            foreach (GameInfo info in infos)
-                db.GameInfoes.DeleteObject(info);
+            foreach (var info in infos)
+                _db.GameInfoes.DeleteObject(info);
 
-            db.SaveChanges();
+            _db.SaveChanges();
 
-            Games game = GetGame(GameId);
+            var game = GetGame(gameId);
 
             if (game != null)
-                db.Games.DeleteObject(game);
+                _db.Games.DeleteObject(game);
         }
 
-        private bool ProcessAdditionalDetailsFromWebService(string GameSystem)
+        private void ProcessAdditionalDetailsFromWebService(string gameSystem)
         {
-            bool success = true;
-            IEnumerable<GameInfo> GameInfos = GetGameInfoBySystem(GameSystem);
-            List<int> DeleteTheseGames = new List<int>();
-            foreach (GameInfo gameInfo in GameInfos)
-            {
-                if (String.IsNullOrWhiteSpace(gameInfo.Publisher)) // TO DO: Add an update boolean here
-                {
+            var gameInfos = GetGameInfoBySystem(gameSystem);
+            var deleteTheseGames = new List<int>();
+            foreach (var gameInfo in gameInfos)
+                if (string.IsNullOrWhiteSpace(gameInfo.Publisher)) // TO DO: Add an update boolean here
                     try
                     {
-                        string url = String.Format("http://thegamesdb.net/api/GetGame.php?id={0}&platform={1}", gameInfo.GamesDbNetId, GetPlatform(GameSystem));
-                        WebRequest request = WebRequest.Create(url);
-                        using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                        var url =
+                            $"http://thegamesdb.net/api/GetGame.php?id={gameInfo.GamesDbNetId}&platform={GetPlatform(gameSystem)}";
+                        var request = WebRequest.Create(url);
+                        using (var response = (HttpWebResponse) request.GetResponse())
                         {
-                            XmlSerializer serializer = new XmlSerializer(typeof(DataByGameId));
+                            var serializer = new XmlSerializer(typeof(DataByGameId));
 
-                            DataByGameId gameResponse = (DataByGameId)serializer.Deserialize(response.GetResponseStream());
+                            var gameResponse = (DataByGameId) serializer.Deserialize(response.GetResponseStream());
 
-                            if (!String.IsNullOrWhiteSpace(gameResponse.Game[0].Publisher) || !String.IsNullOrWhiteSpace(gameResponse.Game[0].Developer))
+                            if (!string.IsNullOrWhiteSpace(gameResponse.Game[0].Publisher) ||
+                                !string.IsNullOrWhiteSpace(gameResponse.Game[0].Developer))
                             {
                                 gameInfo.Publisher = gameResponse.Game[0].Publisher;
                                 gameInfo.Developer = gameResponse.Game[0].Developer;
@@ -258,69 +250,61 @@ namespace VideoGameHash.Models
                             }
                             else
                             {
-                                DeleteTheseGames.Add(gameInfo.Game.Id);
+                                deleteTheseGames.Add(gameInfo.Game.Id);
                             }
                         }
                     }
                     catch
                     {
-                        success = false;
                         break;
                     }
-                }
-            }
 
-            db.SaveChanges();
+            _db.SaveChanges();
 
-            foreach (int game in DeleteTheseGames)
-            {
+            foreach (var game in deleteTheseGames)
                 DeleteGameFromGameInfoes(game);
-            }
-
-            return success;
         }
 
         public void ProcessGamesFromWikipediaWebService(string url, string gameSystem)
         {
-            WebRequest request = WebRequest.Create(url);
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            var request = WebRequest.Create(url);
+            using (var response = (HttpWebResponse) request.GetResponse())
             {
-                StreamReader json = new StreamReader(response.GetResponseStream());
+                var json = new StreamReader(response.GetResponseStream());
 
                 // Convert the data I need to json
-                List<Dictionary<string, string>> gameList = ConvertToList(json.ReadToEnd(), gameSystem);
+                var gameList = ConvertToList(json.ReadToEnd(), gameSystem);
 
                 if (gameList != null)
                 {
-                    string title = String.Empty;
+                    var title = string.Empty;
                     if (gameSystem == "Xbox 360" || gameSystem == "Wii U")
                         title = "Title";
                     else if (gameSystem == "PS3")
                         title = "Video Game";
-                    foreach (Dictionary<string, string> entry in gameList)
+                    foreach (var entry in gameList)
                     {
-                        Games game = new Games();
-
-                        game.GameTitle = entry[title].Trim();
+                        var game = new Games
+                        {
+                            GameTitle = entry[title].Trim()
+                        };
 
                         if (ContainsEntries(game.GameTitle) && !IgnoreThisGame(game))
                         {
                             if (!IsDuplicateGame(game))
                             {
-                                db.Games.AddObject(game);
-                                db.SaveChanges();
+                                _db.Games.AddObject(game);
+                                _db.SaveChanges();
                             }
                             else
                             {
                                 game = GetGameByGameTitle(game.GameTitle);
                             }
 
-                            GameInfo gameinfo = new GameInfo();
+                            var gameinfo = new GameInfo();
 
                             if (GetGameInfo(game.Id, gameSystem) != null)
-                            {
                                 gameinfo = GetGameInfo(game.Id, gameSystem);
-                            }
 
 
                             gameinfo.GameSystemId = GetGameSystemId(gameSystem);
@@ -338,28 +322,24 @@ namespace VideoGameHash.Models
                             {
                                 try
                                 {
-                                    string dburl = String.Format("http://thegamesdb.net/api/GetGame.php?name={0}&platform={1}", game.GameTitle.Replace(' ', '+'), GetPlatform(gameSystem));
-                                    WebRequest dbRequest = WebRequest.Create(dburl);
-                                    using (HttpWebResponse dbResponse = (HttpWebResponse)dbRequest.GetResponse())
+                                    var dburl =
+                                        $"http://thegamesdb.net/api/GetGame.php?name={game.GameTitle.Replace(' ', '+')}&platform={GetPlatform(gameSystem)}";
+                                    var dbRequest = WebRequest.Create(dburl);
+                                    using (var dbResponse = (HttpWebResponse) dbRequest.GetResponse())
                                     {
-                                        XmlSerializer serializer = new XmlSerializer(typeof(Data));
+                                        var serializer = new XmlSerializer(typeof(Data));
 
-                                        Data data = (Data)serializer.Deserialize(dbResponse.GetResponseStream());
+                                        var data = (Data) serializer.Deserialize(dbResponse.GetResponseStream());
 
                                         if (data.Game.Count() >= 1)
-                                        {
                                             if (data.Game[0].GameTitle == game.GameTitle)
-                                            {
-                                                foreach (DataGameImages image in data.Game[0].Images)
-                                                {
-                                                    if (image.boxart.Count() > 0)
+                                                foreach (var image in data.Game[0].Images)
+                                                    if (image.Boxart.Count() > 0)
                                                     {
-                                                        gameinfo.GameImage = "http://thegamesdb.net/banners/" + image.boxart[0].thumb;
+                                                        gameinfo.GameImage =
+                                                            "http://thegamesdb.net/banners/" + image.Boxart[0].Thumb;
                                                         break;
                                                     }
-                                                }
-                                            }
-                                        }
                                     }
                                 }
                                 catch
@@ -367,27 +347,29 @@ namespace VideoGameHash.Models
                                     // Try getting image from Wikipedia
                                     try
                                     {
-                                        string dbUrl = string.Format("http://en.wikipedia.org/w/api.php?format=json&action=query&titles={0}&prop=images", game.GameTitle);
-                                        WebRequest dbRequest = WebRequest.Create(dbUrl);
-                                        using (HttpWebResponse dbResponse = (HttpWebResponse)dbRequest.GetResponse())
+                                        var dbUrl =
+                                            $"http://en.wikipedia.org/w/api.php?format=json&action=query&titles={game.GameTitle}&prop=images";
+                                        var dbRequest = WebRequest.Create(dbUrl);
+                                        using (var dbResponse = (HttpWebResponse) dbRequest.GetResponse())
                                         {
-                                            StreamReader wkJson = new StreamReader(dbResponse.GetResponseStream());
-                                            string text = wkJson.ReadToEnd();
+                                            var wkJson = new StreamReader(dbResponse.GetResponseStream());
+                                            var text = wkJson.ReadToEnd();
 
-                                            int first = text.IndexOf("File:");
+                                            var first = text.IndexOf("File:");
                                             if (first > 0)
                                             {
                                                 text = text.Remove(0, first);
-                                                string[] files = text.Split(new string[] { "File:" }, StringSplitOptions.RemoveEmptyEntries);
-                                                string fileImage = string.Empty;
+                                                var files = text.Split(new[] {"File:"},
+                                                    StringSplitOptions.RemoveEmptyEntries);
+                                                var fileImage = string.Empty;
                                                 if (files.Count() > 1)
                                                 {
-                                                    bool imageFound = false;
-                                                    foreach (string fileName in files)
-                                                    {
-                                                        if (fileName.ToUpper().Contains("BOX") || fileName.ToUpper().Contains("COVER"))
+                                                    var imageFound = false;
+                                                    foreach (var fileName in files)
+                                                        if (fileName.ToUpper().Contains("BOX") ||
+                                                            fileName.ToUpper().Contains("COVER"))
                                                         {
-                                                            int second = fileName.IndexOf("\"", 0);
+                                                            var second = fileName.IndexOf("\"", 0);
                                                             if (second > 0)
                                                             {
                                                                 fileImage = "File:" + fileName.Substring(0, second);
@@ -395,17 +377,17 @@ namespace VideoGameHash.Models
                                                                 break;
                                                             }
                                                         }
-                                                    }
 
                                                     if (!imageFound)
-                                                    {
-                                                        foreach (string fileName in files)
-                                                        {
-                                                            if (fileName.ToUpper().Contains(game.GameTitle.Replace(" ", String.Empty).ToUpper()) ||
+                                                        foreach (var fileName in files)
+                                                            if (fileName.ToUpper().Contains(game.GameTitle
+                                                                    .Replace(" ", string.Empty).ToUpper()) ||
                                                                 fileName.ToUpper().Contains(game.GameTitle.ToUpper()) ||
-                                                                fileName.ToUpper().Contains(game.GameTitle.Replace(" ", "_").ToUpper()))
+                                                                fileName.ToUpper()
+                                                                    .Contains(
+                                                                        game.GameTitle.Replace(" ", "_").ToUpper()))
                                                             {
-                                                                int second = fileName.IndexOf("\"", 0);
+                                                                var second = fileName.IndexOf("\"", 0);
                                                                 if (second > 0)
                                                                 {
                                                                     fileImage = "File:" + fileName.Substring(0, second);
@@ -413,48 +395,46 @@ namespace VideoGameHash.Models
                                                                     break;
                                                                 }
                                                             }
-                                                        }
-                                                    }
 
                                                     if (!imageFound)
                                                     {
-                                                        int second = text.IndexOf("\"", 0);
+                                                        var second = text.IndexOf("\"", 0);
                                                         if (second > 0)
-                                                        {
                                                             fileImage = text.Substring(0, second);
-                                                        }
                                                     }
-
                                                 }
                                                 else
                                                 {
-                                                    int second = text.IndexOf("\"", 0);
+                                                    var second = text.IndexOf("\"", 0);
                                                     if (second > 0)
-                                                    {
                                                         fileImage = text.Substring(0, second);
-                                                    }
                                                 }
 
                                                 if (fileImage.Length > 0)
                                                 {
-                                                    string imageUrl = string.Format("http://en.wikipedia.org/w/api.php?action=query&titles={0}&prop=imageinfo&iiprop=url&format=json", fileImage);
-                                                    WebRequest dbImageRequest = WebRequest.Create(imageUrl);
-                                                    using (HttpWebResponse dbImageResponse = (HttpWebResponse)dbImageRequest.GetResponse())
+                                                    var imageUrl =
+                                                        $"http://en.wikipedia.org/w/api.php?action=query&titles={fileImage}&prop=imageinfo&iiprop=url&format=json";
+                                                    var dbImageRequest = WebRequest.Create(imageUrl);
+                                                    using (var dbImageResponse =
+                                                        (HttpWebResponse) dbImageRequest.GetResponse())
                                                     {
-                                                        StreamReader wkImageJson = new StreamReader(dbImageResponse.GetResponseStream());
-                                                        string imageLink = wkImageJson.ReadToEnd();
-                                                        string urlToFind = "\"url\":\"";
+                                                        var wkImageJson =
+                                                            new StreamReader(dbImageResponse.GetResponseStream());
+                                                        var imageLink = wkImageJson.ReadToEnd();
+                                                        var urlToFind = "\"url\":\"";
                                                         first = imageLink.IndexOf(urlToFind);
 
                                                         if (first > 0)
                                                         {
-                                                            int second = imageLink.IndexOf("\"", first + urlToFind.Length);
+                                                            var second = imageLink.IndexOf("\"",
+                                                                first + urlToFind.Length);
                                                             if (second > first)
-                                                                gameinfo.GameImage = imageLink.Substring(first + urlToFind.Length, second - (first + urlToFind.Length));
+                                                                gameinfo.GameImage =
+                                                                    imageLink.Substring(first + urlToFind.Length,
+                                                                        second - (first + urlToFind.Length));
                                                         }
                                                     }
                                                 }
-
                                             }
                                         }
                                     }
@@ -468,7 +448,7 @@ namespace VideoGameHash.Models
                                 {
                                     gameinfo.GamesDbNetId = -1;
                                     if (GetGameInfo(game.Id, gameSystem) == null)
-                                        db.GameInfoes.AddObject(gameinfo);
+                                        _db.GameInfoes.AddObject(gameinfo);
                                 }
                                 else
                                 {
@@ -478,21 +458,21 @@ namespace VideoGameHash.Models
                         }
                     }
 
-                    db.SaveChanges();
+                    _db.SaveChanges();
                 }
             }
         }
 
         private List<Dictionary<string, string>> ConvertToList(string text, string gameSystem)
         {
-            string input = text;
+            var input = text;
 
-            int index = -1;
+            var index = -1;
 
             if (gameSystem == "Xbox 360" || gameSystem == "Wii U")
-                index = input.IndexOf("|Title", 0);
+                index = input.IndexOf("|Title", 0, StringComparison.OrdinalIgnoreCase);
             else if (gameSystem == "PS3")
-                index = input.IndexOf("|Video Game", 0);
+                index = input.IndexOf("|Video Game", 0, StringComparison.OrdinalIgnoreCase);
             if (index > 0)
             {
                 // Remove unneccessary stuff
@@ -502,11 +482,11 @@ namespace VideoGameHash.Models
                 index = input.IndexOf("\'\'");
                 if (index > 0)
                 {
-                    string header = input.Substring(0, index);
-                    string[] headers = header.Remove(0, 1).Split('|');
-                    for (int j = 0; j < headers.Count(); j++)
+                    var header = input.Substring(0, index);
+                    var headers = header.Remove(0, 1).Split('|');
+                    for (var j = 0; j < headers.Count(); j++)
                     {
-                        int subIndex = headers[j].IndexOf("\\n");
+                        var subIndex = headers[j].IndexOf("\\n", StringComparison.OrdinalIgnoreCase);
                         if (subIndex > 0)
                         {
                             headers[j] = headers[j].Remove(subIndex, headers[j].Length - subIndex);
@@ -515,78 +495,66 @@ namespace VideoGameHash.Models
                     }
 
                     // Format the entries
-                    input = input.Remove(0, index).Replace("\'\'", String.Empty).Replace("[[", String.Empty).Replace("]]", String.Empty).Replace("{{", String.Empty).Replace("}}", String.Empty);
+                    input = input.Remove(0, index).Replace("\'\'", string.Empty).Replace("[[", string.Empty)
+                        .Replace("]]", string.Empty).Replace("{{", string.Empty).Replace("}}", string.Empty);
 
                     // Put entries in their respective section
-                    string[] games = input.Split(new string[] { "|-\\n|" }, StringSplitOptions.RemoveEmptyEntries);
-                    List<Dictionary<string, string>> gameList = new List<Dictionary<string, string>>();
-                    foreach (string game in games)
+                    var games = input.Split(new[] {"|-\\n|"}, StringSplitOptions.RemoveEmptyEntries);
+                    var gameList = new List<Dictionary<string, string>>();
+                    foreach (var game in games)
                     {
-                        string[] entry = game.Split(new string[] { "\\n|" }, StringSplitOptions.RemoveEmptyEntries);
-                        Dictionary<string, string> gameEntry = new Dictionary<string, string>();
-                        for (int subIndex = 0; subIndex < entry.Count(); subIndex++)
+                        var entry = game.Split(new[] {"\\n|"}, StringSplitOptions.RemoveEmptyEntries);
+                        var gameEntry = new Dictionary<string, string>();
+                        for (var subIndex = 0; subIndex < entry.Count(); subIndex++)
                         {
-                            int refIndex = entry[subIndex].IndexOf("<ref>", 0);
+                            var refIndex = entry[subIndex].IndexOf("<ref>", 0, StringComparison.OrdinalIgnoreCase);
                             if (refIndex > 0)
-                            {
                                 entry[subIndex] = entry[subIndex].Remove(refIndex);
-                            }
                             if (subIndex < headers.Count())
                                 gameEntry[headers[subIndex]] = entry[subIndex];
                         }
                         gameList.Add(gameEntry);
                     }
 
-                    DateTime cutoff = DateTime.Now.AddMonths(-12);
-                    List<Dictionary<string, string>> filteredList = gameList.Where(u => ConvertJsonDate(u["North America"], gameSystem) >= cutoff).ToList();
+                    var cutoff = DateTime.Now.AddMonths(-12);
+                    var filteredList = gameList.Where(u => ConvertJsonDate(u["North America"], gameSystem) >= cutoff)
+                        .ToList();
 
                     return filteredList;
                 }
-                else
-                    return null;
-            }
-            else
                 return null;
+            }
+            return null;
         }
 
         public DateTime ConvertJsonDate(string date, string gameSystem)
         {
             if (date.ToLower().Contains("unreleased"))
                 return DateTime.MinValue;
-            else
-            {
-                string[] parts = date.Split('|');
-                if (parts.Count() >= 4)
+            var parts = date.Split('|');
+            if (parts.Count() >= 4)
+                try
                 {
-                    try
+                    if (gameSystem == "Wii U")
                     {
-                        if (gameSystem == "Wii U")
-                        {
-                            int number;
-                            if (!Int32.TryParse(parts[3], out number))
-                            {
-                                number = ConvertMonthTextToNumber(parts[3]);
-                            }
-                            return new DateTime(Convert.ToInt32(parts[2]), number, Convert.ToInt32(parts[4]));
-                        }
-                        else
-                        {
-                            int number;
-                            if (!Int32.TryParse(parts[2], out number))
-                            {
-                                number = ConvertMonthTextToNumber(parts[2]);
-                            }
-                            return new DateTime(Convert.ToInt32(parts[1]), number, Convert.ToInt32(parts[3]));
-                        }
+                        int number;
+                        if (!int.TryParse(parts[3], out number))
+                            number = ConvertMonthTextToNumber(parts[3]);
+                        return new DateTime(Convert.ToInt32(parts[2]), number, Convert.ToInt32(parts[4]));
                     }
-                    catch
+                    else
                     {
-                        return DateTime.MinValue;
+                        int number;
+                        if (!int.TryParse(parts[2], out number))
+                            number = ConvertMonthTextToNumber(parts[2]);
+                        return new DateTime(Convert.ToInt32(parts[1]), number, Convert.ToInt32(parts[3]));
                     }
                 }
-                else
+                catch
+                {
                     return DateTime.MinValue;
-            }
+                }
+            return DateTime.MinValue;
         }
 
         private int ConvertMonthTextToNumber(string month)
@@ -626,53 +594,51 @@ namespace VideoGameHash.Models
         {
             if (value.EndsWith(toTrim))
             {
-                int startIndex = toTrim.Length;
+                var startIndex = toTrim.Length;
                 return value.Substring(0, value.Length - startIndex);
             }
             return value;
         }
 
-        private string[] GetUSReleaseDate(int index, string text)
+        private string[] GetUsReleaseDate(int index, string text)
         {
-            string usReleaseDate = String.Empty;
-            int dateIndex = text.IndexOf("{{", index);
+            var usReleaseDate = string.Empty;
+            var dateIndex = text.IndexOf("{{", index);
 
             if (dateIndex > 0)
             {
-                int endDateIndex = text.IndexOf("}}", dateIndex);
+                var endDateIndex = text.IndexOf("}}", dateIndex);
                 usReleaseDate = text.Substring(dateIndex + 2, endDateIndex - (dateIndex + 2));
             }
 
-            string[] splitDate = usReleaseDate.Split('|');
+            var splitDate = usReleaseDate.Split('|');
 
             if (splitDate.Length < 3 || splitDate[2].ToLower() == "unreleased")
                 splitDate = null;
             else
-            {
-                foreach (string part in splitDate)
+                foreach (var part in splitDate)
                 {
                     if (part.ToLower().Contains("dts"))
                         continue;
                     int number;
-                    bool result = Int32.TryParse(part, out number);
+                    var result = int.TryParse(part, out number);
 
                     if (result == false)
                         splitDate = null;
                 }
-            }
 
             return splitDate;
         }
 
         private string GetGameTitleFromWikipedia(int index, string text)
         {
-            string title = String.Empty;
+            var title = string.Empty;
 
-            int titleIndex = text.IndexOf("[[", index);
+            var titleIndex = text.IndexOf("[[", index);
 
             if (titleIndex > 0)
             {
-                int endTitleIndex = text.IndexOf("]]", titleIndex);
+                var endTitleIndex = text.IndexOf("]]", titleIndex);
                 title = text.Substring(titleIndex + 2, endTitleIndex - (titleIndex + 2));
             }
 
@@ -681,24 +647,24 @@ namespace VideoGameHash.Models
 
         private string[] ParseGameInfomatics(int index, string text)
         {
-            int endIndex = text.IndexOf("{{", index);
+            var endIndex = text.IndexOf("{{", index);
 
             if (endIndex > 0)
-                return text.Substring(index, endIndex - index).Replace("\'\'", String.Empty).Replace("[[", String.Empty).Replace("]]", String.Empty).Split('|');
-            else
-                return null;
+                return text.Substring(index, endIndex - index).Replace("\'\'", string.Empty).Replace("[[", string.Empty)
+                    .Replace("]]", string.Empty).Split('|');
+            return null;
         }
 
         private string ParsePublisherFromWikipedia(int index, string text)
         {
-            return String.Empty;
+            return string.Empty;
         }
 
 
-        private IEnumerable<GameInfo> GetGameInfoBySystem(string GameSystem)
+        private IEnumerable<GameInfo> GetGameInfoBySystem(string gameSystem)
         {
-            int gameSystemId = GetGameSystemId(GameSystem);
-            return db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
+            var gameSystemId = GetGameSystemId(gameSystem);
+            return _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
         }
 
         //private GameInfo GetGameInfo(int Id)
@@ -708,18 +674,18 @@ namespace VideoGameHash.Models
 
         private bool IsDuplicateGameInfo(GameInfo gameInfo)
         {
-            var temp = from tempDb in db.GameInfoes
-                       where tempDb.GamesId == gameInfo.GamesId && tempDb.GameSystemId == gameInfo.GameSystemId
-                       select tempDb;
+            var temp = from tempDb in _db.GameInfoes
+                where tempDb.GamesId == gameInfo.GamesId && tempDb.GameSystemId == gameInfo.GameSystemId
+                select tempDb;
 
             return temp != null && temp.Count() > 0;
         }
 
         public bool IgnoreThisGame(Games game)
         {
-            var temp = from tempDb in db.GameIgnores
-                       where tempDb.GameTitle == game.GameTitle
-                       select tempDb;
+            var temp = from tempDb in _db.GameIgnores
+                where tempDb.GameTitle == game.GameTitle
+                select tempDb;
 
             return temp != null && temp.Count() > 0;
         }
@@ -731,125 +697,126 @@ namespace VideoGameHash.Models
 
         public IQueryable<Games> GetGamesQuery()
         {
-            return db.Games;
+            return _db.Games;
         }
 
         public bool IsDuplicateGame(Games game)
         {
             var isDuplicate = from tempGameItem in GetGamesQuery()
-                              where game.GameTitle == tempGameItem.GameTitle
-                              select tempGameItem;
+                where game.GameTitle == tempGameItem.GameTitle
+                select tempGameItem;
 
             return isDuplicate != null && isDuplicate.Count() > 0;
         }
 
-        public void DeleteGame(int Id)
+        public void DeleteGame(int id)
         {
-            Games game = GetGame(Id);
+            var game = GetGame(id);
 
             if (game != null)
             {
-                GameIgnore gameIgnore = new GameIgnore();
-                gameIgnore.GameTitle = game.GameTitle;
+                var gameIgnore = new GameIgnore
+                {
+                    GameTitle = game.GameTitle
+                };
 
                 if (!IsDuplicateIgnoredGame(game))
-                    db.GameIgnores.AddObject(gameIgnore);
+                    _db.GameIgnores.AddObject(gameIgnore);
 
                 // Delete from GameInfo first
                 DeleteGameInfo(game.Id);
 
-                db.Games.DeleteObject(game);
-                db.SaveChanges();
+                _db.Games.DeleteObject(game);
+                _db.SaveChanges();
             }
         }
 
         private bool IsDuplicateIgnoredGame(Games game)
         {
-            var isDuplate = from tempDb in db.GameIgnores
-                            where game.GameTitle == tempDb.GameTitle
-                            select tempDb;
+            var isDuplate = from tempDb in _db.GameIgnores
+                where game.GameTitle == tempDb.GameTitle
+                select tempDb;
             return isDuplate != null && isDuplate.Count() > 0;
         }
 
-        private void DeleteGameInfo(int Id)
+        private void DeleteGameInfo(int id)
         {
-            IQueryable<GameInfo> gameInfos = db.GameInfoes.Where(u => u.GamesId == Id);
-            foreach (GameInfo gameInfo in gameInfos)
-            {
-                db.GameInfoes.DeleteObject(gameInfo);
-            }
-            db.SaveChanges();
+            var gameInfos = _db.GameInfoes.Where(u => u.GamesId == id);
+            foreach (var gameInfo in gameInfos)
+                _db.GameInfoes.DeleteObject(gameInfo);
+            _db.SaveChanges();
         }
 
-        private IEnumerable<GameInfo> GetGameInfoByGameId(int Id)
+        private IEnumerable<GameInfo> GetGameInfoByGameId(int id)
         {
-            return db.GameInfoes.Where(u => u.GamesId == Id);
+            return _db.GameInfoes.Where(u => u.GamesId == id);
         }
 
         private GameInfo GetGameInfo(int gameId, string gameSystem)
         {
-            int gameSystemId = GetGameSystemId(gameSystem);
-            return db.GameInfoes.SingleOrDefault(u => u.GamesId == gameId && u.GameSystemId == gameSystemId);
+            var gameSystemId = GetGameSystemId(gameSystem);
+            return _db.GameInfoes.SingleOrDefault(u => u.GamesId == gameId && u.GameSystemId == gameSystemId);
         }
 
-        internal string GetImage(int Id, string GameSystem)
+        internal string GetImage(int id, string gameSystem)
         {
             try
             {
-                int gameSystemId = GetGameSystemId(GameSystem);
-                return db.GameInfoes.SingleOrDefault(u => u.GamesId == Id && u.GameSystemId == gameSystemId).GameImage;
+                var gameSystemId = GetGameSystemId(gameSystem);
+                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId).GameImage;
             }
             catch
             {
-                return String.Empty;
+                return string.Empty;
             }
         }
 
-        internal string GetPublisher(int Id, string GameSystem)
+        internal string GetPublisher(int id, string gameSystem)
         {
             try
             {
-                int gameSystemId = GetGameSystemId(GameSystem);
-                return db.GameInfoes.SingleOrDefault(u => u.GamesId == Id && u.GameSystemId == gameSystemId).Publisher;
+                var gameSystemId = GetGameSystemId(gameSystem);
+                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId).Publisher;
             }
             catch
             {
-                return String.Empty;
+                return string.Empty;
             }
         }
 
-        internal string GetDeveloper(int Id, string GameSystem)
+        internal string GetDeveloper(int id, string gameSystem)
         {
             try
             {
-                int gameSystemId = GetGameSystemId(GameSystem);
-                return db.GameInfoes.SingleOrDefault(u => u.GamesId == Id && u.GameSystemId == gameSystemId).Developer;
+                var gameSystemId = GetGameSystemId(gameSystem);
+                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId).Developer;
             }
             catch
             {
-                return String.Empty;
+                return string.Empty;
             }
         }
 
-        internal string GetOverview(int Id, string GameSystem)
+        internal string GetOverview(int id, string gameSystem)
         {
             try
             {
-                int gameSystemId = GetGameSystemId(GameSystem);
-                return db.GameInfoes.SingleOrDefault(u => u.GamesId == Id && u.GameSystemId == gameSystemId).Overview;
+                var gameSystemId = GetGameSystemId(gameSystem);
+                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId).Overview;
             }
             catch
             {
-                return String.Empty;
+                return string.Empty;
             }
         }
 
-        internal int GetGamesDBNetId(int Id, string GameSystem)
+        internal int GetGamesDbNetId(int id, string gameSystem)
         {
             try
             {
-                int gameSystemId = GetGameSystemId(GameSystem);
-                return db.GameInfoes.SingleOrDefault(u => u.GamesId == Id && u.GameSystemId == gameSystemId).GamesDbNetId;
+                var gameSystemId = GetGameSystemId(gameSystem);
+                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId)
+                    .GamesDbNetId;
             }
             catch
             {
@@ -857,12 +824,13 @@ namespace VideoGameHash.Models
             }
         }
 
-        internal DateTime GetReleaseDate(int Id, string GameSystem)
+        internal DateTime GetReleaseDate(int id, string gameSystem)
         {
             try
             {
-                int gameSystemId = GetGameSystemId(GameSystem);
-                return db.GameInfoes.SingleOrDefault(u => u.GamesId == Id && u.GameSystemId == gameSystemId).USReleaseDate;
+                var gameSystemId = GetGameSystemId(gameSystem);
+                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId)
+                    .USReleaseDate;
             }
             catch
             {
@@ -872,13 +840,13 @@ namespace VideoGameHash.Models
 
         internal List<string> GetGameSystemsForThisGame(Games game)
         {
-            List<string> gameSystem = new List<string>();
-            IEnumerable<GameSystem> gameSystemList = db.GameSystems;
-            foreach (GameSystem system in gameSystemList)
+            var gameSystem = new List<string>();
+            IEnumerable<GameSystem> gameSystemList = _db.GameSystems;
+            foreach (var system in gameSystemList)
             {
-                var temp = from tempDb in db.GameInfoes
-                           where tempDb.GameSystemId == system.Id && tempDb.GamesId == game.Id
-                           select tempDb;
+                var temp = from tempDb in _db.GameInfoes
+                    where tempDb.GameSystemId == system.Id && tempDb.GamesId == game.Id
+                    select tempDb;
 
                 if (temp != null && temp.Count() > 0 && ContainsEntries(game.GameTitle, system.GameSystemName))
                     gameSystem.Add(system.GameSystemName);
@@ -894,892 +862,595 @@ namespace VideoGameHash.Models
     // 
 
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = false, ElementName = "Data")]
-    public partial class DataByPlatform
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    [XmlRoot(Namespace = "", IsNullable = false, ElementName = "Data")]
+    public class DataByPlatform
     {
+        [XmlElement("DataGame")] private DataGameByPlatform[] _itemsField;
 
-        [XmlElement("DataGame")]
-        private DataGameByPlatform[] itemsField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Game", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement("Game", Form = XmlSchemaForm.Unqualified)]
         public DataGameByPlatform[] Items
         {
-            get
-            {
-                return this.itemsField;
-            }
-            set
-            {
-                this.itemsField = value;
-            }
+            get => _itemsField;
+            set => _itemsField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameByPlatform
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameByPlatform
     {
+        private string _gameTitleField;
 
-        private string idField;
+        private string _idField;
 
-        private string gameTitleField;
+        private string _releaseDateField;
 
-        private string releaseDateField;
+        private string _thumbField;
 
-        private string thumbField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string id
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string Id
         {
-            get
-            {
-                return this.idField;
-            }
-            set
-            {
-                this.idField = value;
-            }
+            get => _idField;
+            set => _idField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string GameTitle
         {
-            get
-            {
-                return this.gameTitleField;
-            }
-            set
-            {
-                this.gameTitleField = value;
-            }
+            get => _gameTitleField;
+            set => _gameTitleField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string ReleaseDate
         {
-            get
-            {
-                return this.releaseDateField;
-            }
-            set
-            {
-                this.releaseDateField = value;
-            }
+            get => _releaseDateField;
+            set => _releaseDateField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string thumb
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string Thumb
         {
-            get
-            {
-                return this.thumbField;
-            }
-            set
-            {
-                this.thumbField = value;
-            }
+            get => _thumbField;
+            set => _thumbField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = true)]
-    public partial class original
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    [XmlRoot(Namespace = "", IsNullable = true)]
+    public class Original
     {
+        private string _heightField;
 
-        private string widthField;
+        private string _valueField;
 
-        private string heightField;
+        private string _widthField;
 
-        private string valueField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string width
+        /// <remarks />
+        [XmlAttribute]
+        public string Width
         {
-            get
-            {
-                return this.widthField;
-            }
-            set
-            {
-                this.widthField = value;
-            }
+            get => _widthField;
+            set => _widthField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string height
+        /// <remarks />
+        [XmlAttribute]
+        public string Height
         {
-            get
-            {
-                return this.heightField;
-            }
-            set
-            {
-                this.heightField = value;
-            }
+            get => _heightField;
+            set => _heightField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
+        /// <remarks />
+        [XmlText]
         public string Value
         {
-            get
-            {
-                return this.valueField;
-            }
-            set
-            {
-                this.valueField = value;
-            }
+            get => _valueField;
+            set => _valueField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = false, ElementName = "Data")]
-    public partial class DataByGameId
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    [XmlRoot(Namespace = "", IsNullable = false, ElementName = "Data")]
+    public class DataByGameId
     {
+        private string _baseImgUrlField;
 
-        private string baseImgUrlField;
+        [XmlElement("DataGame")] private DataGameByGameId[] _gameField;
 
-        [XmlElement("DataGame")]
-        private DataGameByGameId[] gameField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string baseImgUrl
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string BaseImgUrl
         {
-            get
-            {
-                return this.baseImgUrlField;
-            }
-            set
-            {
-                this.baseImgUrlField = value;
-            }
+            get => _baseImgUrlField;
+            set => _baseImgUrlField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Game", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement("Game", Form = XmlSchemaForm.Unqualified)]
         public DataGameByGameId[] Game
         {
-            get
-            {
-                return this.gameField;
-            }
-            set
-            {
-                this.gameField = value;
-            }
+            get => _gameField;
+            set => _gameField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameByGameId
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameByGameId
     {
+        private string _coopField;
 
-        private string idField;
+        private string _developerField;
 
-        private string gameTitleField;
+        private string _eSrbField;
 
-        private string platformIdField;
+        private string _gameTitleField;
 
-        private string platformField;
+        private DataGameGenres[] _genresField;
 
-        private string releaseDateField;
+        private string _idField;
 
-        private string overviewField;
+        private DataGameImages[] _imagesField;
 
-        private string eSRBField;
+        private string _overviewField;
 
-        private string playersField;
+        private string _platformField;
 
-        private string coopField;
+        private string _platformIdField;
 
-        private string youtubeField;
+        private string _playersField;
 
-        private string publisherField;
+        private string _publisherField;
 
-        private string developerField;
+        private string _ratingField;
 
-        private string ratingField;
+        private string _releaseDateField;
 
-        private DataGameGenres[] genresField;
+        private string _youtubeField;
 
-        private DataGameImages[] imagesField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string id
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string Id
         {
-            get
-            {
-                return this.idField;
-            }
-            set
-            {
-                this.idField = value;
-            }
+            get => _idField;
+            set => _idField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string GameTitle
         {
-            get
-            {
-                return this.gameTitleField;
-            }
-            set
-            {
-                this.gameTitleField = value;
-            }
+            get => _gameTitleField;
+            set => _gameTitleField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string PlatformId
         {
-            get
-            {
-                return this.platformIdField;
-            }
-            set
-            {
-                this.platformIdField = value;
-            }
+            get => _platformIdField;
+            set => _platformIdField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Platform
         {
-            get
-            {
-                return this.platformField;
-            }
-            set
-            {
-                this.platformField = value;
-            }
+            get => _platformField;
+            set => _platformField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string ReleaseDate
         {
-            get
-            {
-                return this.releaseDateField;
-            }
-            set
-            {
-                this.releaseDateField = value;
-            }
+            get => _releaseDateField;
+            set => _releaseDateField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Overview
         {
-            get
-            {
-                return this.overviewField;
-            }
-            set
-            {
-                this.overviewField = value;
-            }
+            get => _overviewField;
+            set => _overviewField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string ESRB
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string Esrb
         {
-            get
-            {
-                return this.eSRBField;
-            }
-            set
-            {
-                this.eSRBField = value;
-            }
+            get => _eSrbField;
+            set => _eSrbField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Players
         {
-            get
-            {
-                return this.playersField;
-            }
-            set
-            {
-                this.playersField = value;
-            }
+            get => _playersField;
+            set => _playersField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Co-op", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement("Co-op", Form = XmlSchemaForm.Unqualified)]
         public string Coop
         {
-            get
-            {
-                return this.coopField;
-            }
-            set
-            {
-                this.coopField = value;
-            }
+            get => _coopField;
+            set => _coopField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Youtube
         {
-            get
-            {
-                return this.youtubeField;
-            }
-            set
-            {
-                this.youtubeField = value;
-            }
+            get => _youtubeField;
+            set => _youtubeField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Publisher
         {
-            get
-            {
-                return this.publisherField;
-            }
-            set
-            {
-                this.publisherField = value;
-            }
+            get => _publisherField;
+            set => _publisherField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Developer
         {
-            get
-            {
-                return this.developerField;
-            }
-            set
-            {
-                this.developerField = value;
-            }
+            get => _developerField;
+            set => _developerField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Rating
         {
-            get
-            {
-                return this.ratingField;
-            }
-            set
-            {
-                this.ratingField = value;
-            }
+            get => _ratingField;
+            set => _ratingField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Genres", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement("Genres", Form = XmlSchemaForm.Unqualified)]
         public DataGameGenres[] Genres
         {
-            get
-            {
-                return this.genresField;
-            }
-            set
-            {
-                this.genresField = value;
-            }
+            get => _genresField;
+            set => _genresField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Images", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement("Images", Form = XmlSchemaForm.Unqualified)]
         public DataGameImages[] Images
         {
-            get
-            {
-                return this.imagesField;
-            }
-            set
-            {
-                this.imagesField = value;
-            }
+            get => _imagesField;
+            set => _imagesField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameGenres
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameGenres
     {
+        private string _genreField;
 
-        private string genreField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string genre
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string Genre
         {
-            get
-            {
-                return this.genreField;
-            }
-            set
-            {
-                this.genreField = value;
-            }
+            get => _genreField;
+            set => _genreField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameImages
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameImages
     {
+        private DataGameImagesBanner[] _bannerField;
 
-        private DataGameImagesFanart[] fanartField;
+        private DataGameImagesBoxart[] _boxartField;
 
-        private DataGameImagesBoxart[] boxartField;
+        private DataGameImagesClearlogo[] _clearlogoField;
 
-        private DataGameImagesBanner[] bannerField;
+        private DataGameImagesFanart[] _fanartField;
 
-        private DataGameImagesScreenshot[] screenshotField;
+        private DataGameImagesScreenshot[] _screenshotField;
 
-        private DataGameImagesClearlogo[] clearlogoField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("fanart", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public DataGameImagesFanart[] fanart
+        /// <remarks />
+        [XmlElement("fanart", Form = XmlSchemaForm.Unqualified)]
+        public DataGameImagesFanart[] Fanart
         {
-            get
-            {
-                return this.fanartField;
-            }
-            set
-            {
-                this.fanartField = value;
-            }
+            get => _fanartField;
+            set => _fanartField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("boxart", Form = System.Xml.Schema.XmlSchemaForm.Unqualified, IsNullable = true)]
-        public DataGameImagesBoxart[] boxart
+        /// <remarks />
+        [XmlElement("boxart", Form = XmlSchemaForm.Unqualified, IsNullable = true)]
+        public DataGameImagesBoxart[] Boxart
         {
-            get
-            {
-                return this.boxartField;
-            }
-            set
-            {
-                this.boxartField = value;
-            }
+            get => _boxartField;
+            set => _boxartField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("banner", Form = System.Xml.Schema.XmlSchemaForm.Unqualified, IsNullable = true)]
-        public DataGameImagesBanner[] banner
+        /// <remarks />
+        [XmlElement("banner", Form = XmlSchemaForm.Unqualified, IsNullable = true)]
+        public DataGameImagesBanner[] Banner
         {
-            get
-            {
-                return this.bannerField;
-            }
-            set
-            {
-                this.bannerField = value;
-            }
+            get => _bannerField;
+            set => _bannerField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("screenshot", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public DataGameImagesScreenshot[] screenshot
+        /// <remarks />
+        [XmlElement("screenshot", Form = XmlSchemaForm.Unqualified)]
+        public DataGameImagesScreenshot[] Screenshot
         {
-            get
-            {
-                return this.screenshotField;
-            }
-            set
-            {
-                this.screenshotField = value;
-            }
+            get => _screenshotField;
+            set => _screenshotField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("clearlogo", Form = System.Xml.Schema.XmlSchemaForm.Unqualified, IsNullable = true)]
-        public DataGameImagesClearlogo[] clearlogo
+        /// <remarks />
+        [XmlElement("clearlogo", Form = XmlSchemaForm.Unqualified, IsNullable = true)]
+        public DataGameImagesClearlogo[] Clearlogo
         {
-            get
-            {
-                return this.clearlogoField;
-            }
-            set
-            {
-                this.clearlogoField = value;
-            }
+            get => _clearlogoField;
+            set => _clearlogoField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameImagesFanart
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameImagesFanart
     {
+        private Original[] _originalField;
 
-        private string thumbField;
+        private string _thumbField;
 
-        private original[] originalField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string thumb
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string Thumb
         {
-            get
-            {
-                return this.thumbField;
-            }
-            set
-            {
-                this.thumbField = value;
-            }
+            get => _thumbField;
+            set => _thumbField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("original", IsNullable = true)]
-        public original[] original
+        /// <remarks />
+        [XmlElement("original", IsNullable = true)]
+        public Original[] Original
         {
-            get
-            {
-                return this.originalField;
-            }
-            set
-            {
-                this.originalField = value;
-            }
+            get => _originalField;
+            set => _originalField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameImagesBoxart
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameImagesBoxart
     {
+        private string _heightField;
 
-        private string sideField;
+        private string _sideField;
 
-        private string widthField;
+        private string _thumbField;
 
-        private string heightField;
+        private string _valueField;
 
-        private string thumbField;
+        private string _widthField;
 
-        private string valueField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string side
+        /// <remarks />
+        [XmlAttribute]
+        public string Side
         {
-            get
-            {
-                return this.sideField;
-            }
-            set
-            {
-                this.sideField = value;
-            }
+            get => _sideField;
+            set => _sideField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string width
+        /// <remarks />
+        [XmlAttribute]
+        public string Width
         {
-            get
-            {
-                return this.widthField;
-            }
-            set
-            {
-                this.widthField = value;
-            }
+            get => _widthField;
+            set => _widthField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string height
+        /// <remarks />
+        [XmlAttribute]
+        public string Height
         {
-            get
-            {
-                return this.heightField;
-            }
-            set
-            {
-                this.heightField = value;
-            }
+            get => _heightField;
+            set => _heightField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string thumb
+        /// <remarks />
+        [XmlAttribute]
+        public string Thumb
         {
-            get
-            {
-                return this.thumbField;
-            }
-            set
-            {
-                this.thumbField = value;
-            }
+            get => _thumbField;
+            set => _thumbField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
+        /// <remarks />
+        [XmlText]
         public string Value
         {
-            get
-            {
-                return this.valueField;
-            }
-            set
-            {
-                this.valueField = value;
-            }
+            get => _valueField;
+            set => _valueField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameImagesBanner
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameImagesBanner
     {
+        private string _heightField;
 
-        private string widthField;
+        private string _valueField;
 
-        private string heightField;
+        private string _widthField;
 
-        private string valueField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string width
+        /// <remarks />
+        [XmlAttribute]
+        public string Width
         {
-            get
-            {
-                return this.widthField;
-            }
-            set
-            {
-                this.widthField = value;
-            }
+            get => _widthField;
+            set => _widthField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string height
+        /// <remarks />
+        [XmlAttribute]
+        public string Height
         {
-            get
-            {
-                return this.heightField;
-            }
-            set
-            {
-                this.heightField = value;
-            }
+            get => _heightField;
+            set => _heightField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
+        /// <remarks />
+        [XmlText]
         public string Value
         {
-            get
-            {
-                return this.valueField;
-            }
-            set
-            {
-                this.valueField = value;
-            }
+            get => _valueField;
+            set => _valueField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameImagesScreenshot
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameImagesScreenshot
     {
+        private Original[] _originalField;
 
-        private string thumbField;
+        private string _thumbField;
 
-        private original[] originalField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string thumb
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string Thumb
         {
-            get
-            {
-                return this.thumbField;
-            }
-            set
-            {
-                this.thumbField = value;
-            }
+            get => _thumbField;
+            set => _thumbField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("original", IsNullable = true)]
-        public original[] original
+        /// <remarks />
+        [XmlElement("original", IsNullable = true)]
+        public Original[] Original
         {
-            get
-            {
-                return this.originalField;
-            }
-            set
-            {
-                this.originalField = value;
-            }
+            get => _originalField;
+            set => _originalField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameImagesClearlogo
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameImagesClearlogo
     {
+        private string _heightField;
 
-        private string widthField;
+        private string _valueField;
 
-        private string heightField;
+        private string _widthField;
 
-        private string valueField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string width
+        /// <remarks />
+        [XmlAttribute]
+        public string Width
         {
-            get
-            {
-                return this.widthField;
-            }
-            set
-            {
-                this.widthField = value;
-            }
+            get => _widthField;
+            set => _widthField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string height
+        /// <remarks />
+        [XmlAttribute]
+        public string Height
         {
-            get
-            {
-                return this.heightField;
-            }
-            set
-            {
-                this.heightField = value;
-            }
+            get => _heightField;
+            set => _heightField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
+        /// <remarks />
+        [XmlText]
         public string Value
         {
-            get
-            {
-                return this.valueField;
-            }
-            set
-            {
-                this.valueField = value;
-            }
+            get => _valueField;
+            set => _valueField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = false)]
-    public partial class NewDataSet
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    [XmlRoot(Namespace = "", IsNullable = false)]
+    public class NewDataSet
     {
+        private object[] _itemsField;
 
-        private object[] itemsField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Data", typeof(DataByGameId))]
-        [System.Xml.Serialization.XmlElementAttribute("original", typeof(original), IsNullable = true)]
+        /// <remarks />
+        [XmlElement("Data", typeof(DataByGameId))]
+        [XmlElement("original", typeof(Original), IsNullable = true)]
         public object[] Items
         {
-            get
-            {
-                return this.itemsField;
-            }
-            set
-            {
-                this.itemsField = value;
-            }
+            get => _itemsField;
+            set => _itemsField = value;
         }
     }
 
@@ -1800,369 +1471,242 @@ namespace VideoGameHash.Models
     // 
 
 
-
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = false)]
-    public partial class Data
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    [XmlRoot(Namespace = "", IsNullable = false)]
+    public class Data
     {
+        private string _baseImgUrlField;
 
-        private string baseImgUrlField;
+        private DataGame[] _gameField;
 
-        private DataGame[] gameField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string baseImgUrl
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string BaseImgUrl
         {
-            get
-            {
-                return this.baseImgUrlField;
-            }
-            set
-            {
-                this.baseImgUrlField = value;
-            }
+            get => _baseImgUrlField;
+            set => _baseImgUrlField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Game", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement("Game", Form = XmlSchemaForm.Unqualified)]
         public DataGame[] Game
         {
-            get
-            {
-                return this.gameField;
-            }
-            set
-            {
-                this.gameField = value;
-            }
+            get => _gameField;
+            set => _gameField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGame
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGame
     {
+        private DataGameAlternateTitlesTitle[] _alternateTitlesField;
 
-        private string idField;
+        private string _coopField;
 
-        private string gameTitleField;
+        private string _developerField;
 
-        private string platformIdField;
+        private string _eSrbField;
 
-        private string platformField;
+        private string _gameTitleField;
 
-        private string releaseDateField;
+        private DataGameGenresGenre[] _genresField;
 
-        private string overviewField;
+        private string _idField;
 
-        private string eSRBField;
+        private DataGameImages[] _imagesField;
 
-        private string playersField;
+        private string _overviewField;
 
-        private string coopField;
+        private string _platformField;
 
-        private string youtubeField;
+        private string _platformIdField;
 
-        private string publisherField;
+        private string _playersField;
 
-        private string developerField;
+        private string _publisherField;
 
-        private string ratingField;
+        private string _ratingField;
 
-        private DataGameAlternateTitlesTitle[] alternateTitlesField;
+        private string _releaseDateField;
 
-        private DataGameGenresGenre[] genresField;
+        private string _youtubeField;
 
-        private DataGameImages[] imagesField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string id
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string Id
         {
-            get
-            {
-                return this.idField;
-            }
-            set
-            {
-                this.idField = value;
-            }
+            get => _idField;
+            set => _idField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string GameTitle
         {
-            get
-            {
-                return this.gameTitleField;
-            }
-            set
-            {
-                this.gameTitleField = value;
-            }
+            get => _gameTitleField;
+            set => _gameTitleField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string PlatformId
         {
-            get
-            {
-                return this.platformIdField;
-            }
-            set
-            {
-                this.platformIdField = value;
-            }
+            get => _platformIdField;
+            set => _platformIdField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Platform
         {
-            get
-            {
-                return this.platformField;
-            }
-            set
-            {
-                this.platformField = value;
-            }
+            get => _platformField;
+            set => _platformField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string ReleaseDate
         {
-            get
-            {
-                return this.releaseDateField;
-            }
-            set
-            {
-                this.releaseDateField = value;
-            }
+            get => _releaseDateField;
+            set => _releaseDateField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Overview
         {
-            get
-            {
-                return this.overviewField;
-            }
-            set
-            {
-                this.overviewField = value;
-            }
+            get => _overviewField;
+            set => _overviewField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        public string ESRB
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public string Esrb
         {
-            get
-            {
-                return this.eSRBField;
-            }
-            set
-            {
-                this.eSRBField = value;
-            }
+            get => _eSrbField;
+            set => _eSrbField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Players
         {
-            get
-            {
-                return this.playersField;
-            }
-            set
-            {
-                this.playersField = value;
-            }
+            get => _playersField;
+            set => _playersField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Co-op", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement("Co-op", Form = XmlSchemaForm.Unqualified)]
         public string Coop
         {
-            get
-            {
-                return this.coopField;
-            }
-            set
-            {
-                this.coopField = value;
-            }
+            get => _coopField;
+            set => _coopField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Youtube
         {
-            get
-            {
-                return this.youtubeField;
-            }
-            set
-            {
-                this.youtubeField = value;
-            }
+            get => _youtubeField;
+            set => _youtubeField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Publisher
         {
-            get
-            {
-                return this.publisherField;
-            }
-            set
-            {
-                this.publisherField = value;
-            }
+            get => _publisherField;
+            set => _publisherField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Developer
         {
-            get
-            {
-                return this.developerField;
-            }
-            set
-            {
-                this.developerField = value;
-            }
+            get => _developerField;
+            set => _developerField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string Rating
         {
-            get
-            {
-                return this.ratingField;
-            }
-            set
-            {
-                this.ratingField = value;
-            }
+            get => _ratingField;
+            set => _ratingField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlArrayAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        [System.Xml.Serialization.XmlArrayItemAttribute("title", typeof(DataGameAlternateTitlesTitle), Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlArray(Form = XmlSchemaForm.Unqualified)]
+        [XmlArrayItem("title", typeof(DataGameAlternateTitlesTitle), Form = XmlSchemaForm.Unqualified)]
         public DataGameAlternateTitlesTitle[] AlternateTitles
         {
-            get
-            {
-                return this.alternateTitlesField;
-            }
-            set
-            {
-                this.alternateTitlesField = value;
-            }
+            get => _alternateTitlesField;
+            set => _alternateTitlesField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlArrayAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
-        [System.Xml.Serialization.XmlArrayItemAttribute("genre", typeof(DataGameGenresGenre), Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlArray(Form = XmlSchemaForm.Unqualified)]
+        [XmlArrayItem("genre", typeof(DataGameGenresGenre), Form = XmlSchemaForm.Unqualified)]
         public DataGameGenresGenre[] Genres
         {
-            get
-            {
-                return this.genresField;
-            }
-            set
-            {
-                this.genresField = value;
-            }
+            get => _genresField;
+            set => _genresField = value;
         }
 
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Images", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
+        /// <remarks />
+        [XmlElement("Images", Form = XmlSchemaForm.Unqualified)]
         public DataGameImages[] Images
         {
-            get
-            {
-                return this.imagesField;
-            }
-            set
-            {
-                this.imagesField = value;
-            }
+            get => _imagesField;
+            set => _imagesField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameAlternateTitlesTitle
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameAlternateTitlesTitle
     {
+        private string _valueField;
 
-        private string valueField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
+        /// <remarks />
+        [XmlText]
         public string Value
         {
-            get
-            {
-                return this.valueField;
-            }
-            set
-            {
-                this.valueField = value;
-            }
+            get => _valueField;
+            set => _valueField = value;
         }
     }
 
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.3038")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class DataGameGenresGenre
+    /// <remarks />
+    [GeneratedCode("xsd", "2.0.50727.3038")]
+    [Serializable]
+    [DebuggerStepThrough]
+    [DesignerCategory("code")]
+    [XmlType(AnonymousType = true)]
+    public class DataGameGenresGenre
     {
+        private string _valueField;
 
-        private string valueField;
-
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
+        /// <remarks />
+        [XmlText]
         public string Value
         {
-            get
-            {
-                return this.valueField;
-            }
-            set
-            {
-                this.valueField = value;
-            }
+            get => _valueField;
+            set => _valueField = value;
         }
     }
-
-
 }

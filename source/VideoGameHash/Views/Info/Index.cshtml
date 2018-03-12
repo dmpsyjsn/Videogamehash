@@ -56,13 +56,14 @@
                 <li>@Html.ActionLink("Add URL", "AddUrl")</li>
                 <li>@Html.ActionLink("Get All Articles", "GetAllArticles")</li>
                 <li>@Html.ActionLink("Delete Articles Older Than 6 Months", "DeleteOldArticles")</li>
-                @foreach (string section in NewsHelper.SectionList)
+                @foreach (var section in NewsHelper.SectionList)
                 {
-                    string name = "Get All " + section;
-                    string featuredName = "Make Featured " + section + " Articles";
-                    string trendingName = "Make Trending " + section + " Articles";
+                    var name = "Get All " + section;
+                    var featuredName = "Make Featured " + section + " Articles";
+                    var trendingName = "Make Trending " + section + " Articles";
                     <li>@Html.ActionLink(name, "GetArticles", new {Section = NewsHelper.SectionId(section)})&nbsp&nbsp<span class="glyphicon glyphicon-plus-sign"></span>&nbsp&nbsp @Html.ActionLink(featuredName, "MakeFeatured", new { Section = NewsHelper.SectionId(section) })&nbsp&nbsp<i class="glyphicon-plus-sign"></i>&nbsp&nbsp @Html.ActionLink(trendingName, "MakeTrending", new { Section = NewsHelper.SectionId(section) })</li>
-                }    
+                }
+                
             </ul>
             <div id="loading"><img src="~/content/images/ajax-loader1.gif" alt="" /></div>
 
@@ -96,5 +97,28 @@
                 }
             </table>
         </div>
+    </div>
+    <div class="row">
+        <h5>JSON Import</h5>
+        <div class="importJson">
+            <ul id="json_import_actions">
+                <li><a id="jsonImportLink" style="cursor: pointer;">JSON Import</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="importDialog">
+        @using (Html.BeginForm("JsonImport", "Info", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            <h4>JSON Import</h4>
+
+            <div class="form-group">
+                <label class="control-label col-md-2">Select JSON</label>
+                <div class="col-md-10">
+                    <input type="file" name="someOtherFile" class="form-control" />
+                    <span class="field-validation-error" id="spanfilesomeOtherFile"></span>
+                </div>
+            </div>
+        }
     </div>
 }

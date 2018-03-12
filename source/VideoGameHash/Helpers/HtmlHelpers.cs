@@ -28,17 +28,17 @@ namespace VideoGameHash.Helpers
 
             if (section == "Reviews")
             {
-                string parsedContent = doc.DocumentNode.InnerText;
+                var parsedContent = doc.DocumentNode.InnerText;
                 if (source == "GameSpot")
                 {
-                    int index = parsedContent.IndexOf("Read and Post Comments");
+                    var index = parsedContent.IndexOf("Read and Post Comments");
 
                     if (index > 0)
                         parsedContent = parsedContent.Substring(0, index).Trim();
 
                     if (parsedContent.IndexOf("Score:") > 0)
                     {
-                        char[] find = new char[] { '.', '!', '?' };
+                        var find = new char[] { '.', '!', '?' };
                         index = parsedContent.IndexOfAny(find);
                         if (index > 0)
                         {
@@ -51,10 +51,10 @@ namespace VideoGameHash.Helpers
             }
             else if (section == "Media")
             {
-                string parsedContent = doc.DocumentNode.InnerText;
+                var parsedContent = doc.DocumentNode.InnerText;
                 if (source == "GameSpot")
                 {
-                    int index = parsedContent.IndexOf("Read and Post Comments");
+                    var index = parsedContent.IndexOf("Read and Post Comments");
 
                     if (index > 0)
                         parsedContent = parsedContent.Substring(0, index).Trim();
@@ -64,11 +64,11 @@ namespace VideoGameHash.Helpers
             }
             else
             {
-                StringBuilder newContent = new StringBuilder(doc.DocumentNode.InnerText);
+                var newContent = new StringBuilder(doc.DocumentNode.InnerText);
 
                 if (source == "CVG")
                 {
-                    int index = newContent.ToString().IndexOf("Click here");
+                    var index = newContent.ToString().IndexOf("Click here");
 
                     if (index > 0)
                         newContent = newContent.Remove(index, newContent.Length - index);
@@ -80,20 +80,20 @@ namespace VideoGameHash.Helpers
 
         public static string ParseImageLink(string source, string content)
         {
-            string imageLink = "";
+            var imageLink = "";
 
             // Add companies that have images, but are not display-able
             if (!NewsHelper.BadImageCompany(source))
             {
-                int imageIndex = content.IndexOf("img");
+                var imageIndex = content.IndexOf("img");
 
                 if (imageIndex > 0)
                 {
                     // Get the dimensions of the image
-                    int srcIndex = content.IndexOf("src=\"", imageIndex);
+                    var srcIndex = content.IndexOf("src=\"", imageIndex);
                     if (srcIndex > 0)
                     {
-                        int srcEndIndex = content.IndexOf("\"", srcIndex + 5);
+                        var srcEndIndex = content.IndexOf("\"", srcIndex + 5);
 
                         if (srcEndIndex > 0)
                         {

@@ -9,6 +9,7 @@
     @Styles.Render("~/Content/bootstrap/base")
     @Styles.Render("~/Content/bootstrap/theme")
     @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/themes/base/css")
 
     <!--[if gte IE 9]>
             <style type="text/css">
@@ -59,14 +60,14 @@
 </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    @foreach (string infoType in NewsHelper.SectionList)
+                    @foreach (var infoType in NewsHelper.SectionList)
                     {
                         if (NewsHelper.UseGameSystem(infoType))
                         {
                         <li class="dropdown"><a href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">@infoType
                             <b class="caret"></b></a>
                             <ul class="custom-popover dropdown-menu" role="menu">
-                                @foreach (string gameSystem in NewsHelper.GameSystemList(NewsHelper.SectionId(infoType)))
+                                @foreach (var gameSystem in NewsHelper.GameSystemList(NewsHelper.SectionId(infoType)))
                                 {
                                     <li>@Html.ActionLink(@gameSystem, "ViewArticlesN", "Home", new { Section = NewsHelper.SectionId(infoType), GameSystem = NewsHelper.GameSystemId(@gameSystem) }, new { @role = "menuitem", @tabindex = "-1", @class = "white" })</li>
                                 }
@@ -90,14 +91,14 @@
         <div class="container container-static">
             <div class="navbar">
                 <ul class="nav navbar-nav">
-                    @foreach (string infoType in NewsHelper.SectionList)
+                    @foreach (var infoType in NewsHelper.SectionList)
                     {
                         if (NewsHelper.UseGameSystem(infoType))
                         {
                         <li class="dropdown"><a href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">@infoType
                             <b class="caret"></b></a>
                             <ul class="dropdown-menu" role="menu">
-                                @foreach (string gameSystem in NewsHelper.GameSystemList(NewsHelper.SectionId(infoType)))
+                                @foreach (var gameSystem in NewsHelper.GameSystemList(NewsHelper.SectionId(infoType)))
                                 {
                                     <li>@Html.ActionLink(@gameSystem, "ViewArticlesN", "Home", new { Section = NewsHelper.SectionId(infoType), GameSystem = NewsHelper.GameSystemId(@gameSystem) }, new { @role = "menuitem", @tabindex = "-1" })</li>
                                 }
