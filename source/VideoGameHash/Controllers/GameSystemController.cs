@@ -37,7 +37,7 @@ namespace VideoGameHash.Controllers
         public ActionResult AddGameSystem(GameSystemModel model)
         {
 
-            _gameSystemsRepository.AddGameSystem(model);
+            _gameSystemsRepository.AddGameSystem(model.GameSystem);
 
             return RedirectToAction("Index");
         }

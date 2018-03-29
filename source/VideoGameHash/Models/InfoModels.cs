@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using VideoGameHash.Helpers;
 
@@ -31,6 +27,11 @@ namespace VideoGameHash.Models
         public bool UseGameSystem { get; set; }
     }
 
+    public class AddTypeModel
+    {
+        public string Name { get; set; }
+    }
+
     public class AddInfoModel
     {
         public string Name { get; set; }
@@ -45,10 +46,10 @@ namespace VideoGameHash.Models
 
     public class AddUrlViewModel
     {
-        public AddUrlModel Model { get; private set; }
-        public SelectList Section { get; private set; }
-        public SelectList Source { get; private set; }
-        public SelectList GameSystem { get; private set; }
+        public AddUrlModel Model { get; }
+        public SelectList Section { get; }
+        public SelectList Source { get; }
+        public SelectList GameSystem { get; }
 
         // Constructor
         public AddUrlViewModel(AddUrlModel model)

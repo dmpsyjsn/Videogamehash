@@ -101,7 +101,7 @@ namespace VideoGameHash.Models
 
         public int GetGameSystemId(string gameSystem)
         {
-            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem).Id;
+            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem)?.Id ?? -1;
         }
 
         public bool ContainsEntries(string gameTitle)
@@ -169,7 +169,7 @@ namespace VideoGameHash.Models
                     if (game.ReleaseDate != null && game.ReleaseDate.IndexOf('/') > 0)
                         usReleaseDate = Convert.ToDateTime(game.ReleaseDate);
 
-                    if (gameDb.GameTitle != null && usReleaseDate != null && usReleaseDate != DateTime.MinValue &&
+                    if (gameDb.GameTitle != null && usReleaseDate != DateTime.MinValue &&
                         ContainsEntries(gameDb.GameTitle) && !IgnoreThisGame(gameDb))
                     {
                         if (!IsDuplicateGame(gameDb))
@@ -194,16 +194,10 @@ namespace VideoGameHash.Models
                             gameInfo.GameImage = "http://thegamesdb.net/banners/" + game.Thumb;
 
                         if (!IsDuplicateGameInfo(gameInfo))
-                            if (ContainsEntries(gameDb.GameTitle, gameSystem) &&
-                                !string.IsNullOrWhiteSpace(gameInfo.GameImage))
-                            {
-                                _db.GameInfoes.AddObject(gameInfo);
-                                _db.SaveChanges();
-                            }
-                            else
-                            {
-                                DeleteGameFromGameInfoes(gameDb.Id);
-                            }
+                        {
+                            _db.GameInfoes.AddObject(gameInfo);
+                            _db.SaveChanges();
+                        } 
                     }
                 }
             }

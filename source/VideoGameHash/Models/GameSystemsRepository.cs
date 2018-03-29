@@ -1,38 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace VideoGameHash.Models
 {
     public class GameSystemsRepository
     {
-        private VGHDatabaseContainer _db = new VGHDatabaseContainer();
+        private readonly VGHDatabaseContainer _db = new VGHDatabaseContainer();
 
         public IEnumerable<GameSystem> GetGameSystems()
         {
             return _db.GameSystems.OrderBy(u => u.GameSystemSortOrder.SortOrder);
         }
 
-        public void AddGameSystem(GameSystemModel model)
+        public int AddGameSystem(string gameSystemName)
         {
-            var gameSystem = new GameSystem
+            try
             {
-                GameSystemName = model.GameSystem
-            };
-            _db.GameSystems.AddObject(gameSystem);
-            _db.SaveChanges();
+                var existingGameSystem = GetGameSystemByGameSystemName(gameSystemName);
+                if (existingGameSystem != null) return existingGameSystem.Id;
 
-            int? maxValue = _db.GameSystemSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
-            var order = new GameSystemSortOrder();
-            gameSystem = GetGameSystemByGameSystemName(model.GameSystem);
-            order.Id = gameSystem.Id;
-            order.GameSystem = gameSystem;
-            order.SortOrder = maxValue + 1 ?? 1;
+                var gameSystem = new GameSystem
+                {
+                    GameSystemName = gameSystemName
+                };
+                _db.GameSystems.AddObject(gameSystem);
+                _db.SaveChanges();
 
-            _db.GameSystemSortOrders.AddObject(order);
+                int? maxValue = _db.GameSystemSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
+                var order = new GameSystemSortOrder();
+                gameSystem = GetGameSystemByGameSystemName(gameSystemName);
+                order.Id = gameSystem.Id;
+                order.GameSystem = gameSystem;
+                order.SortOrder = maxValue + 1 ?? 1;
 
-            _db.SaveChanges();
+                _db.GameSystemSortOrders.AddObject(order);
+                _db.SaveChanges();
+
+                return gameSystem.Id;
+            }
+            catch
+            {
+                // Do Nothing
+            }
+
+            return -1;
         }
 
         public GameSystem GetGameSystemById(int id)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
 using QDFeedParser;
 using VideoGameHash.Helpers;
@@ -25,11 +26,11 @@ namespace VideoGameHash.Models
         {
             try
             {
-                return _db.InfoTypes.SingleOrDefault(u => u.Id == id).InfoTypeName;
+                return _db.InfoTypes.SingleOrDefault(u => u.Id == id)?.InfoTypeName ?? string.Empty;
             }
             catch
             {
-                return String.Empty;
+                return string.Empty;
             }
         }
 
@@ -57,7 +58,7 @@ namespace VideoGameHash.Models
         {
             try
             {
-                return _db.InfoSources.SingleOrDefault(u => u.Id == id).InfoSourceName;
+                return _db.InfoSources.SingleOrDefault(u => u.Id == id)?.InfoSourceName;
             }
             catch
             {
@@ -115,13 +116,16 @@ namespace VideoGameHash.Models
             return _db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId && u.TrendingGamesId == trendingGameId && (u.Article.GameSystemId == gameSystemId || u.Article.GameSystem.GameSystemName == "All")).OrderBy(u => u.Article.InfoSourceId).ThenByDescending(u => u.Article.DatePublished);
         }
 
-        public void AddInfoType(AddInfoModel model)
+        public int AddInfoType(string name)
         {
             try
             {
+                var type = GetInfoType(name);
+                if (type != null) return type.Id;
+
                 var infoType = new InfoType
                 {
-                    InfoTypeName = model.Name,
+                    InfoTypeName = name,
                     UseGameSystem = true
                 };
                 _db.InfoTypes.AddObject(infoType);
@@ -129,45 +133,56 @@ namespace VideoGameHash.Models
 
                 int? maxValue = _db.InfoTypeSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
                 var order = new InfoTypeSortOrder();
-                infoType = GetInfoType(model.Name);
+                infoType = GetInfoType(name);
                 order.Id = infoType.Id;
                 order.InfoType = infoType;
                 order.SortOrder = maxValue + 1 ?? 1;
 
                 _db.InfoTypeSortOrders.AddObject(order);
                 _db.SaveChanges();
+
+                return infoType.Id;
             }
             catch
             {
                 // Do nothing
             }
+
+            return -1;
         }
 
-        public void AddInfoSource(AddInfoModel model)
+        public int AddInfoSource(string name)
         {
             try
             {
+                var source = GetInfoSource(name);
+                if (source != null) return source.Id;
+
                 var infoSource = new InfoSource
                 {
-                    InfoSourceName = model.Name
+                    InfoSourceName = name
                 };
                 _db.InfoSources.AddObject(infoSource);
                 _db.SaveChanges();
 
                 int? maxValue = _db.InfoSourceSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
                 var order = new InfoSourceSortOrder();
-                infoSource = GetInfoSource(model.Name);
+                infoSource = GetInfoSource(name);
                 order.Id = infoSource.Id;
                 order.InfoSource = infoSource;
                 order.SortOrder = maxValue + 1 ?? 1;
 
                 _db.InfoSourceSortOrders.AddObject(order);
                 _db.SaveChanges();
+
+                return infoSource.Id;
             }
             catch
             {
                 // Do nothing
             }
+
+            return -1;
         }
 
         public void AddUrl(AddUrlModel model)
@@ -183,6 +198,27 @@ namespace VideoGameHash.Models
                 };
 
                 _db.InfoSourceRssUrls.AddObject(url);
+                _db.SaveChanges();
+            }
+            catch
+            {
+                // Do Nothing
+            }
+        }
+
+        public void AddUrl(int typeId, int sourceId, int gameSystemId, string url)
+        {
+            try
+            {
+                var infoSourceRssUrl = new InfoSourceRssUrls
+                {
+                    InfoTypeId = typeId,
+                    InfoSourceId = sourceId,
+                    GameSystemId = gameSystemId,
+                    URL = url
+                };
+
+                _db.InfoSourceRssUrls.AddObject(infoSourceRssUrl);
                 _db.SaveChanges();
             }
             catch
@@ -354,18 +390,14 @@ namespace VideoGameHash.Models
 
         public bool ContainsArticles(string gameTitle)
         {
-            var temp = from tempArticles in _db.Articles
-                       where tempArticles.Title.Contains(gameTitle)
-                       select tempArticles;
             bool success;
             try
             {
-                var searchTerm =
-                    new System.Text.RegularExpressions.Regex(@"\b" + gameTitle + @"\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                var searchTerm = new Regex($@"\b{gameTitle}\b", RegexOptions.IgnoreCase);
 
-                var matched = temp.AsEnumerable().Where(d => searchTerm.IsMatch(d.Title)).ToList();
+                var matched = _db.Articles.Where(d => searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content)).ToList();
 
-                success = matched != null && matched.Count() > 0;
+                success = matched.Any();
             }
             catch
             {
@@ -382,17 +414,18 @@ namespace VideoGameHash.Models
             var temp = from tempArticles in _db.Articles
                        where tempArticles.Title.Contains(gameTitle) && tempArticles.GameSystemId == gameSystemId
                        select tempArticles;
-            return temp != null && temp.Count() > 0;
+            return temp.Any();
         }
 
         public bool ContainsArticles(int section, string gameTitle, string gameSystem)
         {
             var gameSystemId = GetGameSystemId(gameSystem);
 
-            var temp = from tempArticles in _db.Articles
-                       where tempArticles.Title.Contains(gameTitle) && tempArticles.GameSystemId == gameSystemId && tempArticles.InfoTypeId == section
-                       select tempArticles;
-            return temp != null && temp.Count() > 0;
+            var articles = _db.Articles.Where(x =>
+                (x.Title.Contains(gameTitle) || x.Content.Contains(gameTitle)) && x.GameSystemId.Equals(gameSystemId) &&
+                x.InfoTypeId.Equals(section)).ToList();
+
+            return articles.Any();
         }
 
         public IEnumerable<InfoTypeSortOrder> GetInfoTypeSortOrder()

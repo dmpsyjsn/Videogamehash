@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System.IO;
 using System.Web.Mvc;
+using Newtonsoft.Json;
 using VideoGameHash.Models;
-using VideoGameHash.Helpers;
 
 namespace VideoGameHash.Controllers
 {
     public class InfoController : Controller
     {
-        //
-        // GET: /Info/
-
         private readonly InfoRepository _infoRepository;
+        private readonly GameSystemsRepository _gameSystemsRepository;
 
-        public InfoController(InfoRepository infoRepository)
+        public InfoController(InfoRepository infoRepository, GameSystemsRepository gameSystemsRepository)
         {
             _infoRepository = infoRepository;
+            _gameSystemsRepository = gameSystemsRepository;
         }
 
         public ActionResult Index()
@@ -47,7 +43,7 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public ActionResult AddInfoType(AddInfoModel model)
         {
-            _infoRepository.AddInfoType(model);
+            _infoRepository.AddInfoType(model.Name);
             return RedirectToAction("Index");
         }
 
@@ -65,7 +61,7 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public ActionResult AddInfoSource(AddInfoModel model)
         {
-            _infoRepository.AddInfoSource(model);
+            _infoRepository.AddInfoSource(model.Name);
 
             return RedirectToAction("Index");
         }
@@ -272,6 +268,35 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public ActionResult JsonImport()
         {
+            if (Request.Files.Count > 0)
+            {
+                var file = Request.Files[0];
+
+                if (file != null && file.ContentLength > 0)
+                {
+                    // get contents to string
+                    var str = new StreamReader(file.InputStream).ReadToEnd();
+
+                    // deserializes string into object
+                    var data = JsonConvert.DeserializeObject<ImportModel>(str);
+                    
+                    foreach (var item in data.Data)
+                    {
+                        // Import Type of link (News, Reviews, etc)
+                        var infoTypeId = _infoRepository.AddInfoType(item.Type);
+
+                        // Import News Source
+                        var sourceId = _infoRepository.AddInfoSource(item.Source);
+
+                        // Import Game System
+                        var systemId = _gameSystemsRepository.AddGameSystem(item.System);
+
+                        // Import Rss Url
+                        _infoRepository.AddUrl(infoTypeId, sourceId, systemId, item.Link);
+                    }
+                }
+            }
+
             return RedirectToAction("Index");
         }
     }
