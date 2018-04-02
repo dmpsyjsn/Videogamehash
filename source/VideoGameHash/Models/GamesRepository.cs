@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using VideoGameHash.Models.TheGamesDB;
 
 namespace VideoGameHash.Models
 {
@@ -50,6 +52,15 @@ namespace VideoGameHash.Models
                 .OrderBy(u => u.GameTitle);
         }
 
+        public IEnumerable<string> SearchGameTitles(string search)
+        {
+            var searchTerm = new Regex($@"\b{search}\b", RegexOptions.IgnoreCase);
+
+            var games = _db.Games.AsEnumerable().Where(d => searchTerm.IsMatch(d.GameTitle)).Select(x => x.GameTitle).ToList();
+
+            return games;
+        }
+
         public void AddGame(string gameSystem)
         {
             try
@@ -63,7 +74,7 @@ namespace VideoGameHash.Models
                     ProcessAdditionalDetailsFromWebService(gameSystem);
                 }
             }
-            catch
+            catch (Exception e)
             {
                 // Do nothing
             }
@@ -126,6 +137,8 @@ namespace VideoGameHash.Models
                 gameSystem = "Sony+Playstation+3";
             else if (gameSystem == "PS4")
                 gameSystem = "Sony+Playstation+4";
+            else if (gameSystem == "Switch")
+                gameSystem = "Nintendo+Switch";
 
             return gameSystem;
         }
@@ -151,13 +164,15 @@ namespace VideoGameHash.Models
             var request = WebRequest.Create(url);
             using (var response = (HttpWebResponse) request.GetResponse())
             {
-                var serializer = new XmlSerializer(typeof(DataByPlatform));
+                var serializer = new XmlSerializer(typeof(PlatformGamesData));
 
-                var gameResponse = (DataByPlatform) serializer.Deserialize(response.GetResponseStream());
+                var gameResponse = (PlatformGamesData) serializer.Deserialize(response.GetResponseStream() ?? throw new InvalidOperationException());
                 var cutoff = DateTime.Now.AddMonths(-3);
-                var items = gameResponse.Items.Where(u =>
-                    u.ReleaseDate != null && u.ReleaseDate.IndexOf('/') > 0 &&
-                    Convert.ToDateTime(u.ReleaseDate) >= cutoff).ToArray();
+                var items = gameResponse.Games.Where(u => u != null &&
+                                                          !string.IsNullOrEmpty(u.Thumb) &&
+                                                          !string.IsNullOrEmpty(u.ReleaseDate) &&
+                                                          u.ReleaseDate.IndexOf('/') > 0 &&
+                                                          Convert.ToDateTime(u.ReleaseDate) >= cutoff).ToArray();
                 foreach (var game in items)
                 {
                     var gameDb = new Games();
@@ -169,8 +184,7 @@ namespace VideoGameHash.Models
                     if (game.ReleaseDate != null && game.ReleaseDate.IndexOf('/') > 0)
                         usReleaseDate = Convert.ToDateTime(game.ReleaseDate);
 
-                    if (gameDb.GameTitle != null && usReleaseDate != DateTime.MinValue &&
-                        ContainsEntries(gameDb.GameTitle) && !IgnoreThisGame(gameDb))
+                    if (gameDb.GameTitle != null && usReleaseDate != DateTime.MinValue && !IgnoreThisGame(gameDb))
                     {
                         if (!IsDuplicateGame(gameDb))
                         {
@@ -187,12 +201,10 @@ namespace VideoGameHash.Models
                             GamesId = gameDb.Id,
                             GameSystemId = GetGameSystemId(gameSystem),
                             USReleaseDate = usReleaseDate,
-                            GamesDbNetId = Convert.ToInt32(game.Id)
+                            GamesDbNetId = Convert.ToInt32(game.Id),
+                            GameImage = "http://thegamesdb.net/banners/" + game.Thumb
                         };
-
-                        if (game.Thumb != null)
-                            gameInfo.GameImage = "http://thegamesdb.net/banners/" + game.Thumb;
-
+                        
                         if (!IsDuplicateGameInfo(gameInfo))
                         {
                             _db.GameInfoes.AddObject(gameInfo);

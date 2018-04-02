@@ -220,15 +220,9 @@ namespace VideoGameHash.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult MakeFeatured(int section)
+        public ActionResult MakeTrending()
         {
-            _infoRepository.MakeFeatured(section);
-            return RedirectToAction("Index");
-        }
-
-        public ActionResult MakeTrending(int section)
-        {
-            _infoRepository.MakeTrending(section);
+            _infoRepository.MakeTrending();
             return RedirectToAction("Index");
         }
 

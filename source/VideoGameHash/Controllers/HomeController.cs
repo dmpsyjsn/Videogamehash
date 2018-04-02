@@ -29,45 +29,9 @@ namespace VideoGameHash.Controllers
         {
             ViewBag.Message = "Welcome to VideoGameHash!";
 
-            var model = new HomePageModels();
-            var featured = new Dictionary<int, IEnumerable<FeaturedArticles>>();
-            var trendingGames = new Dictionary<int, IEnumerable<TrendingGames>>();
-            var gameInfoes = new Dictionary<int, Dictionary<int, List<GameInfo>>>();
+            var model = new HomePageModel();
 
-            var index = 0;
-            foreach (var section in _infoRepository.GetInfoTypes())
-            {
-                if (index >= 3)
-                    break;
-                featured.Add(section.Id, _infoRepository.GetFeaturedArticles(section.Id));
-                trendingGames.Add(section.Id, _infoRepository.GetTrendingGames(section.Id));
-                index++;
-            }
-
-            model.Featured = featured;
-            model.TrendingGames = trendingGames;
-
-            foreach (var sectionId in trendingGames.Keys)
-            {
-                gameInfoes.Add(sectionId, new Dictionary<int, List<GameInfo>>());
-                var localList = new Dictionary<int, List<GameInfo>>();
-                foreach (var tr in trendingGames[sectionId])
-                {
-                    localList.Add(tr.Id, new List<GameInfo>());
-                    var localGameList = new List<GameInfo>();
-                    foreach (var info in tr.Game.GameInfoes)
-                    {
-                        if (_infoRepository.GetTrendingArticles(sectionId, tr.Id, info.GameSystemId).Any())
-                        {
-                            localGameList.Add(info);
-                        }
-                    }
-                    localList[tr.Id] = localGameList;
-                }
-                gameInfoes[sectionId] = localList;
-            }
-
-            model.TrendGamesDesc = gameInfoes;
+            
 
             model.Polls = _infoRepository.GetPolls();
 
@@ -336,22 +300,10 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpPost]
-        public ActionResult SearchDatabase(string search)
+        public ActionResult SearchGames(string search)
         {
-            return PartialView("_DatabaseList", _gamesRepository.SearchGames(search));
-        }
-
-        [HttpPost]
-        public ActionResult GetTrendingInfoBySystem(int section, int trendingGameId, int gameSystemId)
-        {
-            var model = new TrendingInfoModel
-            {
-                Section = section,
-                TrendingGameId = trendingGameId,
-
-                TrendingArticles = _infoRepository.GetTrendingArticles(section, trendingGameId, gameSystemId)
-            };
-            return PartialView("TrendingInfo", model);
+            var list = _gamesRepository.SearchGameTitles(search).ToList();
+            return Json(new {data = list}, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult SubmitPollVote(int pollId, int pollVal)

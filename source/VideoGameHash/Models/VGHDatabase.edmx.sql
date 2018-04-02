@@ -1,9 +1,9 @@
 
 -- --------------------------------------------------
--- Entity Designer DDL Script for SQL Server 2005, 2008, and Azure
+-- Entity Designer DDL Script for SQL Server 2005, 2008, 2012 and Azure
 -- --------------------------------------------------
--- Date Created: 07/28/2013 19:59:56
--- Generated from EDMX file: C:\Users\PB202\documents\visual studio 2010\Projects\VideoGameHash\VideoGameHash\Models\VGHDatabase.edmx
+-- Date Created: 04/01/2018 21:02:51
+-- Generated from EDMX file: C:\Projects\Videogamehash\source\VideoGameHash\Models\VGHDatabase.edmx
 -- --------------------------------------------------
 
 SET QUOTED_IDENTIFIER OFF;
@@ -56,23 +56,11 @@ GO
 IF OBJECT_ID(N'[dbo].[FK_InfoSourceInfoSourceSortOrder]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[InfoSourceSortOrders] DROP CONSTRAINT [FK_InfoSourceInfoSourceSortOrder];
 GO
-IF OBJECT_ID(N'[dbo].[FK_ArticlesFeaturedArticles]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[FeaturedArticles] DROP CONSTRAINT [FK_ArticlesFeaturedArticles];
-GO
-IF OBJECT_ID(N'[dbo].[FK_TrendingGamesTrendingArticles]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[TrendingArticles] DROP CONSTRAINT [FK_TrendingGamesTrendingArticles];
+IF OBJECT_ID(N'[dbo].[FK_PollPollAnswers]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[PollAnswers] DROP CONSTRAINT [FK_PollPollAnswers];
 GO
 IF OBJECT_ID(N'[dbo].[FK_GamesTrendingGames]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[TrendingGames] DROP CONSTRAINT [FK_GamesTrendingGames];
-GO
-IF OBJECT_ID(N'[dbo].[FK_InfoTypeTrendingGames]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[TrendingGames] DROP CONSTRAINT [FK_InfoTypeTrendingGames];
-GO
-IF OBJECT_ID(N'[dbo].[FK_ArticlesTrendingArticles]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[TrendingArticles] DROP CONSTRAINT [FK_ArticlesTrendingArticles];
-GO
-IF OBJECT_ID(N'[dbo].[FK_PollPollAnswers]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[PollAnswers] DROP CONSTRAINT [FK_PollPollAnswers];
 GO
 
 -- --------------------------------------------------
@@ -124,20 +112,14 @@ GO
 IF OBJECT_ID(N'[dbo].[InfoTypeSortOrders]', 'U') IS NOT NULL
     DROP TABLE [dbo].[InfoTypeSortOrders];
 GO
-IF OBJECT_ID(N'[dbo].[FeaturedArticles]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[FeaturedArticles];
-GO
-IF OBJECT_ID(N'[dbo].[TrendingArticles]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[TrendingArticles];
-GO
-IF OBJECT_ID(N'[dbo].[TrendingGames]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[TrendingGames];
-GO
 IF OBJECT_ID(N'[dbo].[Polls]', 'U') IS NOT NULL
     DROP TABLE [dbo].[Polls];
 GO
 IF OBJECT_ID(N'[dbo].[PollAnswers]', 'U') IS NOT NULL
     DROP TABLE [dbo].[PollAnswers];
+GO
+IF OBJECT_ID(N'[dbo].[TrendingGames]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[TrendingGames];
 GO
 
 -- --------------------------------------------------
@@ -282,30 +264,6 @@ CREATE TABLE [dbo].[InfoTypeSortOrders] (
 );
 GO
 
--- Creating table 'FeaturedArticles'
-CREATE TABLE [dbo].[FeaturedArticles] (
-    [Id] int  NOT NULL,
-    [ImageLink] nvarchar(max)  NOT NULL,
-    [Article_Id] int  NOT NULL
-);
-GO
-
--- Creating table 'TrendingArticles'
-CREATE TABLE [dbo].[TrendingArticles] (
-    [Id] int IDENTITY(1,1) NOT NULL,
-    [TrendingGamesId] int  NOT NULL,
-    [ArticlesId] int  NOT NULL
-);
-GO
-
--- Creating table 'TrendingGames'
-CREATE TABLE [dbo].[TrendingGames] (
-    [Id] int IDENTITY(1,1) NOT NULL,
-    [GamesId] int  NOT NULL,
-    [InfoTypeId] int  NOT NULL
-);
-GO
-
 -- Creating table 'Polls'
 CREATE TABLE [dbo].[Polls] (
     [Id] int IDENTITY(1,1) NOT NULL,
@@ -319,6 +277,14 @@ CREATE TABLE [dbo].[PollAnswers] (
     [PollId] int  NOT NULL,
     [Answer] nvarchar(max)  NOT NULL,
     [NumVotes] int  NOT NULL
+);
+GO
+
+-- Creating table 'TrendingGames'
+CREATE TABLE [dbo].[TrendingGames] (
+    [Id] int IDENTITY(1,1) NOT NULL,
+    [ArticleHits] int  NOT NULL,
+    [GamesId] int  NOT NULL
 );
 GO
 
@@ -416,24 +382,6 @@ ADD CONSTRAINT [PK_InfoTypeSortOrders]
     PRIMARY KEY CLUSTERED ([Id] ASC);
 GO
 
--- Creating primary key on [Id] in table 'FeaturedArticles'
-ALTER TABLE [dbo].[FeaturedArticles]
-ADD CONSTRAINT [PK_FeaturedArticles]
-    PRIMARY KEY CLUSTERED ([Id] ASC);
-GO
-
--- Creating primary key on [Id] in table 'TrendingArticles'
-ALTER TABLE [dbo].[TrendingArticles]
-ADD CONSTRAINT [PK_TrendingArticles]
-    PRIMARY KEY CLUSTERED ([Id] ASC);
-GO
-
--- Creating primary key on [Id] in table 'TrendingGames'
-ALTER TABLE [dbo].[TrendingGames]
-ADD CONSTRAINT [PK_TrendingGames]
-    PRIMARY KEY CLUSTERED ([Id] ASC);
-GO
-
 -- Creating primary key on [Id] in table 'Polls'
 ALTER TABLE [dbo].[Polls]
 ADD CONSTRAINT [PK_Polls]
@@ -443,6 +391,12 @@ GO
 -- Creating primary key on [Id] in table 'PollAnswers'
 ALTER TABLE [dbo].[PollAnswers]
 ADD CONSTRAINT [PK_PollAnswers]
+    PRIMARY KEY CLUSTERED ([Id] ASC);
+GO
+
+-- Creating primary key on [Id] in table 'TrendingGames'
+ALTER TABLE [dbo].[TrendingGames]
+ADD CONSTRAINT [PK_TrendingGames]
     PRIMARY KEY CLUSTERED ([Id] ASC);
 GO
 
@@ -457,6 +411,7 @@ ADD CONSTRAINT [FK_RolesUsersInRoles]
     REFERENCES [dbo].[Roles]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_RolesUsersInRoles'
 CREATE INDEX [IX_FK_RolesUsersInRoles]
@@ -471,6 +426,7 @@ ADD CONSTRAINT [FK_GameSystemGameSystemSortOrder]
     REFERENCES [dbo].[GameSystems]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_GameSystemGameSystemSortOrder'
 CREATE INDEX [IX_FK_GameSystemGameSystemSortOrder]
@@ -485,6 +441,7 @@ ADD CONSTRAINT [FK_GameSystemGameInfo]
     REFERENCES [dbo].[GameSystems]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_GameSystemGameInfo'
 CREATE INDEX [IX_FK_GameSystemGameInfo]
@@ -499,6 +456,7 @@ ADD CONSTRAINT [FK_GamesGameInfo]
     REFERENCES [dbo].[Games]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_GamesGameInfo'
 CREATE INDEX [IX_FK_GamesGameInfo]
@@ -513,6 +471,7 @@ ADD CONSTRAINT [FK_UserProfileUsersInRoles]
     REFERENCES [dbo].[UserProfiles]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_UserProfileUsersInRoles'
 CREATE INDEX [IX_FK_UserProfileUsersInRoles]
@@ -527,6 +486,7 @@ ADD CONSTRAINT [FK_InfoTypeArticles]
     REFERENCES [dbo].[InfoTypes]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_InfoTypeArticles'
 CREATE INDEX [IX_FK_InfoTypeArticles]
@@ -541,6 +501,7 @@ ADD CONSTRAINT [FK_InfoSourceArticles]
     REFERENCES [dbo].[InfoSources]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_InfoSourceArticles'
 CREATE INDEX [IX_FK_InfoSourceArticles]
@@ -555,6 +516,7 @@ ADD CONSTRAINT [FK_InfoSourceInfoSourceRssUrls]
     REFERENCES [dbo].[InfoSources]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_InfoSourceInfoSourceRssUrls'
 CREATE INDEX [IX_FK_InfoSourceInfoSourceRssUrls]
@@ -569,6 +531,7 @@ ADD CONSTRAINT [FK_GameSystemInfoSourceRssUrls]
     REFERENCES [dbo].[GameSystems]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_GameSystemInfoSourceRssUrls'
 CREATE INDEX [IX_FK_GameSystemInfoSourceRssUrls]
@@ -583,6 +546,7 @@ ADD CONSTRAINT [FK_GameSystemArticles]
     REFERENCES [dbo].[GameSystems]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_GameSystemArticles'
 CREATE INDEX [IX_FK_GameSystemArticles]
@@ -597,6 +561,7 @@ ADD CONSTRAINT [FK_InfoTypeInfoSourceRssUrls]
     REFERENCES [dbo].[InfoTypes]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_InfoTypeInfoSourceRssUrls'
 CREATE INDEX [IX_FK_InfoTypeInfoSourceRssUrls]
@@ -611,6 +576,7 @@ ADD CONSTRAINT [FK_InfoTypeInfoTypeSortOrder]
     REFERENCES [dbo].[InfoTypes]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_InfoTypeInfoTypeSortOrder'
 CREATE INDEX [IX_FK_InfoTypeInfoTypeSortOrder]
@@ -625,81 +591,12 @@ ADD CONSTRAINT [FK_InfoSourceInfoSourceSortOrder]
     REFERENCES [dbo].[InfoSources]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_InfoSourceInfoSourceSortOrder'
 CREATE INDEX [IX_FK_InfoSourceInfoSourceSortOrder]
 ON [dbo].[InfoSourceSortOrders]
     ([InfoSource_Id]);
-GO
-
--- Creating foreign key on [Article_Id] in table 'FeaturedArticles'
-ALTER TABLE [dbo].[FeaturedArticles]
-ADD CONSTRAINT [FK_ArticlesFeaturedArticles]
-    FOREIGN KEY ([Article_Id])
-    REFERENCES [dbo].[Articles]
-        ([Id])
-    ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- Creating non-clustered index for FOREIGN KEY 'FK_ArticlesFeaturedArticles'
-CREATE INDEX [IX_FK_ArticlesFeaturedArticles]
-ON [dbo].[FeaturedArticles]
-    ([Article_Id]);
-GO
-
--- Creating foreign key on [TrendingGamesId] in table 'TrendingArticles'
-ALTER TABLE [dbo].[TrendingArticles]
-ADD CONSTRAINT [FK_TrendingGamesTrendingArticles]
-    FOREIGN KEY ([TrendingGamesId])
-    REFERENCES [dbo].[TrendingGames]
-        ([Id])
-    ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- Creating non-clustered index for FOREIGN KEY 'FK_TrendingGamesTrendingArticles'
-CREATE INDEX [IX_FK_TrendingGamesTrendingArticles]
-ON [dbo].[TrendingArticles]
-    ([TrendingGamesId]);
-GO
-
--- Creating foreign key on [GamesId] in table 'TrendingGames'
-ALTER TABLE [dbo].[TrendingGames]
-ADD CONSTRAINT [FK_GamesTrendingGames]
-    FOREIGN KEY ([GamesId])
-    REFERENCES [dbo].[Games]
-        ([Id])
-    ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- Creating non-clustered index for FOREIGN KEY 'FK_GamesTrendingGames'
-CREATE INDEX [IX_FK_GamesTrendingGames]
-ON [dbo].[TrendingGames]
-    ([GamesId]);
-GO
-
--- Creating foreign key on [InfoTypeId] in table 'TrendingGames'
-ALTER TABLE [dbo].[TrendingGames]
-ADD CONSTRAINT [FK_InfoTypeTrendingGames]
-    FOREIGN KEY ([InfoTypeId])
-    REFERENCES [dbo].[InfoTypes]
-        ([Id])
-    ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- Creating non-clustered index for FOREIGN KEY 'FK_InfoTypeTrendingGames'
-CREATE INDEX [IX_FK_InfoTypeTrendingGames]
-ON [dbo].[TrendingGames]
-    ([InfoTypeId]);
-GO
-
--- Creating foreign key on [ArticlesId] in table 'TrendingArticles'
-ALTER TABLE [dbo].[TrendingArticles]
-ADD CONSTRAINT [FK_ArticlesTrendingArticles]
-    FOREIGN KEY ([ArticlesId])
-    REFERENCES [dbo].[Articles]
-        ([Id])
-    ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- Creating non-clustered index for FOREIGN KEY 'FK_ArticlesTrendingArticles'
-CREATE INDEX [IX_FK_ArticlesTrendingArticles]
-ON [dbo].[TrendingArticles]
-    ([ArticlesId]);
 GO
 
 -- Creating foreign key on [PollId] in table 'PollAnswers'
@@ -709,11 +606,27 @@ ADD CONSTRAINT [FK_PollPollAnswers]
     REFERENCES [dbo].[Polls]
         ([Id])
     ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
 
 -- Creating non-clustered index for FOREIGN KEY 'FK_PollPollAnswers'
 CREATE INDEX [IX_FK_PollPollAnswers]
 ON [dbo].[PollAnswers]
     ([PollId]);
+GO
+
+-- Creating foreign key on [GamesId] in table 'TrendingGames'
+ALTER TABLE [dbo].[TrendingGames]
+ADD CONSTRAINT [FK_GamesTrendingGames]
+    FOREIGN KEY ([GamesId])
+    REFERENCES [dbo].[Games]
+        ([Id])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_GamesTrendingGames'
+CREATE INDEX [IX_FK_GamesTrendingGames]
+ON [dbo].[TrendingGames]
+    ([GamesId]);
 GO
 
 -- --------------------------------------------------

@@ -81,7 +81,7 @@ namespace VideoGameHash.Controllers
         [AllowAnonymous]
         public ActionResult Register()
         {
-            return View("_InvalidPage");
+            return View();
         }
 
         //

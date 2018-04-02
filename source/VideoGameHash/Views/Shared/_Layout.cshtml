@@ -1,4 +1,5 @@
-﻿@using VideoGameHash.Helpers;
+﻿@using System
+@using VideoGameHash.Helpers;
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +11,11 @@
     @Styles.Render("~/Content/bootstrap/theme")
     @Styles.Render("~/Content/css")
     @Styles.Render("~/Content/themes/base/css")
-
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryui")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/base")
+    @RenderSection("scripts", required: false)
     <!--[if gte IE 9]>
             <style type="text/css">
                 .gradient {
@@ -50,71 +55,20 @@
             </div>
         </div>
         <div id="vgh_nav" class="navbar navbar-default navbar-fixed-top navbar-inverse">
-        <div class="container container-static square-border">
-            <div class="navbar-header">
-                    <button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse" type="button">
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-</button>
-</div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    @foreach (var infoType in NewsHelper.SectionList)
-                    {
-                        if (NewsHelper.UseGameSystem(infoType))
-                        {
-                        <li class="dropdown"><a href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">@infoType
-                            <b class="caret"></b></a>
-                            <ul class="custom-popover dropdown-menu" role="menu">
-                                @foreach (var gameSystem in NewsHelper.GameSystemList(NewsHelper.SectionId(infoType)))
-                                {
-                                    <li>@Html.ActionLink(@gameSystem, "ViewArticlesN", "Home", new { Section = NewsHelper.SectionId(infoType), GameSystem = NewsHelper.GameSystemId(@gameSystem) }, new { @role = "menuitem", @tabindex = "-1", @class = "white" })</li>
-                                }
-                            </ul>
-                        </li>
-                        }
-                        else
-                        {
-                        <li>@Html.ActionLink(infoType, "ViewArticlesN", "Home", new { Section = NewsHelper.SectionId(infoType), GameSystem = NewsHelper.GameSystemId("All") }, new { @class = "white" })</li>
-                        }
-                    }
-                    <li>@Html.ActionLink("Game Database", "GameDatabase", "Home")</li>
-                </ul>
+            <div class="container container-static square-border">
+                <div class="navbar-header">
+                        <button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse" type="button">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    </button>
+                </div>
+
             </div>
         </div>
-    </div>
     </header>
     
-    
-        <div id="vgh_scroll_nav">
-        <div class="container container-static">
-            <div class="navbar">
-                <ul class="nav navbar-nav">
-                    @foreach (var infoType in NewsHelper.SectionList)
-                    {
-                        if (NewsHelper.UseGameSystem(infoType))
-                        {
-                        <li class="dropdown"><a href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">@infoType
-                            <b class="caret"></b></a>
-                            <ul class="dropdown-menu" role="menu">
-                                @foreach (var gameSystem in NewsHelper.GameSystemList(NewsHelper.SectionId(infoType)))
-                                {
-                                    <li>@Html.ActionLink(@gameSystem, "ViewArticlesN", "Home", new { Section = NewsHelper.SectionId(infoType), GameSystem = NewsHelper.GameSystemId(@gameSystem) }, new { @role = "menuitem", @tabindex = "-1" })</li>
-                                }
-                            </ul>
-                        </li>
-                        }
-                        else
-                        {
-                        <li>@Html.ActionLink(infoType, "ViewArticlesN", "Home", new { Section = NewsHelper.SectionId(infoType), GameSystem = NewsHelper.GameSystemId("All") }, null)</li>
-                        }
-                    }
-                    <li>@Html.ActionLink("Game Database", "GameDatabase", "Home")</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+   
         <div class="container container-static">
             @RenderBody()
         </div>
@@ -129,10 +83,6 @@
             </div>
         </footer>
     </div>
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/jqueryui")
-    @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/bundles/base")
-    @RenderSection("scripts", required: false)
+
     </body>
 </html>

@@ -9,8 +9,10 @@
 
 using System;
 using System.ComponentModel;
+using System.Data.EntityClient;
 using System.Data.Objects;
 using System.Data.Objects.DataClasses;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
 
@@ -30,19 +32,15 @@ using System.Xml.Serialization;
 [assembly: EdmRelationshipAttribute("VGHDatabase", "InfoTypeInfoSourceRssUrls", "InfoType", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.InfoType), "InfoSourceRssUrls", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.InfoSourceRssUrls), true)]
 [assembly: EdmRelationshipAttribute("VGHDatabase", "InfoTypeInfoTypeSortOrder", "InfoType", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.InfoType), "InfoTypeSortOrder", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(VideoGameHash.Models.InfoTypeSortOrder))]
 [assembly: EdmRelationshipAttribute("VGHDatabase", "InfoSourceInfoSourceSortOrder", "InfoSource", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.InfoSource), "InfoSourceSortOrder", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(VideoGameHash.Models.InfoSourceSortOrder))]
-[assembly: EdmRelationshipAttribute("VGHDatabase", "ArticlesFeaturedArticles", "Articles", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.Articles), "FeaturedArticles", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(VideoGameHash.Models.FeaturedArticles))]
-[assembly: EdmRelationshipAttribute("VGHDatabase", "TrendingGamesTrendingArticles", "TrendingGames", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.TrendingGames), "TrendingArticles", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.TrendingArticles), true)]
-[assembly: EdmRelationshipAttribute("VGHDatabase", "GamesTrendingGames", "Games", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.Games), "TrendingGames", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.TrendingGames), true)]
-[assembly: EdmRelationshipAttribute("VGHDatabase", "InfoTypeTrendingGames", "InfoType", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.InfoType), "TrendingGames", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.TrendingGames), true)]
-[assembly: EdmRelationshipAttribute("VGHDatabase", "ArticlesTrendingArticles", "Articles", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.Articles), "TrendingArticles", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.TrendingArticles), true)]
 [assembly: EdmRelationshipAttribute("VGHDatabase", "PollPollAnswers", "Poll", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.Poll), "PollAnswers", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.PollAnswers), true)]
+[assembly: EdmRelationshipAttribute("VGHDatabase", "GamesTrendingGames", "Games", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.Games), "TrendingGames", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.TrendingGames), true)]
 
 #endregion
 
 namespace VideoGameHash.Models
 {
     #region Contexts
-
+    
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
@@ -58,8 +56,7 @@ namespace VideoGameHash.Models
             this.ContextOptions.LazyLoadingEnabled = true;
             OnContextCreated();
         }
-    
-   
+       
         #endregion
     
         #region Partial Methods
@@ -313,54 +310,6 @@ namespace VideoGameHash.Models
         /// <summary>
         /// No Metadata Documentation available.
         /// </summary>
-        public ObjectSet<FeaturedArticles> FeaturedArticles
-        {
-            get
-            {
-                if ((_FeaturedArticles == null))
-                {
-                    _FeaturedArticles = base.CreateObjectSet<FeaturedArticles>("FeaturedArticles");
-                }
-                return _FeaturedArticles;
-            }
-        }
-        private ObjectSet<FeaturedArticles> _FeaturedArticles;
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        public ObjectSet<TrendingArticles> TrendingArticles
-        {
-            get
-            {
-                if ((_TrendingArticles == null))
-                {
-                    _TrendingArticles = base.CreateObjectSet<TrendingArticles>("TrendingArticles");
-                }
-                return _TrendingArticles;
-            }
-        }
-        private ObjectSet<TrendingArticles> _TrendingArticles;
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        public ObjectSet<TrendingGames> TrendingGames
-        {
-            get
-            {
-                if ((_TrendingGames == null))
-                {
-                    _TrendingGames = base.CreateObjectSet<TrendingGames>("TrendingGames");
-                }
-                return _TrendingGames;
-            }
-        }
-        private ObjectSet<TrendingGames> _TrendingGames;
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
         public ObjectSet<Poll> Polls
         {
             get
@@ -389,6 +338,22 @@ namespace VideoGameHash.Models
             }
         }
         private ObjectSet<PollAnswers> _PollAnswers;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<TrendingGames> TrendingGames
+        {
+            get
+            {
+                if ((_TrendingGames == null))
+                {
+                    _TrendingGames = base.CreateObjectSet<TrendingGames>("TrendingGames");
+                }
+                return _TrendingGames;
+            }
+        }
+        private ObjectSet<TrendingGames> _TrendingGames;
 
         #endregion
 
@@ -515,30 +480,6 @@ namespace VideoGameHash.Models
         }
     
         /// <summary>
-        /// Deprecated Method for adding a new object to the FeaturedArticles EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
-        /// </summary>
-        public void AddToFeaturedArticles(FeaturedArticles featuredArticles)
-        {
-            base.AddObject("FeaturedArticles", featuredArticles);
-        }
-    
-        /// <summary>
-        /// Deprecated Method for adding a new object to the TrendingArticles EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
-        /// </summary>
-        public void AddToTrendingArticles(TrendingArticles trendingArticles)
-        {
-            base.AddObject("TrendingArticles", trendingArticles);
-        }
-    
-        /// <summary>
-        /// Deprecated Method for adding a new object to the TrendingGames EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
-        /// </summary>
-        public void AddToTrendingGames(TrendingGames trendingGames)
-        {
-            base.AddObject("TrendingGames", trendingGames);
-        }
-    
-        /// <summary>
         /// Deprecated Method for adding a new object to the Polls EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
         /// </summary>
         public void AddToPolls(Poll poll)
@@ -552,6 +493,14 @@ namespace VideoGameHash.Models
         public void AddToPollAnswers(PollAnswers pollAnswers)
         {
             base.AddObject("PollAnswers", pollAnswers);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the TrendingGames EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToTrendingGames(TrendingGames trendingGames)
+        {
+            base.AddObject("TrendingGames", trendingGames);
         }
 
         #endregion
@@ -911,191 +860,6 @@ namespace VideoGameHash.Models
                 if ((value != null))
                 {
                     ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<GameSystem>("VGHDatabase.GameSystemArticles", "GameSystem", value);
-                }
-            }
-        }
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "ArticlesFeaturedArticles", "FeaturedArticles")]
-        public FeaturedArticles FeaturedArticle
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FeaturedArticles>("VGHDatabase.ArticlesFeaturedArticles", "FeaturedArticles").Value;
-            }
-            set
-            {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FeaturedArticles>("VGHDatabase.ArticlesFeaturedArticles", "FeaturedArticles").Value = value;
-            }
-        }
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [BrowsableAttribute(false)]
-        [DataMemberAttribute()]
-        public EntityReference<FeaturedArticles> FeaturedArticleReference
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<FeaturedArticles>("VGHDatabase.ArticlesFeaturedArticles", "FeaturedArticles");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<FeaturedArticles>("VGHDatabase.ArticlesFeaturedArticles", "FeaturedArticles", value);
-                }
-            }
-        }
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "ArticlesTrendingArticles", "TrendingArticles")]
-        public EntityCollection<TrendingArticles> TrendingArticles
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<TrendingArticles>("VGHDatabase.ArticlesTrendingArticles", "TrendingArticles");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<TrendingArticles>("VGHDatabase.ArticlesTrendingArticles", "TrendingArticles", value);
-                }
-            }
-        }
-
-        #endregion
-
-    }
-    
-    /// <summary>
-    /// No Metadata Documentation available.
-    /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="VGHDatabase", Name="FeaturedArticles")]
-    [Serializable()]
-    [DataContractAttribute(IsReference=true)]
-    public partial class FeaturedArticles : EntityObject
-    {
-        #region Factory Method
-    
-        /// <summary>
-        /// Create a new FeaturedArticles object.
-        /// </summary>
-        /// <param name="id">Initial value of the Id property.</param>
-        /// <param name="imageLink">Initial value of the ImageLink property.</param>
-        public static FeaturedArticles CreateFeaturedArticles(global::System.Int32 id, global::System.String imageLink)
-        {
-            FeaturedArticles featuredArticles = new FeaturedArticles();
-            featuredArticles.Id = id;
-            featuredArticles.ImageLink = imageLink;
-            return featuredArticles;
-        }
-
-        #endregion
-
-        #region Primitive Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 Id
-        {
-            get
-            {
-                return _Id;
-            }
-            set
-            {
-                if (_Id != value)
-                {
-                    OnIdChanging(value);
-                    ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
-                    ReportPropertyChanged("Id");
-                    OnIdChanged();
-                }
-            }
-        }
-        private global::System.Int32 _Id;
-        partial void OnIdChanging(global::System.Int32 value);
-        partial void OnIdChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.String ImageLink
-        {
-            get
-            {
-                return _ImageLink;
-            }
-            set
-            {
-                OnImageLinkChanging(value);
-                ReportPropertyChanging("ImageLink");
-                _ImageLink = StructuralObject.SetValidValue(value, false);
-                ReportPropertyChanged("ImageLink");
-                OnImageLinkChanged();
-            }
-        }
-        private global::System.String _ImageLink;
-        partial void OnImageLinkChanging(global::System.String value);
-        partial void OnImageLinkChanged();
-
-        #endregion
-
-    
-        #region Navigation Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "ArticlesFeaturedArticles", "Articles")]
-        public Articles Article
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Articles>("VGHDatabase.ArticlesFeaturedArticles", "Articles").Value;
-            }
-            set
-            {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Articles>("VGHDatabase.ArticlesFeaturedArticles", "Articles").Value = value;
-            }
-        }
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [BrowsableAttribute(false)]
-        [DataMemberAttribute()]
-        public EntityReference<Articles> ArticleReference
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Articles>("VGHDatabase.ArticlesFeaturedArticles", "Articles");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Articles>("VGHDatabase.ArticlesFeaturedArticles", "Articles", value);
                 }
             }
         }
@@ -2734,28 +2498,6 @@ namespace VideoGameHash.Models
                 }
             }
         }
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "InfoTypeTrendingGames", "TrendingGames")]
-        public EntityCollection<TrendingGames> TrendingGames
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<TrendingGames>("VGHDatabase.InfoTypeTrendingGames", "TrendingGames");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<TrendingGames>("VGHDatabase.InfoTypeTrendingGames", "TrendingGames", value);
-                }
-            }
-        }
 
         #endregion
 
@@ -3667,195 +3409,6 @@ namespace VideoGameHash.Models
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
-    [EdmEntityTypeAttribute(NamespaceName="VGHDatabase", Name="TrendingArticles")]
-    [Serializable()]
-    [DataContractAttribute(IsReference=true)]
-    public partial class TrendingArticles : EntityObject
-    {
-        #region Factory Method
-    
-        /// <summary>
-        /// Create a new TrendingArticles object.
-        /// </summary>
-        /// <param name="id">Initial value of the Id property.</param>
-        /// <param name="trendingGamesId">Initial value of the TrendingGamesId property.</param>
-        /// <param name="articlesId">Initial value of the ArticlesId property.</param>
-        public static TrendingArticles CreateTrendingArticles(global::System.Int32 id, global::System.Int32 trendingGamesId, global::System.Int32 articlesId)
-        {
-            TrendingArticles trendingArticles = new TrendingArticles();
-            trendingArticles.Id = id;
-            trendingArticles.TrendingGamesId = trendingGamesId;
-            trendingArticles.ArticlesId = articlesId;
-            return trendingArticles;
-        }
-
-        #endregion
-
-        #region Primitive Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 Id
-        {
-            get
-            {
-                return _Id;
-            }
-            set
-            {
-                if (_Id != value)
-                {
-                    OnIdChanging(value);
-                    ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
-                    ReportPropertyChanged("Id");
-                    OnIdChanged();
-                }
-            }
-        }
-        private global::System.Int32 _Id;
-        partial void OnIdChanging(global::System.Int32 value);
-        partial void OnIdChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 TrendingGamesId
-        {
-            get
-            {
-                return _TrendingGamesId;
-            }
-            set
-            {
-                OnTrendingGamesIdChanging(value);
-                ReportPropertyChanging("TrendingGamesId");
-                _TrendingGamesId = StructuralObject.SetValidValue(value);
-                ReportPropertyChanged("TrendingGamesId");
-                OnTrendingGamesIdChanged();
-            }
-        }
-        private global::System.Int32 _TrendingGamesId;
-        partial void OnTrendingGamesIdChanging(global::System.Int32 value);
-        partial void OnTrendingGamesIdChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 ArticlesId
-        {
-            get
-            {
-                return _ArticlesId;
-            }
-            set
-            {
-                OnArticlesIdChanging(value);
-                ReportPropertyChanging("ArticlesId");
-                _ArticlesId = StructuralObject.SetValidValue(value);
-                ReportPropertyChanged("ArticlesId");
-                OnArticlesIdChanged();
-            }
-        }
-        private global::System.Int32 _ArticlesId;
-        partial void OnArticlesIdChanging(global::System.Int32 value);
-        partial void OnArticlesIdChanged();
-
-        #endregion
-
-    
-        #region Navigation Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "TrendingGamesTrendingArticles", "TrendingGames")]
-        public TrendingGames TrendingGame
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<TrendingGames>("VGHDatabase.TrendingGamesTrendingArticles", "TrendingGames").Value;
-            }
-            set
-            {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<TrendingGames>("VGHDatabase.TrendingGamesTrendingArticles", "TrendingGames").Value = value;
-            }
-        }
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [BrowsableAttribute(false)]
-        [DataMemberAttribute()]
-        public EntityReference<TrendingGames> TrendingGameReference
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<TrendingGames>("VGHDatabase.TrendingGamesTrendingArticles", "TrendingGames");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<TrendingGames>("VGHDatabase.TrendingGamesTrendingArticles", "TrendingGames", value);
-                }
-            }
-        }
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "ArticlesTrendingArticles", "Articles")]
-        public Articles Article
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Articles>("VGHDatabase.ArticlesTrendingArticles", "Articles").Value;
-            }
-            set
-            {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Articles>("VGHDatabase.ArticlesTrendingArticles", "Articles").Value = value;
-            }
-        }
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [BrowsableAttribute(false)]
-        [DataMemberAttribute()]
-        public EntityReference<Articles> ArticleReference
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Articles>("VGHDatabase.ArticlesTrendingArticles", "Articles");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Articles>("VGHDatabase.ArticlesTrendingArticles", "Articles", value);
-                }
-            }
-        }
-
-        #endregion
-
-    }
-    
-    /// <summary>
-    /// No Metadata Documentation available.
-    /// </summary>
     [EdmEntityTypeAttribute(NamespaceName="VGHDatabase", Name="TrendingGames")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
@@ -3867,14 +3420,14 @@ namespace VideoGameHash.Models
         /// Create a new TrendingGames object.
         /// </summary>
         /// <param name="id">Initial value of the Id property.</param>
+        /// <param name="articleHits">Initial value of the ArticleHits property.</param>
         /// <param name="gamesId">Initial value of the GamesId property.</param>
-        /// <param name="infoTypeId">Initial value of the InfoTypeId property.</param>
-        public static TrendingGames CreateTrendingGames(global::System.Int32 id, global::System.Int32 gamesId, global::System.Int32 infoTypeId)
+        public static TrendingGames CreateTrendingGames(global::System.Int32 id, global::System.Int32 articleHits, global::System.Int32 gamesId)
         {
             TrendingGames trendingGames = new TrendingGames();
             trendingGames.Id = id;
+            trendingGames.ArticleHits = articleHits;
             trendingGames.GamesId = gamesId;
-            trendingGames.InfoTypeId = infoTypeId;
             return trendingGames;
         }
 
@@ -3914,6 +3467,30 @@ namespace VideoGameHash.Models
         /// </summary>
         [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
         [DataMemberAttribute()]
+        public global::System.Int32 ArticleHits
+        {
+            get
+            {
+                return _ArticleHits;
+            }
+            set
+            {
+                OnArticleHitsChanging(value);
+                ReportPropertyChanging("ArticleHits");
+                _ArticleHits = StructuralObject.SetValidValue(value);
+                ReportPropertyChanged("ArticleHits");
+                OnArticleHitsChanged();
+            }
+        }
+        private global::System.Int32 _ArticleHits;
+        partial void OnArticleHitsChanging(global::System.Int32 value);
+        partial void OnArticleHitsChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
         public global::System.Int32 GamesId
         {
             get
@@ -3932,57 +3509,11 @@ namespace VideoGameHash.Models
         private global::System.Int32 _GamesId;
         partial void OnGamesIdChanging(global::System.Int32 value);
         partial void OnGamesIdChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.Int32 InfoTypeId
-        {
-            get
-            {
-                return _InfoTypeId;
-            }
-            set
-            {
-                OnInfoTypeIdChanging(value);
-                ReportPropertyChanging("InfoTypeId");
-                _InfoTypeId = StructuralObject.SetValidValue(value);
-                ReportPropertyChanged("InfoTypeId");
-                OnInfoTypeIdChanged();
-            }
-        }
-        private global::System.Int32 _InfoTypeId;
-        partial void OnInfoTypeIdChanging(global::System.Int32 value);
-        partial void OnInfoTypeIdChanged();
 
         #endregion
 
     
         #region Navigation Properties
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "TrendingGamesTrendingArticles", "TrendingArticles")]
-        public EntityCollection<TrendingArticles> TrendingArticles
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<TrendingArticles>("VGHDatabase.TrendingGamesTrendingArticles", "TrendingArticles");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<TrendingArticles>("VGHDatabase.TrendingGamesTrendingArticles", "TrendingArticles", value);
-                }
-            }
-        }
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -4018,44 +3549,6 @@ namespace VideoGameHash.Models
                 if ((value != null))
                 {
                     ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Games>("VGHDatabase.GamesTrendingGames", "Games", value);
-                }
-            }
-        }
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [XmlIgnoreAttribute()]
-        [SoapIgnoreAttribute()]
-        [DataMemberAttribute()]
-        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "InfoTypeTrendingGames", "InfoType")]
-        public InfoType InfoType
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<InfoType>("VGHDatabase.InfoTypeTrendingGames", "InfoType").Value;
-            }
-            set
-            {
-                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<InfoType>("VGHDatabase.InfoTypeTrendingGames", "InfoType").Value = value;
-            }
-        }
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [BrowsableAttribute(false)]
-        [DataMemberAttribute()]
-        public EntityReference<InfoType> InfoTypeReference
-        {
-            get
-            {
-                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<InfoType>("VGHDatabase.InfoTypeTrendingGames", "InfoType");
-            }
-            set
-            {
-                if ((value != null))
-                {
-                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<InfoType>("VGHDatabase.InfoTypeTrendingGames", "InfoType", value);
                 }
             }
         }

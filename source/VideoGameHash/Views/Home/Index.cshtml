@@ -1,303 +1,89 @@
-﻿@model VideoGameHash.Models.HomePageModels
+﻿@model VideoGameHash.Models.HomePageModel
+@using System
+@using System.Linq
 @using VideoGameHash.Helpers;
 
 @{
     ViewBag.Title = "Home Page";
 }
 
-    @*FEATURED ARTICLES SECTION*@
-    <div class="main_section col-xs-12">
-        <div class="row">
-            @foreach (var k in Model.Featured.Keys)
-            {
-                var title = "Featured " + NewsHelper.SectionTitle(k);
-                var id = NewsHelper.SectionTitle(k) + "wheel";
-                <div class="main_page col-xs-4">
-                    <div class="featured_section">
-                        <h3>@title</h3>
-                    </div>
-
-                    @if (Model.Featured[k].Count() > 0)
-                    {
-                        var i = 0;
-                        <div id="@id" class="carousel removeMargin slide carousel-fade carousel-interval">
-                            <ol class="carousel-indicators top-right">
-                            @for (var j = 0; j < Model.Featured[k].Count(); j++)
-                            {
-                                if (j == 0)
-                                {
-                                    <li data-target="#@id" data-slide-to="@j"class="active"><a href="#!"></a></li>
-                                }
-                                else
-                                {
-                                    <li data-target="#@id" data-slide-to="@j"><a href="#!"></a></li>
-                                }
-                            }
-                            </ol>
-                            <div class="carousel-inner">
-                                @foreach (var item in Model.Featured[k])
-                                {
-                                    var classDesc = "item";
-                                    if (i == 0)
-                                    {
-                                        classDesc += " active";
-                                    }
-
-                                    <div class="@classDesc">
-                                    <img src="@item.ImageLink" width="100%" onload="if( this.width > 400 ) this.width = 400;" style="height: 240px" alt="">
-                                        <div class="carousel-caption carousel-caption-old-style">
-                                            <h6 class="White">@item.Article.Title</h6>
-                                            <p class="pull-right" style="font-size:smaller">Continue article at <b><a href="@item.Article.Link" target="_blank">@item.Article.InfoSource.InfoSourceName</a></b></p>
-                                        </div>
-                                    </div>
-                                    i++;
-                                }
-                            </div>
-
-                        </div>
-                    }
-                </div>
-            }
-        </div>
+<div class="col-xs-12">
+    <h3>Welcome to Videogamehash, an infometrics site, focusing on videogames.</h3>
+    <h5>Please search for a game below:</h5>
+    <div class="input-group">
+        <input id="gameMainSearch" type="text" class="form-control" placeholder="Search for title" aria-describedby="basic-addon2">
+        <span class="input-group-btn">
+            <button class="btn btn-default" type="button">Go!</button>
+        </span>
     </div>
-    <div class="section-div"></div>
-    @*TRENDING GAMES SECTION////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*@
-    <div class="main_section trending_and_polls_section col-xs-12">
-    @if (Model.TrendingGames != null)
-    {
-            <div class="col-xs-9 pull-left">
-                @*<div class="row">*@
-                    <div class="main_page featured_section">
-                        <h3>Trending Games</h3>
-                    </div>
-                    @foreach (var sectionIndex in Model.TrendingGames.Keys)
-                    {
-                        if (sectionIndex <= 2)
+
+</div>
+
+@*POLL SECTION////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*@
+<div class="col-xs-12">
+    <div class="row">
+        <div class="main_page featured_section">
+            <h3>Poll</h3>
+        </div>
+        @foreach (var item in Model.Polls)
+        {
+            var className = "radio_class" + item.Id;
+            var fieldIdName = "field_Id_" + item.Id;
+            var radio_div_id = "radio_div_id_" + item.Id;
+            var chartId = "chart_Id_" + item.Id;
+            var pollBoxHeight = String.Format("{0}px", item.PollAnswers.Count() * 12 + 150);
+            <div class="toolbox toolbox_bottom_space" style="height: @pollBoxHeight">
+                <h6 class="toolbox_header">@item.Title</h6>
+                <div id="@radio_div_id" class="toolbox_info">
+                    <ol class="fields" id="@fieldIdName">
+                        @foreach (var subItem in item.PollAnswers)
                         {
-                        <div class="trending_container">
-                        @if (Model.TrendingGames[sectionIndex].Count() > 0)
-                        {
-                            var heading = "Trending " + NewsHelper.SectionTitle(sectionIndex);
-                            var tabId = "Trending_" + NewsHelper.SectionTitle(sectionIndex);
-                            <div class="col-xs-12 trending_item">
-                                <h5><span class="glyphicon glyphicon-text-width"></span> <strong>@heading</strong></h5>
-                                <div class="row">
-                                    <ul class="nav nav-tabs" id="@tabId">
-                                        @{
-                                            var first = true;
-                                        }
-                                        @foreach (var item in Model.TrendingGames[sectionIndex])
-                                        {
-                                            var linkText = string.Format("{0}_{1}", sectionIndex, item.GamesId);
-                                            var tabNav = string.Format("{0}_{1}", sectionIndex, item.GamesId);
-                                            var trendingTabName = "Trending_Tab";
-                                            var trendingSectionId = string.Format("{0}_Trending_{1}", sectionIndex, item.GamesId);
-                                            var trendingScrollId = string.Format("{0}_Scrollbar_{1}", sectionIndex, item.Id);
-                                            var detailsId = string.Format("{0}_Details_{1}", sectionIndex, item.Id);
-                                            var scrollGraphic = string.Format("{0}_ScrollGraphic{1}", sectionIndex, item.Id);
-                                            if (first)
-                                            {
-                                                first = false;
-                                                trendingTabName += " active";
-                                                <li class="@trendingTabName" data-tabpaneid="@tabNav" data-scrollgraphic="@scrollGraphic" data-scrollviewid="@detailsId" data-scrollid="@trendingScrollId" data-trendingsectionid="@trendingSectionId" data-url="@Url.Action("GetTrendingInfoBySystem", new { Section = sectionIndex, TrendingGameId = item.Id, Model.TrendGamesDesc[sectionIndex][item.Id].ElementAt(0).GameSystemId })"><a data-toggle="tab" href="#@linkText">@item.Game.GameTitle</a></li>
-                                            }
-                                            else
-                                            {
-                                                <li class="@trendingTabName" data-tabpaneid="@tabNav" data-scrollgraphic="@scrollGraphic" data-scrollviewid="@detailsId" data-scrollid="@trendingScrollId" data-trendingsectionid="@trendingSectionId" data-url="@Url.Action("GetTrendingInfoBySystem", new { Section = sectionIndex, TrendingGameId = item.Id, Model.TrendGamesDesc[sectionIndex][item.Id].ElementAt(0).GameSystemId })"><a data-toggle="tab" href="#@linkText">@item.Game.GameTitle</a></li>
-                                            }
-                                        }
-                                    </ul>
-                                    <div class="tab-content">
-                                        @{
-                                        var firstTab = true;
-                                        }
-                                        @foreach (var item in Model.TrendingGames[sectionIndex])
-                                        {
-                                            var tabNav = string.Format("{0}_{1}", sectionIndex, item.GamesId);
-                                            var tabClassName = "tab-pane fade";
-                                            var trendingSectionId = string.Format("{0}_Trending_{1}", sectionIndex, item.GamesId);
-                                            var trendingScrollId = string.Format("{0}_Scrollbar_{1}", sectionIndex, item.Id);
-                                            var detailsId = string.Format("{0}_Details_{1}", sectionIndex, item.Id);
-                                            var scrollGraphic = string.Format("{0}_ScrollGraphic{1}", sectionIndex, item.Id);
-                                            if (firstTab)
-                                            {
-                                                //firstTab = false;
-                                                tabClassName += " in active";
-                                            }
-                                            <div class="@tabClassName" id="@tabNav">
-                                                @if (item.Game.GameInfoes.Count() > 1)
-                                                {
-                                                    var carouselId = string.Format("{0}_Carousel_{1}", sectionIndex, item.GamesId);
-                                                    <div class="col-xs-4">
-                                                        <div id="@carouselId" class="carousel slide trending_carousel" data-interval="false">
-                                                                <div class="carousel-inner">
-                                                                    @{
-                                                                        var firstCarouselItem = true;
-                                                                    }
-
-                                                                    @if (Model.TrendGamesDesc[sectionIndex].ContainsKey(item.Id) && Model.TrendGamesDesc[sectionIndex][item.Id].Count() > 0)
-                                                                    {
-                                                                        foreach (var carouselItems in Model.TrendGamesDesc[sectionIndex][item.Id])
-                                                                        {
-                                                                            var carouselClass = "item trending-image";
-                                                                            if (firstCarouselItem == true)
-                                                                            {
-                                                                                firstCarouselItem = false;
-                                                                                carouselClass += " active";
-                                                                            }
-                                                                        <div class="@carouselClass">
-                                                                            <a href="@Url.Action("GameDatabase", new {item.Game.GameTitle })"><img alt="" src="@carouselItems.GameImage" style="height: 385px; width: 95%;" class="img-polaroid" /></a>
-                                                                        </div>
-                                                                        }
-                                                                    }
-                                                            </div>
-                                                            <div>
-                                                                <ul class="nav nav-pills" style="margin-top: 5px; margin-bottom: 5px">
-                                                                @{
-                                                                    var firstPill = true;
-                                                                    var carNavIndex = 0;
-                                                                }
-
-                                                                @if (Model.TrendGamesDesc[sectionIndex].ContainsKey(item.Id) && Model.TrendGamesDesc[sectionIndex][item.Id].Count() > 0)
-                                                                {
-                                                                    foreach (var navPills in Model.TrendGamesDesc[sectionIndex][item.Id])
-                                                                    {
-                                                                        var carNavId = string.Format("{0}", carNavIndex);
-                                                                        if (firstPill)
-                                                                        {
-                                                                            firstPill = false;
-                                                                            <li class="trending-pills active" data-scrollgraphic="@scrollGraphic" data-scrollviewid="@detailsId" data-scrollid="@trendingScrollId" data-carouselindex="@carNavId" data-carouselid="@carouselId" data-trendingsectionid="@trendingSectionId" data-url="@Url.Action("GetTrendingInfoBySystem", new { Section = sectionIndex, TrendingGameId = item.Id, navPills.GameSystemId })"><a href="#@carouselId" class="small-pill">@navPills.GameSystem.GameSystemName</a></li>
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            <li class="trending-pills" data-scrollgraphic="@scrollGraphic" data-scrollviewid="@detailsId" data-scrollid="@trendingScrollId" data-carouselindex="@carNavId" data-carouselid="@carouselId" data-trendingsectionid="@trendingSectionId" data-url="@Url.Action("GetTrendingInfoBySystem", new { Section = sectionIndex, TrendingGameId = item.Id, navPills.GameSystemId })"><a href="#@carouselId" class="small-pill">@navPills.GameSystem.GameSystemName</a></li>
-                                                                        }
-                                                                        carNavIndex++;
-                                                                    }
-                                                                }
-                                                                </ul>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <div class="col-xs-4">
-                                                        <div class="trending-image">
-                                                            <a href="@Url.Action("GameDatabase", new {item.Game.GameTitle })"><img src="@item.Game.GameInfoes.ElementAt(0).GameImage" style="height: 385px; width: 95%;" class="img-polaroid" alt="" /></a>
-                                                        </div>
-                                                        <div>
-                                                            <ul class="nav nav-pills" style="margin-top: 5px; margin-bottom: 5px">
-                                                                <li class="active"><a class="small-pill">@item.Game.GameInfoes.ElementAt(0).GameSystem.GameSystemName</a></li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                
-                                                }
-
-                                                @if (Model.TrendGamesDesc[sectionIndex].ContainsKey(item.Id) && Model.TrendGamesDesc[sectionIndex][item.Id].Count() > 0)
-                                                {
-                                                    var className = "trending-stories col-xs-8";
-                                                    if (firstTab)
-                                                    {
-                                                        firstTab = false;
-                                                        className = "trending-stories-first col-xs-8";
-                                                    }
-                                                        <div class="@className" id="@trendingSectionId" data-scrollgraphic="@scrollGraphic" data-scrollviewid="@detailsId" data-scrollid="@trendingScrollId" data-url="@Url.Action("GetTrendingInfoBySystem", new { Section = sectionIndex, TrendingGameId = item.Id, Model.TrendGamesDesc[sectionIndex][item.Id].ElementAt(0).GameSystemId })"></div>
-                                                }
-                                            </div>
-                                        }
-                                    
-                                    </div>
-                                </div>
-                            </div>
-  
+                            <li class="field"><input class="@className" type="radio" id="@subItem.Answer" value="@subItem.Id" name="@item.Title" /><label for="@subItem.Answer" class="radio_label">@subItem.Answer</label></li>
                         }
-
-                        </div>
-                        }
-                    }
-                
-            </div>
-        
-    }
-    @*POLL SECTION////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*@
-        <div class="col-xs-3 pull-right">
-            <div class="row">
-                <div class="main_page featured_section">
-                    <h3>Poll</h3>
+                    </ol>
+                    <p>
+                        <input type="submit" class="btn inactive poll_button" value="Vote" data-url="@Url.Action("SubmitPollVote", new { PollId = item.Id })" data-fieldid="@fieldIdName" data-chartid="@chartId" data-radiodivid="@radio_div_id"/>
+                    </p>
                 </div>
-                @foreach (var item in Model.Polls)
-                {
-                    var className = "radio_class" + item.Id;
-                    var fieldIdName = "field_Id_" + item.Id;
-                    var radio_div_id = "radio_div_id_" + item.Id;
-                    var chartId = "chart_Id_" + item.Id;
-                    var pollBoxHeight = String.Format("{0}px", item.PollAnswers.Count() * 12 + 150);
-                    <div class="toolbox toolbox_bottom_space" style="height: @pollBoxHeight">
-                        <h6 class="toolbox_header">@item.Title</h6>
-                        <div id="@radio_div_id" class="toolbox_info">
-                            <ol class="fields" id="@fieldIdName">
-                                @foreach (var subItem in item.PollAnswers)
-                                {
-                                    <li class="field"><input class="@className" type="radio" id="@subItem.Answer" value="@subItem.Id" name="@item.Title" /><label for="@subItem.Answer" class="radio_label">@subItem.Answer</label></li>
+                <div id="@chartId" style="width:95%"></div>
+            </div>
+        }
+    </div>
+</div>
+
+    
+@*Scripts*@
+<script type="text/javascript">
+    $(function() {
+        $("#gameMainSearch").autocomplete({
+            source: function(request, response) {
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("SearchGames")',
+                    dataType: "json",
+                    data: "{ 'search': '" + request.term + "'}",
+                    dataFilter: function (data) { return data; },
+                    success: function (data) {
+                        response($.map(data.data,
+                            function(item) {
+                                return {
+                                    label: item,
+                                    value: item
                                 }
-                            </ol>
-                            <p>
-                                <input type="submit" class="btn inactive poll_button" value="Vote" data-url="@Url.Action("SubmitPollVote", new { PollId = item.Id })" data-fieldid="@fieldIdName" data-chartid="@chartId" data-radiodivid="@radio_div_id"/>
-                            </p>
-                        </div>
-                        <div id="@chartId" style="width:95%"></div>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-    
-    <div class="section-div"></div>
-    
-    @*LATEST NEWS SECTION//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*@
-    <div class="latest_news_section col-xs-12">
-        <div class="row">
-            <div class="main_page col-xs-4">
-                <div class="featured_section">
-                    <h3>Latest News</h3>
-                </div>
-                @foreach (var key in LatestInfoHelper.LatestNewsUrls.Keys)
-                {
-                    var newsId = string.Format("News_{0}", key);
-                    <div class="LatestInfoWrapper">
-                        <div class="loadingdiv" id="@newsId"><img src="~/content/images/ajax-loader.gif" alt="" /></div>
-                        <div class="LatestInfoSection" data-url="@Url.Action("GetLatestInfo", new { InfoType = "News", Source = key })" data-loadingid="@newsId"></div>
-                    </div>
-                }
-            </div>
-            <div class="main_page col-xs-4">
-                <div class="featured_section">
-                    <h3>Latest Reviews</h3>
-                </div>
-                @foreach (var key in LatestInfoHelper.LatestReviewsUrls.Keys)
-                {
-                    var reviewsId = string.Format("Reviews_{0}", key);
-                    <div class="LatestInfoWrapper">
-                        <div class="loadingdiv" id="@reviewsId"><img src="~/content/images/ajax-loader.gif" alt="" /></div>
-                        <div class="LatestInfoSection" data-url="@Url.Action("GetLatestInfo", new { InfoType = "Reviews", Source = key })" data-loadingid="@reviewsId"></div>
-                    </div>
-                }
-            </div>
-            <div class="main_page col-xs-4">
-                <div class="featured_section">
-                    <h3>Latest Media</h3>
-                </div>
-                @foreach (var key in LatestInfoHelper.LatestMediaUrls.Keys)
-                {
-                    var mediaId = string.Format("Media_{0}", key);
-                    <div class="LatestInfoWrapper">
-                        <div class="loadingdiv" id="@mediaId"><img src="~/content/images/ajax-loader.gif" alt="" /></div>
-                        <div class="LatestInfoSection" data-url="@Url.Action("GetLatestInfo", new { InfoType = "Media", Source = key })" data-loadingid="@mediaId"></div>
-                    </div>
-                }
-            </div>
-        </div>
-    
-    </div>
+                            }));
+                        //debugger;
+                    },
+                    error: function(result) {
+                        alert(response.responseText);
+                    },
+                    failure: function() {
+                        response.responseText
+                    }
+                });
+            },
+            minLength: 1,
+            delay: 1000
+        });
+    })
+</script>

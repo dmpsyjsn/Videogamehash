@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web;
 using QDFeedParser;
 using VideoGameHash.Helpers;
 
@@ -81,40 +80,11 @@ namespace VideoGameHash.Models
             return _db.InfoSourceRssUrls.SingleOrDefault(u => u.Id == id);
         }
 
-        public IEnumerable<FeaturedArticles> GetFeaturedArticles()
-        {
-            return _db.FeaturedArticles;
-        }
 
-        public IEnumerable<FeaturedArticles> GetFeaturedArticles(int sectionId)
-        {
-            return _db.FeaturedArticles.Where(u => u.Article.InfoTypeId == sectionId);
-        }
-
-        public IEnumerable<TrendingGames> GetTrendingGames()
-        {
-            return _db.TrendingGames;
-        }
-
-        public IEnumerable<TrendingGames> GetTrendingGames(int sectionId)
-        {
-            return _db.TrendingGames.Where(u => u.InfoTypeId == sectionId);
-        }
-
-        public IEnumerable<TrendingArticles> GetTrendingArticles(int sectionId)
-        {
-            return _db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId);
-        }
-
-        public IEnumerable<TrendingArticles> GetTrendingArticles(int sectionId, int trendingGameId)
-        {
-            return _db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId && u.TrendingGamesId == trendingGameId).GroupBy(u => u.Article.Title).Select(u => u.FirstOrDefault()).OrderBy(u => u.Article.InfoSourceId).ThenByDescending(u => u.Article.DatePublished);
-        }
-
-        public IEnumerable<TrendingArticles> GetTrendingArticles(int sectionId, int trendingGameId, int gameSystemId)
-        {
-            return _db.TrendingArticles.Where(u => u.Article.InfoTypeId == sectionId && u.TrendingGamesId == trendingGameId && (u.Article.GameSystemId == gameSystemId || u.Article.GameSystem.GameSystemName == "All")).OrderBy(u => u.Article.InfoSourceId).ThenByDescending(u => u.Article.DatePublished);
-        }
+        //public IEnumerable<TrendingGames> GetTrendingGames()
+        //{
+        //    return _db.TrendingGames;
+        //}
 
         public int AddInfoType(string name)
         {
@@ -395,11 +365,11 @@ namespace VideoGameHash.Models
             {
                 var searchTerm = new Regex($@"\b{gameTitle}\b", RegexOptions.IgnoreCase);
 
-                var matched = _db.Articles.Where(d => searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content)).ToList();
+                var matched = _db.Articles.AsEnumerable().Where(d => searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content)).ToList();
 
                 success = matched.Any();
             }
-            catch
+            catch (Exception ex)
             {
                 success = false;
             }
@@ -604,24 +574,6 @@ namespace VideoGameHash.Models
 
                 foreach (var article in articlesToDelete)
                 {
-                    foreach (var trendingArticles in _db.TrendingArticles.ToList())
-                    {
-                        if (trendingArticles.ArticlesId == article.Id)
-                        {
-                            _db.TrendingArticles.DeleteObject(trendingArticles);
-                            _db.SaveChanges();
-                        }
-                    }
-
-                    foreach (var featuredArticle in _db.FeaturedArticles.ToList())
-                    {
-                        if (featuredArticle.Article.Id == article.Id)
-                        {
-                            _db.FeaturedArticles.DeleteObject(featuredArticle);
-                            _db.SaveChanges();
-                        }
-                    }
-
                     _db.Articles.DeleteObject(article);
                     _db.SaveChanges();
                 }
@@ -632,7 +584,7 @@ namespace VideoGameHash.Models
                 {
                     var gameArticles = _db.Articles.Where(u => u.Title.ToUpper().Contains(game.GameTitle.ToUpper())).ToList();
 
-                    if (gameArticles.Count() == 0)
+                    if (!gameArticles.Any())
                     {
                         IEnumerable<GameInfo> gameInfoes = _db.GameInfoes.Where(u => u.GamesId == game.Id);
 
@@ -654,187 +606,38 @@ namespace VideoGameHash.Models
             }
         }
 
-        public void MakeFeatured(int section)
+        public void MakeTrending()
         {
-            var index = 0;
-            var featuredStoryCount = 0;
-            var limitReached = false;
-            var featuredArticles = new List<FeaturedClass>();
-
-            var articleDb = GetArticlesWithImagesOnly(section).GroupBy(u => u.Title).Select(u => u.FirstOrDefault()).OrderByDescending(d => d.DatePublished).ToList();
-
-            while (!limitReached)
-            {
-                try
-                {
-                    var articles = articleDb.Skip(index * 50).Take(50).ToList();
-
-                    if (articles.Count() < 50)
-                        limitReached = true;
-
-                    foreach (var dbItem in articles)
-                    {
-                        if (featuredStoryCount > 4)
-                        {
-                            limitReached = true;
-                            break;
-                        }
-
-                        var image = GetImage(dbItem.InfoSource.InfoSourceName, dbItem.Content);
-                        if (image.Length > 0)
-                        {
-                            featuredStoryCount++;
-                            var featuredClass = new FeaturedClass {Id = dbItem.Id, Article = dbItem, Image = image};
-                            featuredArticles.Add(featuredClass);
-                        }
-                    }
-                    index++;
-                }
-                catch
-                {
-                    break;
-                }
-            }
-
-            if (featuredArticles.Any())
-            {
-                // Delete previous entries for this section
-                foreach (var oldArticle in _db.FeaturedArticles.Where(u => u.Article.InfoTypeId == section))
-                    _db.FeaturedArticles.DeleteObject(oldArticle);
-
-                _db.SaveChanges();
-
-                // Add in the new entries
-                foreach (var newArticle in featuredArticles)
-                {
-                    var story = new FeaturedArticles
-                    {
-                        Id = newArticle.Id,
-                        Article = newArticle.Article,
-                        ImageLink = newArticle.Image
-                    };
-                    _db.FeaturedArticles.AddObject(story);
-                }
-
-                _db.SaveChanges();
-            }
-        }
-
-        public void MakeTrending(int section)
-        {
-            foreach (var article in _db.TrendingArticles.Where(u => u.Article.InfoTypeId == section))
-            {
-                _db.TrendingArticles.DeleteObject(article);
-            }
-
-            _db.SaveChanges();
-
-            foreach (var game in _db.TrendingGames.Where(u => u.InfoTypeId == section))
-            {
-                foreach (var article in _db.TrendingArticles.Where(u => u.TrendingGamesId == game.Id))
-                    _db.TrendingArticles.DeleteObject(article);
-
-                _db.TrendingGames.DeleteObject(game);
-            }
-
-            _db.SaveChanges();
-
-            var gameList = new List<Games>();
-            foreach (var game in _db.Games)
-            {
-                var oldGame = false;
-                foreach (var info in game.GameInfoes)
-                {
-                    if (info != null)
-                    {
-                        if (info.USReleaseDate < DateTime.Now.AddDays(-31))
-                        {
-                            oldGame = true;
-                            break;
-                        }
-                        if (!oldGame)
-                        {
-                            gameList.Add(game);
-                        }
-                    }
-                }
-            }
-
-            var gameInfos = new Dictionary<Games, int>();
-
-            var cutoffDays = (section == 1) ? -7 : -28;
-            var cutoff = DateTime.Now.AddDays(cutoffDays);
-            
-            foreach (var game in gameList)
-            {
-                var recentArticles = GetTrendingGameArticles(section, game.GameTitle).Where(u => u.DatePublished >= cutoff).ToList();
-                var count = recentArticles.Count();
-                foreach (var article in recentArticles)
-                {
-                    if (article.Title.ToUpper().Contains(game.GameTitle.ToUpper()))
-                    {
-                        if (gameInfos.ContainsKey(game))
-                        {
-                            gameInfos[game]++;
-                        }
-                        else
-                        {
-                            gameInfos.Add(game, 0);
-                        }
-                    }
-                }
-            }
-
-            gameInfos = gameInfos.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-
-            var counter = 0;
-            foreach (var game in gameInfos.Keys)
-            {
-                if (counter > 5)
-                    break;
-
-                if (gameInfos[game] < 5)
-                    continue;
-
-                var trendingGame = new TrendingGames
-                {
-                    InfoTypeId = section,
-                    GamesId = game.Id
-                };
-
-                _db.TrendingGames.AddObject(trendingGame);
-
-                counter++;
-            }
-            _db.SaveChanges();
-
             foreach (var game in _db.TrendingGames)
             {
-                var gameTitle = GetGameTitle(game.GamesId).ToUpper();
-                var articleList = GetArticles(section).Where(u => u.Title.ToUpper().Contains(gameTitle.ToUpper())).OrderByDescending(u => u.DatePublished).ToList();
+                _db.DeleteObject(game);
+            }
 
-                foreach (var article in articleList)
+            _db.SaveChanges();
+
+            // Get games
+            var games = _db.Games.ToList();
+
+            // See if any articles contain game title
+            foreach (var game in games)
+            {
+                var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
+                
+                var matchingArticles = _db.Articles.AsEnumerable().Where(d => searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content)).ToList();
+
+                if (matchingArticles.Any())
                 {
-                    var trendingArticle = new TrendingArticles
+                    var trendingGame = new TrendingGames
                     {
-                        TrendingGamesId = game.Id,
-                        ArticlesId = article.Id
+                        GamesId = game.Id,
+                        ArticleHits = matchingArticles.Count
                     };
 
-                    _db.TrendingArticles.AddObject(trendingArticle);
+                    _db.TrendingGames.AddObject(trendingGame);
                 }
             }
+
             _db.SaveChanges();
-        }
-
-        public IEnumerable<Articles> GetArticlesWithImagesOnly(int section)
-        {
-            var temp = (from tempDb in _db.Articles
-                        where tempDb.InfoTypeId == section &&
-                              (tempDb.InfoSourceId != 1 /*IGN*/ && tempDb.InfoSourceId != 2 /*Gamespot*/ && tempDb.InfoSourceId != 5 /*CGV*/ && tempDb.InfoSourceId != 8 /*N4G*/)
-                        select tempDb);
-
-            return temp;
         }
 
         public string GetImage(string source, string content)
@@ -919,12 +722,6 @@ namespace VideoGameHash.Models
 
                 foreach (var article in GetArticles(id))
                 {
-                    var featured = _db.FeaturedArticles.SingleOrDefault(u => u.Id == article.Id);
-                    if (featured != null)
-                    {
-                        _db.FeaturedArticles.DeleteObject(featured);
-                    }
-
                     _db.Articles.DeleteObject(article);
                 }
                 _db.SaveChanges();
@@ -964,11 +761,6 @@ namespace VideoGameHash.Models
 
                 foreach (var article in GetArticlesBySourceId(id))
                 {
-                    var featured = _db.FeaturedArticles.SingleOrDefault(u => u.Id == article.Id);
-                    if (featured != null)
-                    {
-                        _db.FeaturedArticles.DeleteObject(featured);
-                    }
                     _db.Articles.DeleteObject(article);
                 }
 
@@ -1032,9 +824,9 @@ namespace VideoGameHash.Models
             _db.SaveChanges();
         }
 
-        internal IEnumerable<Poll> GetPolls()
+        internal List<Poll> GetPolls()
         {
-            return _db.Polls;
+            return _db.Polls.ToList();
         }
 
         public Poll GetPoll(int id)

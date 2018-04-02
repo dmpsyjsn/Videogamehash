@@ -66,11 +66,6 @@ namespace VideoGameHash.Models
                 {
                     foreach (var article in GetArticlesByGameSystemId(id))
                     {
-                        var featured = _db.FeaturedArticles.SingleOrDefault(u => u.Id == article.Id);
-                        if (featured != null)
-                        {
-                            _db.FeaturedArticles.DeleteObject(featured);
-                        }
                         _db.Articles.DeleteObject(article);
                     }
                     _db.SaveChanges();

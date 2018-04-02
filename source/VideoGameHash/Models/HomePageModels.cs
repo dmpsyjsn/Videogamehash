@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System.Collections.Generic;
 using PagedList;
 
 namespace VideoGameHash.Models
 {
-    public class HomePageModels
+    public class HomePageModel
     {
-        public Dictionary<int, IEnumerable<FeaturedArticles>> Featured;
-        public Dictionary<int, IEnumerable<TrendingGames>> TrendingGames;
-        public Dictionary<int, Dictionary<int, List<GameInfo>>> TrendGamesDesc;
-        public IEnumerable<Poll> Polls;
+        public HomePageModel()
+        {
+            TopGames = new List<string>();
+            Polls = new List<Poll>();
+        }
+
+        public List<string> TopGames { get; set; }
+        public List<Poll> Polls { get; set; }
     }
 
     public class MainPageViewModel
@@ -48,7 +49,6 @@ namespace VideoGameHash.Models
     {
         public int Section { get; set; }
         public int TrendingGameId { get; set; }
-        public IEnumerable<TrendingArticles> TrendingArticles { get; set; }
     }
 
     public class PollGraphModel
