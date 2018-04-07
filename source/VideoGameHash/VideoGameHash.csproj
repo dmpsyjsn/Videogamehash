@@ -254,7 +254,7 @@
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\ImportModel.cs" />
     <Compile Include="Models\InfoModels.cs" />
-    <Compile Include="Models\InfoRepository.cs" />
+    <Compile Include="Repositories\InfoRepository.cs" />
     <Compile Include="Models\TheGamesDB\PlatformGames.cs" />
     <Compile Include="Models\VGHDatabase.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -265,11 +265,11 @@
     <Compile Include="Models\VGHDatabaseRepository.cs" />
     <Compile Include="Models\CustomMembershipProvider.cs" />
     <Compile Include="Models\GameSerializer.cs" />
-    <Compile Include="Models\GamesRepository.cs" />
+    <Compile Include="Repositories\GamesRepository.cs" />
     <Compile Include="Models\GameSystemModels.cs" />
-    <Compile Include="Models\GameSystemsRepository.cs" />
+    <Compile Include="Repositories\GameSystemsRepository.cs" />
     <Compile Include="Models\HomePageModels.cs" />
-    <Compile Include="Models\UserRepository.cs" />
+    <Compile Include="Repositories\UserRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -484,6 +484,7 @@
     <Content Include="Views\Info\AddPoll.cshtml" />
     <Content Include="Views\Shared\_ChartView.cshtml" />
     <Content Include="Views\Shared\_ChartViewLine.cshtml" />
+    <Content Include="Views\Home\GameDetails.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

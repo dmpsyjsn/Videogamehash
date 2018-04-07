@@ -1,17 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Security;
 using WebMatrix.WebData;
 using VideoGameHash.Helpers;
+using VideoGameHash.Repositories;
 
 
 namespace VideoGameHash.Models
 {
     public class CustomMembershipProvider : ExtendedMembershipProvider
     {
-        private UserRepository _repository = new UserRepository();
+        private UserRepository _repository;
+
+        public CustomMembershipProvider()
+        {
+
+        }
+
+        public CustomMembershipProvider(UserRepository repository)
+        {
+            _repository = repository;
+        }
 
         public override bool ConfirmAccount(string accountConfirmationToken)
         {
@@ -30,8 +39,7 @@ namespace VideoGameHash.Models
 
         public override string CreateUserAndAccount(string userName, string password, bool requireConfirmation, IDictionary<string, object> values)
         {
-            var status = MembershipCreateStatus.Success;
-            var user = CreateUser(userName, password, values["Email"].ToString(), values["SecurityQuestion"].ToString(), values["SecurityAnswer"].ToString(), true, null, out status);
+            var user = CreateUser(userName, password, values["Email"].ToString(), values["SecurityQuestion"].ToString(), values["SecurityAnswer"].ToString(), true, null, out var status);
 
             if (user == null)
             {
@@ -303,6 +311,12 @@ namespace VideoGameHash.Models
 
         public override bool ValidateUser(string username, string password)
         {
+            if (_repository == null)
+            {
+                var db = new VGHDatabaseContainer();
+                _repository = new UserRepository(db);
+            }
+
             return _repository.VerifyUser(username, password);
         }
     }

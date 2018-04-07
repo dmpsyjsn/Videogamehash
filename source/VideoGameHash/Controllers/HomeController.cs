@@ -9,6 +9,7 @@ using VideoGameHash.Helpers;
 using DotNet.Highcharts;
 using DotNet.Highcharts.Enums;
 using DotNet.Highcharts.Options;
+using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Controllers
 {
@@ -31,9 +32,9 @@ namespace VideoGameHash.Controllers
 
             var model = new HomePageModel();
 
-            
-
             model.Polls = _infoRepository.GetPolls();
+
+            model.TopGames = _gamesRepository.GetTopGames(10);
 
             return View(model);
         }
@@ -131,22 +132,19 @@ namespace VideoGameHash.Controllers
                 search = null;
             if (source < 0)
                 return RedirectToAction("ViewArticlesN", new { Section = section, GameSystem = gameSystem, Search = search, ViewType = viewType });
-            else
-                return RedirectToAction("ViewArticles", new { Section = section, Source = source, GameSystem = gameSystem, Search = search, ViewType = viewType });
+
+            return RedirectToAction("ViewArticles", new { Section = section, Source = source, GameSystem = gameSystem, Search = search, ViewType = viewType });
         }
 
-        public ActionResult GameDatabase(string gameTitle)
+        public ActionResult GameDetails(string gameTitle)
         {
-            var game = new Games();
-            if (!String.IsNullOrEmpty(gameTitle))
-                game = _gamesRepository.GetGameByGameTitle(gameTitle);
-            return View(game);
-        }
+            if (string.IsNullOrEmpty(gameTitle))
+                return RedirectToAction("Index");
 
-        [HttpPost]
-        public ActionResult GetGameDetails(int id, string gameSystem)
-        {
-            var game = _gamesRepository.GetGame(id);
+            var game = _gamesRepository.GetGame(gameTitle);
+
+            if (game == null)
+                return RedirectToAction("Index");
 
             var model = new GameDetailsModel
             {
@@ -155,11 +153,8 @@ namespace VideoGameHash.Controllers
                 AvailableGameSystems = _gamesRepository.GetGameSystemsForThisGame(game)
             };
 
-            string currentGameSystem;
-            if (String.IsNullOrEmpty(gameSystem))
-                currentGameSystem = model.AvailableGameSystems[0];
-            else
-                currentGameSystem = gameSystem;
+            var currentGameSystem = model.AvailableGameSystems[0];
+
 
             var details = new Dictionary<int, IEnumerable<Articles>>();
 
@@ -168,13 +163,11 @@ namespace VideoGameHash.Controllers
                 if (_infoRepository.ContainsArticles(type.Id, game.GameTitle, currentGameSystem))
                     details.Add(type.Id, _infoRepository.GetGameArticles(type.Id, game.GameTitle, currentGameSystem));
             }
+            
+            model.UseInfoMetrics = true;
 
-            if (_infoRepository.GetInfoTypeName(id) == "News" && _infoRepository.ContainsArticles(id, game.GameTitle, currentGameSystem))
-                model.UseInfoMetrics = true;
-            else
-                model.UseInfoMetrics = false;
 
-            model.ImageLink = _gamesRepository.GetImage(game.Id, currentGameSystem);
+            model.ImageLinks = _gamesRepository.GetImages(game.Id, model.AvailableGameSystems);
             model.Publisher = _gamesRepository.GetPublisher(game.Id, currentGameSystem);
             model.Developer = _gamesRepository.GetDeveloper(game.Id, currentGameSystem);
             model.UsReleaseDate = _gamesRepository.GetReleaseDate(game.Id, currentGameSystem);
@@ -183,54 +176,9 @@ namespace VideoGameHash.Controllers
             model.Articles = details;
             ViewBag.GameSystem = currentGameSystem;
 
-            return PartialView("_GameDetails", model);
+            return View("GameDetails", model);
         }
-
-        [HttpPost]
-        public ActionResult GetLatestInfo(string infoType, string source)
-        {
-            var entries = new List<QDFeedParser.BaseFeedItem>();
-
-            Uri feedUri;
-            if (infoType == "News")
-                feedUri = new Uri(LatestInfoHelper.LatestNewsUrls[source]);
-            else if (infoType == "Reviews")
-                feedUri = new Uri(LatestInfoHelper.LatestReviewsUrls[source]);
-            else // InfoType == "Media", hopefully
-                feedUri = new Uri(LatestInfoHelper.LatestMediaUrls[source]);
-
-            QDFeedParser.IFeedFactory factory = new QDFeedParser.HttpFeedFactory();
-
-            try
-            {
-                var feed = factory.CreateFeed(feedUri);
-
-                if (feed.Items.Count() > 0)
-                {
-                    for (var j = 0; j < 10; j++)
-                    {
-                        if (feed.Items.Count() < j)
-                            break;
-                        entries.Add(feed.Items[j]);
-                    }
-                }
-            }
-            catch
-            { 
-                // do nothing 
-            }
-
-            var model = new LatestInfoModels();
-
-            if (entries.Count() > 0)
-            {
-                model.Entries = entries;
-                model.Source = source;
-            }
-
-            return PartialView("LatestInfo", model);
-        }
-
+        
         [HttpPost]
         public ActionResult GetLatestArticles(int section, int source, int gameSystem, bool small)
         {
@@ -291,12 +239,6 @@ namespace VideoGameHash.Controllers
             model.CurrentPage = items.ToPagedList(articleIndex, pageSize);
 
             return PartialView(model);
-        }
-
-        [HttpPost]
-        public ActionResult GetDatabaseList(char letter)
-        {
-            return PartialView("_DatabaseList", _gamesRepository.GetSortedGamesByLetter(letter));
         }
 
         [HttpPost]

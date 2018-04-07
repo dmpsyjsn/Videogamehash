@@ -77,36 +77,6 @@ namespace VideoGameHash.Helpers
                 return HttpUtility.HtmlDecode(newContent.ToString());
             }
         }
-
-        public static string ParseImageLink(string source, string content)
-        {
-            var imageLink = "";
-
-            // Add companies that have images, but are not display-able
-            if (!NewsHelper.BadImageCompany(source))
-            {
-                var imageIndex = content.IndexOf("img");
-
-                if (imageIndex > 0)
-                {
-                    // Get the dimensions of the image
-                    var srcIndex = content.IndexOf("src=\"", imageIndex);
-                    if (srcIndex > 0)
-                    {
-                        var srcEndIndex = content.IndexOf("\"", srcIndex + 5);
-
-                        if (srcEndIndex > 0)
-                        {
-                            imageLink = content.Substring(srcIndex + 5, srcEndIndex - (srcIndex + 5));
-                        }
-                    }
-
-                    // Add company hardcodes here
-                }
-            }
-
-            return imageLink;
-        }
     }
 
     public class PaginatedList<T> : List<T>

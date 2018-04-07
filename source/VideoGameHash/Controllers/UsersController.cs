@@ -5,6 +5,7 @@ using System.Web.Mvc;
 using System.Web.Security;
 using WebMatrix.WebData;
 using VideoGameHash.Models;
+using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Controllers
 {
@@ -12,8 +13,13 @@ namespace VideoGameHash.Controllers
     public class UsersController : Controller
     {
 
-        private UserRepository _repository = new UserRepository();
-        
+        private readonly UserRepository _repository;
+
+        public UsersController(UserRepository repository)
+        {
+            _repository = repository;
+        }
+
         //
         // GET: /Users/
         public ActionResult Index()

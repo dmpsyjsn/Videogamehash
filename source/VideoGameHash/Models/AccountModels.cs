@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Web.Mvc;
-using System.Linq;
-using System.Web;
 
 namespace VideoGameHash.Models
 {
@@ -29,6 +25,10 @@ namespace VideoGameHash.Models
 
     public class LoginModel
     {
+        public LoginModel()
+        {
+
+        }
         [Required]
         [Display(Name = "User name")]
         public string UserName { get; set; }

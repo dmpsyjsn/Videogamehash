@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Web.Mvc;
-using VideoGameHash.Helpers;
+using VideoGameHash.Repositories;
 
 
 namespace VideoGameHash.Models
@@ -27,7 +26,7 @@ namespace VideoGameHash.Models
         public Dictionary<int, IEnumerable<Articles>> Articles { get; set; }
         public List<string> AvailableGameSystems { get; set; }
 
-        public string ImageLink { get; set; }
+        public Dictionary<string, string> ImageLinks { get; set; }
         public string Developer { get; set; }
         public string Publisher { get; set; }
         public string Overview { get; set; }

@@ -1,4 +1,7 @@
-﻿@using VideoGameHash.Helpers;
+﻿@using System
+@using System.Linq
+@using System.Web
+@using VideoGameHash.Helpers;
 @model VideoGameHash.Models.GameDetailsModel
 
 @{
@@ -100,7 +103,7 @@
         @foreach (var tabKey in Model.Articles.Keys)
         {
             var sectionTitle = NewsHelper.SectionTitle(tabKey);
-            if (firstTab == true)
+            if (firstTab)
             {
                 firstTab = false;
                 <li class="active"><a data-toggle="tab" href="#@sectionTitle">@sectionTitle</a></li>

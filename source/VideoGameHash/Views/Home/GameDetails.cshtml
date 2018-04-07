@@ -1,0 +1,143 @@
+﻿@using System
+@using System.Linq
+@using System.Web
+@using VideoGameHash.Helpers;
+@model VideoGameHash.Models.GameDetailsModel
+
+@{
+    ViewBag.Title = "GameDetails";
+
+    var link = string.Format("http://thegamesdb.net/game/{0}/", Model.GamesDbNetId);
+}
+
+<h2>&nbsp;</h2>
+
+ 
+<div class="col-xs-12">
+    <h3 class="toolbox toolbox_header">@Model.Game.GameTitle</h3>
+    <div class="col-xs-8" style="border-left: 1px solid #DDD; min-height: 370px; padding-top: 10px">
+        @if (Model.UsReleaseDate != DateTime.MinValue)
+        {
+            var releaseDate = String.Format("{0}/{1}/{2}", Model.UsReleaseDate.Month, Model.UsReleaseDate.Day, Model.UsReleaseDate.Year);
+            <div>Release Date: @releaseDate</div>
+        }
+
+        @if (!String.IsNullOrEmpty(Model.Publisher))
+        {
+            <div>Publisher: @Model.Publisher</div>
+        }
+
+        @if (!String.IsNullOrEmpty(Model.Developer))
+        {
+            <div>Developer: @Model.Developer</div>
+        }
+
+        @if (!String.IsNullOrEmpty(Model.Overview))
+        {
+            <h6>Synopsis:</h6>
+            <div class="synopsis" id="scrollbar1">
+                <div class="scrollbar" style="height: 225px;">
+                    <div class="track" style="height: 225px;">
+                        <div class="thumb" style="top: 0px; height: 39.3701px;">
+                            <div class="end"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="viewport viewport1">
+                    <div class="overview overview1" id="detailsview">
+                        @Html.Raw(@Model.Overview)
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+                
+    <div class="col-xs-3 pull-right" style="border-right: 1px solid #DDD; padding-top: 10px; min-height: 370px">
+        <img alt="" src="" id="gameImageSrc" style="height: 300px; width: 200px;" class="img-polaroid" />
+        <ul class="nav nav-pills" style="margin-top: 5px; margin-bottom: 5px; background: url('Content\Images\ajax-loader1.gif')">
+            @foreach (var gameSystem in Model.AvailableGameSystems)
+            {
+                <li class="gameSystemListItem"><a class="game-details-systems" href="#" data-url="@Model.ImageLinks[gameSystem]">@gameSystem</a></li>
+            }
+        </ul>
+    </div>
+</div>
+<div class="row"></div>
+<div class="col-xs-12">
+    <div class="NewsItem">
+        <div class="NewsItemText pull-right">
+            @if (Model.GamesDbNetId > 0)
+            {
+                @:Source: <a href="@link" target="_blank">ThegamesDB.net</a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row"></div>
+<div class="col-xs-12" style="min-height: 150px">
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs nav-justified">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#panel1" role="tab">Metrics</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#panel2" role="tab">Articles</a>
+        </li>
+    </ul>
+    <!-- Tab panels -->
+    <div class="tab-content card">
+        <!--Panel 1-->
+        <div class="tab-pane fade in show active" id="panel1" role="tabpanel">
+            <br>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nihil odit magnam minima, soluta doloribus
+                reiciendis molestiae placeat unde eos molestias. Quisquam aperiam, pariatur. Tempora, placeat ratione
+                porro voluptate odit minima.</p>
+        </div>
+        <!--/.Panel 1-->
+        <!--Panel 2-->
+        <div class="tab-pane fade" id="panel2" role="tabpanel">
+            <br>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nihil odit magnam minima, soluta doloribus
+                reiciendis molestiae placeat unde eos molestias. Quisquam aperiam, pariatur. Tempora, placeat ratione
+                porro voluptate odit minima.</p>
+        </div>
+        <!--/.Panel 2-->
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function() {
+        var scrollBar = $('#scrollbar1');
+
+        if (scrollBar.length > 0) {
+            scrollBar.tinyscrollbar();
+
+            var details = document.getElementById('detailsview');
+            var height = details.scrollHeight;
+
+            if (height <= 225) {
+                $('.scrollbar').hide();
+            }
+        }
+
+        $( "#tabs" ).tabs({
+            beforeLoad: function( event, ui ) {
+                ui.jqXHR.fail(function() {
+                    ui.panel.html(
+                        "Couldn't load this tab. We'll try to fix this as soon as possible. " +
+                        "If this wouldn't be a demo." );
+                });
+            }
+        });
+
+        $('a.game-details-systems').on('click', function () {
+            $(".gameSystemListItem").removeClass("active");
+            var $url = $(this).data('url');
+            $(this).closest("li").addClass("active");
+            $('#gameImageSrc').attr("src",$url);
+        });
+
+        $('a.game-details-systems:first').click();
+    });
+</script>

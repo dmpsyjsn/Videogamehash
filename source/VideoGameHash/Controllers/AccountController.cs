@@ -4,6 +4,7 @@ using System.Web.Mvc;
 using System.Web.Security;
 using WebMatrix.WebData;
 using VideoGameHash.Models;
+using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Controllers
 {

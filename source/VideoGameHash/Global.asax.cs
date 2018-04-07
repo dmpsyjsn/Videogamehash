@@ -8,6 +8,7 @@ using SimpleInjector;
 using SimpleInjector.Integration.Web;
 using SimpleInjector.Integration.Web.Mvc;
 using VideoGameHash.Models;
+using VideoGameHash.Repositories;
 
 namespace VideoGameHash
 {
@@ -22,7 +23,7 @@ namespace VideoGameHash
             container.Options.DefaultScopedLifestyle = new WebRequestLifestyle();
 
             // Register db container
-            container.Register<VGHDatabaseContainer>(Lifestyle.Singleton);
+            container.Register<VGHDatabaseContainer>(Lifestyle.Scoped);
 
             // Register Repositories
             container.Register<UserRepository>(Lifestyle.Scoped);

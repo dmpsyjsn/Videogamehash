@@ -1,7 +1,9 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using VideoGameHash.Models;
+using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Controllers
 {
@@ -71,6 +73,9 @@ namespace VideoGameHash.Controllers
         {
             var urlModel = new AddUrlModel();
             var model = new AddUrlViewModel(urlModel);
+            model.Section = new SelectList(_infoRepository.GetInfoTypes().Select(x => x.InfoTypeName).ToList(), model.Section);
+            model.Source = new SelectList(_infoRepository.GetSources().Select(x => x.InfoSourceName).ToList(), model.Source);
+            model.GameSystem = new SelectList(_gameSystemsRepository.GetGameSystems().OrderBy(x => x.GameSystemSortOrder).Select(x => x.GameSystemName), model.GameSystem);
             return View(model);
         }
 

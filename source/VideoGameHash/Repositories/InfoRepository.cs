@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using QDFeedParser;
-using VideoGameHash.Helpers;
+using VideoGameHash.Models;
 
-namespace VideoGameHash.Models
+namespace VideoGameHash.Repositories
 {
     public class InfoRepository
     {
-        private VGHDatabaseContainer _db = new VGHDatabaseContainer();
+        private readonly VGHDatabaseContainer _db;
+
+        public InfoRepository(VGHDatabaseContainer db)
+        {
+            _db = db;
+        }
 
         public IEnumerable<InfoType> GetInfoTypes()
         {
@@ -79,12 +84,6 @@ namespace VideoGameHash.Models
         {
             return _db.InfoSourceRssUrls.SingleOrDefault(u => u.Id == id);
         }
-
-
-        //public IEnumerable<TrendingGames> GetTrendingGames()
-        //{
-        //    return _db.TrendingGames;
-        //}
 
         public int AddInfoType(string name)
         {
@@ -180,6 +179,11 @@ namespace VideoGameHash.Models
         {
             try
             {
+                var entryExists = _db.InfoSourceRssUrls.SingleOrDefault(x =>
+                    x.URL.Equals(url, StringComparison.OrdinalIgnoreCase)) != null;
+
+                if (entryExists) return;
+                
                 var infoSourceRssUrl = new InfoSourceRssUrls
                 {
                     InfoTypeId = typeId,
@@ -474,7 +478,7 @@ namespace VideoGameHash.Models
                         }
                     }
                 }
-                catch
+                catch (Exception e)
                 {
                     i = 0;
                 }
@@ -546,11 +550,11 @@ namespace VideoGameHash.Models
         {
             try
             {
-                return _db.Articles.Where(u => article.InfoTypeId == u.InfoTypeId &&
+                return _db.Articles.Any(u => article.InfoTypeId == u.InfoTypeId &&
                                               article.InfoSourceId == u.InfoSourceId &&
                                               article.GameSystemId == u.GameSystemId &&
                                               article.Title == u.Title &&
-                                              article.Link == u.Link).Count() > 0;
+                                              article.Link == u.Link);
             }
             catch (Exception ex)
             {
@@ -575,7 +579,6 @@ namespace VideoGameHash.Models
                 foreach (var article in articlesToDelete)
                 {
                     _db.Articles.DeleteObject(article);
-                    _db.SaveChanges();
                 }
 
                 _db.SaveChanges();
@@ -602,7 +605,7 @@ namespace VideoGameHash.Models
             }
             catch
             {
-
+                // Do Nothing
             }
         }
 
@@ -638,34 +641,6 @@ namespace VideoGameHash.Models
             }
 
             _db.SaveChanges();
-        }
-
-        public string GetImage(string source, string content)
-        {
-            var imageIndex = content.IndexOf("img");
-            var image = "";
-            // Add companies that have images, but are not display-able
-            if (!NewsHelper.BadImageCompany(source))
-            {
-                if (imageIndex > 0)
-                {
-                    // Get the dimensions of the image
-                    var srcIndex = content.IndexOf("src=\"", imageIndex);
-                    if (srcIndex > 0)
-                    {
-                        var srcEndIndex = content.IndexOf("\"", srcIndex + 5);
-
-                        if (srcEndIndex > 0)
-                        {
-                            image = content.Substring(srcIndex + 5, srcEndIndex - (srcIndex + 5));
-                        }
-                    }
-
-                    // Add company hardcodes here
-                }
-            }
-
-            return image;
         }
 
         private string GetGameTitle(int gameId)

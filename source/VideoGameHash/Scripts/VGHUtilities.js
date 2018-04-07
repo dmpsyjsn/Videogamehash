@@ -69,19 +69,6 @@
             }
         });
 
-        var scrollBar = $('#scrollbar1');
-
-        if (scrollBar.length > 0) {
-            scrollBar.tinyscrollbar();
-
-            var details = document.getElementById('detailsview');
-            var height = details.scrollHeight;
-
-            if (height <= 150) {
-                $('.scrollbar').hide();
-            }
-        }
-
         $('div.LatestNewsItem a').on('mouseover', function () {
             // Display tooltip if headline is too long
             var textDim = $.textMetrics($(this));
@@ -93,19 +80,6 @@
                 });
                 $(this).tooltip('show');
             }
-        });
-
-        $('a.game-details-systems').on('click', function () {
-            var $url = $(this).data('url');
-            var $detailswindow = document.getElementById('database-details');
-            $($detailswindow).hide();
-
-            var jqxhr = $.post($url)
-                .done(function (data) {
-                    $($detailswindow).html(data);
-                    $($detailswindow).fadeIn('slow');
-                    ProcessDetailsData(data);
-                });
         });
 
         $('.thumbnailrightwrapper').on('click', function () {

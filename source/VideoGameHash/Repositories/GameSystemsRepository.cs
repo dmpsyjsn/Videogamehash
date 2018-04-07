@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using VideoGameHash.Models;
 
-namespace VideoGameHash.Models
+namespace VideoGameHash.Repositories
 {
     public class GameSystemsRepository
     {

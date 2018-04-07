@@ -9,9 +9,10 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using VideoGameHash.Models;
 using VideoGameHash.Models.TheGamesDB;
 
-namespace VideoGameHash.Models
+namespace VideoGameHash.Repositories
 {
     public class GamesRepository
     {
@@ -54,9 +55,9 @@ namespace VideoGameHash.Models
 
         public IEnumerable<string> SearchGameTitles(string search)
         {
-            var searchTerm = new Regex($@"\b{search}\b", RegexOptions.IgnoreCase);
+            var searchTerm = new Regex($@"{search}", RegexOptions.IgnoreCase);
 
-            var games = _db.Games.AsEnumerable().Where(d => searchTerm.IsMatch(d.GameTitle)).Select(x => x.GameTitle).ToList();
+            var games = _db.Games.AsEnumerable().Where(d => searchTerm.IsMatch(d.GameTitle)).Take(10).Select(x => x.GameTitle).ToList();
 
             return games;
         }
@@ -80,32 +81,12 @@ namespace VideoGameHash.Models
             }
         }
 
-        public void AddGameWikipedia(string gameSystem)
-        {
-            try
-            {
-                if (gameSystem != "All")
-                {
-                    var url =
-                        $"http://en.wikipedia.org/w/api.php?format=json&action=query&titles={GetWikipediaPlatform(gameSystem)}&prop=revisions&rvprop=content&rvsection=1";
-
-                    ProcessGamesFromWikipediaWebService(url, gameSystem);
-
-                    //ProcessAdditionalDetailsFromWikipediaWebService(GameSystem);
-                }
-            }
-            catch
-            {
-                // Do nothing
-            }
-        }
-
         public Games GetGame(int id)
         {
             return _db.Games.SingleOrDefault(u => u.Id == id);
         }
 
-        public Games GetGameByGameTitle(string gameTitle)
+        public Games GetGame(string gameTitle)
         {
             return _db.Games.SingleOrDefault(u => u.GameTitle == gameTitle);
         }
@@ -193,7 +174,7 @@ namespace VideoGameHash.Models
                         }
                         else
                         {
-                            gameDb = GetGameByGameTitle(gameDb.GameTitle);
+                            gameDb = GetGame(gameDb.GameTitle);
                         }
 
                         var gameInfo = new GameInfo
@@ -271,268 +252,6 @@ namespace VideoGameHash.Models
                 DeleteGameFromGameInfoes(game);
         }
 
-        public void ProcessGamesFromWikipediaWebService(string url, string gameSystem)
-        {
-            var request = WebRequest.Create(url);
-            using (var response = (HttpWebResponse) request.GetResponse())
-            {
-                var json = new StreamReader(response.GetResponseStream());
-
-                // Convert the data I need to json
-                var gameList = ConvertToList(json.ReadToEnd(), gameSystem);
-
-                if (gameList != null)
-                {
-                    var title = string.Empty;
-                    if (gameSystem == "Xbox 360" || gameSystem == "Wii U")
-                        title = "Title";
-                    else if (gameSystem == "PS3")
-                        title = "Video Game";
-                    foreach (var entry in gameList)
-                    {
-                        var game = new Games
-                        {
-                            GameTitle = entry[title].Trim()
-                        };
-
-                        if (ContainsEntries(game.GameTitle) && !IgnoreThisGame(game))
-                        {
-                            if (!IsDuplicateGame(game))
-                            {
-                                _db.Games.AddObject(game);
-                                _db.SaveChanges();
-                            }
-                            else
-                            {
-                                game = GetGameByGameTitle(game.GameTitle);
-                            }
-
-                            var gameinfo = new GameInfo();
-
-                            if (GetGameInfo(game.Id, gameSystem) != null)
-                                gameinfo = GetGameInfo(game.Id, gameSystem);
-
-
-                            gameinfo.GameSystemId = GetGameSystemId(gameSystem);
-                            gameinfo.GamesId = game.Id;
-
-                            if (entry.ContainsKey("Publisher"))
-                                gameinfo.Publisher = entry["Publisher"];
-                            if (entry.ContainsKey("Developer"))
-                                gameinfo.Developer = entry["Developer"];
-                            if (entry.ContainsKey("North America"))
-                                gameinfo.USReleaseDate = ConvertJsonDate(entry["North America"], gameSystem);
-
-                            // Get the boxart image from theGamesDB.net
-                            if (gameinfo.GameImage == null || !gameinfo.GameImage.ToUpper().Contains("THEGAMESDB"))
-                            {
-                                try
-                                {
-                                    var dburl =
-                                        $"http://thegamesdb.net/api/GetGame.php?name={game.GameTitle.Replace(' ', '+')}&platform={GetPlatform(gameSystem)}";
-                                    var dbRequest = WebRequest.Create(dburl);
-                                    using (var dbResponse = (HttpWebResponse) dbRequest.GetResponse())
-                                    {
-                                        var serializer = new XmlSerializer(typeof(Data));
-
-                                        var data = (Data) serializer.Deserialize(dbResponse.GetResponseStream());
-
-                                        if (data.Game.Count() >= 1)
-                                            if (data.Game[0].GameTitle == game.GameTitle)
-                                                foreach (var image in data.Game[0].Images)
-                                                    if (image.Boxart.Count() > 0)
-                                                    {
-                                                        gameinfo.GameImage =
-                                                            "http://thegamesdb.net/banners/" + image.Boxart[0].Thumb;
-                                                        break;
-                                                    }
-                                    }
-                                }
-                                catch
-                                {
-                                    // Try getting image from Wikipedia
-                                    try
-                                    {
-                                        var dbUrl =
-                                            $"http://en.wikipedia.org/w/api.php?format=json&action=query&titles={game.GameTitle}&prop=images";
-                                        var dbRequest = WebRequest.Create(dbUrl);
-                                        using (var dbResponse = (HttpWebResponse) dbRequest.GetResponse())
-                                        {
-                                            var wkJson = new StreamReader(dbResponse.GetResponseStream());
-                                            var text = wkJson.ReadToEnd();
-
-                                            var first = text.IndexOf("File:");
-                                            if (first > 0)
-                                            {
-                                                text = text.Remove(0, first);
-                                                var files = text.Split(new[] {"File:"},
-                                                    StringSplitOptions.RemoveEmptyEntries);
-                                                var fileImage = string.Empty;
-                                                if (files.Count() > 1)
-                                                {
-                                                    var imageFound = false;
-                                                    foreach (var fileName in files)
-                                                        if (fileName.ToUpper().Contains("BOX") ||
-                                                            fileName.ToUpper().Contains("COVER"))
-                                                        {
-                                                            var second = fileName.IndexOf("\"", 0);
-                                                            if (second > 0)
-                                                            {
-                                                                fileImage = "File:" + fileName.Substring(0, second);
-                                                                imageFound = true;
-                                                                break;
-                                                            }
-                                                        }
-
-                                                    if (!imageFound)
-                                                        foreach (var fileName in files)
-                                                            if (fileName.ToUpper().Contains(game.GameTitle
-                                                                    .Replace(" ", string.Empty).ToUpper()) ||
-                                                                fileName.ToUpper().Contains(game.GameTitle.ToUpper()) ||
-                                                                fileName.ToUpper()
-                                                                    .Contains(
-                                                                        game.GameTitle.Replace(" ", "_").ToUpper()))
-                                                            {
-                                                                var second = fileName.IndexOf("\"", 0);
-                                                                if (second > 0)
-                                                                {
-                                                                    fileImage = "File:" + fileName.Substring(0, second);
-                                                                    imageFound = true;
-                                                                    break;
-                                                                }
-                                                            }
-
-                                                    if (!imageFound)
-                                                    {
-                                                        var second = text.IndexOf("\"", 0);
-                                                        if (second > 0)
-                                                            fileImage = text.Substring(0, second);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    var second = text.IndexOf("\"", 0);
-                                                    if (second > 0)
-                                                        fileImage = text.Substring(0, second);
-                                                }
-
-                                                if (fileImage.Length > 0)
-                                                {
-                                                    var imageUrl =
-                                                        $"http://en.wikipedia.org/w/api.php?action=query&titles={fileImage}&prop=imageinfo&iiprop=url&format=json";
-                                                    var dbImageRequest = WebRequest.Create(imageUrl);
-                                                    using (var dbImageResponse =
-                                                        (HttpWebResponse) dbImageRequest.GetResponse())
-                                                    {
-                                                        var wkImageJson =
-                                                            new StreamReader(dbImageResponse.GetResponseStream());
-                                                        var imageLink = wkImageJson.ReadToEnd();
-                                                        var urlToFind = "\"url\":\"";
-                                                        first = imageLink.IndexOf(urlToFind);
-
-                                                        if (first > 0)
-                                                        {
-                                                            var second = imageLink.IndexOf("\"",
-                                                                first + urlToFind.Length);
-                                                            if (second > first)
-                                                                gameinfo.GameImage =
-                                                                    imageLink.Substring(first + urlToFind.Length,
-                                                                        second - (first + urlToFind.Length));
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    catch
-                                    {
-                                        gameinfo.GameImage = null;
-                                    }
-                                }
-
-                                if (gameinfo.GameImage != null)
-                                {
-                                    gameinfo.GamesDbNetId = -1;
-                                    if (GetGameInfo(game.Id, gameSystem) == null)
-                                        _db.GameInfoes.AddObject(gameinfo);
-                                }
-                                else
-                                {
-                                    DeleteGameFromGameInfoes(game.Id);
-                                }
-                            }
-                        }
-                    }
-
-                    _db.SaveChanges();
-                }
-            }
-        }
-
-        private List<Dictionary<string, string>> ConvertToList(string text, string gameSystem)
-        {
-            var input = text;
-
-            var index = -1;
-
-            if (gameSystem == "Xbox 360" || gameSystem == "Wii U")
-                index = input.IndexOf("|Title", 0, StringComparison.OrdinalIgnoreCase);
-            else if (gameSystem == "PS3")
-                index = input.IndexOf("|Video Game", 0, StringComparison.OrdinalIgnoreCase);
-            if (index > 0)
-            {
-                // Remove unneccessary stuff
-                input = input.Remove(0, index);
-
-                // Grab the section headers (Title, Developer, Publisher, etc)
-                index = input.IndexOf("\'\'");
-                if (index > 0)
-                {
-                    var header = input.Substring(0, index);
-                    var headers = header.Remove(0, 1).Split('|');
-                    for (var j = 0; j < headers.Count(); j++)
-                    {
-                        var subIndex = headers[j].IndexOf("\\n", StringComparison.OrdinalIgnoreCase);
-                        if (subIndex > 0)
-                        {
-                            headers[j] = headers[j].Remove(subIndex, headers[j].Length - subIndex);
-                            headers[j] = TrimEndString(headers[j], "(s)");
-                        }
-                    }
-
-                    // Format the entries
-                    input = input.Remove(0, index).Replace("\'\'", string.Empty).Replace("[[", string.Empty)
-                        .Replace("]]", string.Empty).Replace("{{", string.Empty).Replace("}}", string.Empty);
-
-                    // Put entries in their respective section
-                    var games = input.Split(new[] {"|-\\n|"}, StringSplitOptions.RemoveEmptyEntries);
-                    var gameList = new List<Dictionary<string, string>>();
-                    foreach (var game in games)
-                    {
-                        var entry = game.Split(new[] {"\\n|"}, StringSplitOptions.RemoveEmptyEntries);
-                        var gameEntry = new Dictionary<string, string>();
-                        for (var subIndex = 0; subIndex < entry.Count(); subIndex++)
-                        {
-                            var refIndex = entry[subIndex].IndexOf("<ref>", 0, StringComparison.OrdinalIgnoreCase);
-                            if (refIndex > 0)
-                                entry[subIndex] = entry[subIndex].Remove(refIndex);
-                            if (subIndex < headers.Count())
-                                gameEntry[headers[subIndex]] = entry[subIndex];
-                        }
-                        gameList.Add(gameEntry);
-                    }
-
-                    var cutoff = DateTime.Now.AddMonths(-12);
-                    var filteredList = gameList.Where(u => ConvertJsonDate(u["North America"], gameSystem) >= cutoff)
-                        .ToList();
-
-                    return filteredList;
-                }
-                return null;
-            }
-            return null;
-        }
-
         public DateTime ConvertJsonDate(string date, string gameSystem)
         {
             if (date.ToLower().Contains("unreleased"))
@@ -606,67 +325,6 @@ namespace VideoGameHash.Models
             return value;
         }
 
-        private string[] GetUsReleaseDate(int index, string text)
-        {
-            var usReleaseDate = string.Empty;
-            var dateIndex = text.IndexOf("{{", index);
-
-            if (dateIndex > 0)
-            {
-                var endDateIndex = text.IndexOf("}}", dateIndex);
-                usReleaseDate = text.Substring(dateIndex + 2, endDateIndex - (dateIndex + 2));
-            }
-
-            var splitDate = usReleaseDate.Split('|');
-
-            if (splitDate.Length < 3 || splitDate[2].ToLower() == "unreleased")
-                splitDate = null;
-            else
-                foreach (var part in splitDate)
-                {
-                    if (part.ToLower().Contains("dts"))
-                        continue;
-                    int number;
-                    var result = int.TryParse(part, out number);
-
-                    if (result == false)
-                        splitDate = null;
-                }
-
-            return splitDate;
-        }
-
-        private string GetGameTitleFromWikipedia(int index, string text)
-        {
-            var title = string.Empty;
-
-            var titleIndex = text.IndexOf("[[", index);
-
-            if (titleIndex > 0)
-            {
-                var endTitleIndex = text.IndexOf("]]", titleIndex);
-                title = text.Substring(titleIndex + 2, endTitleIndex - (titleIndex + 2));
-            }
-
-            return title;
-        }
-
-        private string[] ParseGameInfomatics(int index, string text)
-        {
-            var endIndex = text.IndexOf("{{", index);
-
-            if (endIndex > 0)
-                return text.Substring(index, endIndex - index).Replace("\'\'", string.Empty).Replace("[[", string.Empty)
-                    .Replace("]]", string.Empty).Split('|');
-            return null;
-        }
-
-        private string ParsePublisherFromWikipedia(int index, string text)
-        {
-            return string.Empty;
-        }
-
-
         private IEnumerable<GameInfo> GetGameInfoBySystem(string gameSystem)
         {
             var gameSystemId = GetGameSystemId(gameSystem);
@@ -704,6 +362,11 @@ namespace VideoGameHash.Models
         public IQueryable<Games> GetGamesQuery()
         {
             return _db.Games;
+        }
+
+        public List<string> GetTopGames(int count)
+        {
+            return _db.TrendingGames.OrderByDescending(x => x.ArticleHits).Take(10).Select(x => x.Game.GameTitle).ToList();
         }
 
         public bool IsDuplicateGame(Games game)
@@ -764,16 +427,25 @@ namespace VideoGameHash.Models
             return _db.GameInfoes.SingleOrDefault(u => u.GamesId == gameId && u.GameSystemId == gameSystemId);
         }
 
-        internal string GetImage(int id, string gameSystem)
+        internal Dictionary<string, string> GetImages(int id, List<string> gameSystems)
         {
             try
             {
-                var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId).GameImage;
+                var links = new Dictionary<string, string>();
+                foreach (var system in gameSystems)
+                {
+                    var gameSystemId = GetGameSystemId(system);
+
+                    var link = _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId);
+
+                    links[system] = link?.GameImage ?? string.Empty;
+                }
+                
+                return links;
             }
             catch
             {
-                return string.Empty;
+                return new Dictionary<string, string>();
             }
         }
 
@@ -847,14 +519,14 @@ namespace VideoGameHash.Models
         internal List<string> GetGameSystemsForThisGame(Games game)
         {
             var gameSystem = new List<string>();
-            IEnumerable<GameSystem> gameSystemList = _db.GameSystems;
+            var gameSystemList = _db.GameSystems
+                .Where(x => !x.GameSystemName.Equals("All", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.GameSystemSortOrder.SortOrder).ToList();
             foreach (var system in gameSystemList)
             {
-                var temp = from tempDb in _db.GameInfoes
-                    where tempDb.GameSystemId == system.Id && tempDb.GamesId == game.Id
-                    select tempDb;
+                var hasGameInfos = _db.GameInfoes.Any(x => x.GameSystemId.Equals(system.Id) && x.GamesId.Equals(game.Id));
 
-                if (temp != null && temp.Count() > 0 && ContainsEntries(game.GameTitle, system.GameSystemName))
+                if (hasGameInfos)
                     gameSystem.Add(system.GameSystemName);
             }
 

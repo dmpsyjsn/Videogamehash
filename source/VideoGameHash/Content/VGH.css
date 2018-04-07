@@ -448,7 +448,7 @@ div[class="tooltip-inner"] {
 .synopsis 
 {
     position: relative;
-    max-height: 150px;
+    max-height: 300px;
     /*overflow-y: auto;*/
 }
 
@@ -532,7 +532,7 @@ h2.sec_heading {
 }
 
 .viewport1 {
-    height: 150px;
+    height: 225px;
     overflow: hidden;
     position: relative;
     width: 95%;

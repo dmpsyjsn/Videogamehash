@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
-using VideoGameHash.Helpers;
 
 namespace VideoGameHash.Models
 {
@@ -47,23 +46,16 @@ namespace VideoGameHash.Models
     public class AddUrlViewModel
     {
         public AddUrlModel Model { get; }
-        public SelectList Section { get; }
-        public SelectList Source { get; }
-        public SelectList GameSystem { get; }
+        public SelectList Section { get; set; }
+        public SelectList Source { get; set; }
+        public SelectList GameSystem { get; set; }
 
         // Constructor
         public AddUrlViewModel(AddUrlModel model)
         {
-            var gsr = new GameSystemsRepository();
             Model = model;
-            Section = new SelectList(NewsHelper.SectionList, model.Section);
-            Source = new SelectList(NewsHelper.SourceList, model.Source);
 
             var gameSystems = new List<string>();
-            foreach (var system in gsr.GetGameSystems())
-            {
-                gameSystems.Add(system.GameSystemName);
-            }
             GameSystem = new SelectList(gameSystems, model.GameSystem);
         }
 

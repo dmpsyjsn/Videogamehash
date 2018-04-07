@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Security.Cryptography;
 using System.Text;
+using VideoGameHash.Models;
 
-namespace VideoGameHash.Models
+namespace VideoGameHash.Repositories
 {
     public class UserRepository
     {
-        private VGHDatabaseContainer _db = new VGHDatabaseContainer();
+        private readonly VGHDatabaseContainer _db;
+
+        public UserRepository(VGHDatabaseContainer db)
+        {
+            _db = db;
+        }
 
         public int CreateUserProfile(string userName)
         {

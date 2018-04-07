@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 using VideoGameHash.Models;
+using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Controllers
 {
@@ -52,14 +49,6 @@ namespace VideoGameHash.Controllers
                 ActionName = "AddGamesWikipedia"
             };
             return View("AddGames", model);
-        }
-
-        [HttpPost]
-        public ActionResult AddGamesWikipedia(string gameSystem)
-        {
-            _repository.AddGameWikipedia(gameSystem);
-
-            return RedirectToAction("Index");
         }
 
         public ActionResult Delete(int id)
