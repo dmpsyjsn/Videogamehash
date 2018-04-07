@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using VideoGameHash.Models;
@@ -213,9 +214,9 @@ namespace VideoGameHash.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult GetAllArticles()
+        public async Task<ActionResult> GetAllArticles()
         {
-            _infoRepository.AddFeedItems();
+            await _infoRepository.AddFeedItems();
             return RedirectToAction("Index");
         }
 

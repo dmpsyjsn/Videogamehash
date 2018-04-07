@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using CodeHollow.FeedReader;
 using QDFeedParser;
 using VideoGameHash.Models;
 
@@ -439,7 +441,7 @@ namespace VideoGameHash.Repositories
             return _db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == section).UseGameSystem;
         }
 
-        public int AddRssFeed(InfoSourceRssUrls model)
+        public async Task<int> AddRssFeed(InfoSourceRssUrls model)
         {
             var rssUrl = GetRssUrl(model.Id);
             var i = 0;
@@ -480,7 +482,42 @@ namespace VideoGameHash.Repositories
                 }
                 catch (Exception e)
                 {
-                    i = 0;
+                    try
+                    {
+                        // Try secondary feed reader
+                        var feed = await FeedReader.ReadAsync(rssUrl.URL);
+
+                        if (feed.Items.Count > 0)
+                        {
+                            foreach (var item in feed.Items)
+                            {
+                                var article = new Articles
+                                {
+                                    InfoTypeId = rssUrl.InfoTypeId,
+                                    InfoSourceId = rssUrl.InfoSourceId,
+                                    GameSystemId = rssUrl.GameSystemId,
+                                    Content = item.Content,
+                                    DatePublished = item.PublishingDate ?? DateTime.Today,
+                                    Link = item.Link,
+                                    Title = item.Title
+                                };
+
+                                if (!IsDuplicateArticle(article) && SourceSpecificBypass(model.InfoTypeId, model.InfoSourceId, article))
+                                {
+                                    _db.Articles.AddObject(article);
+                                    _db.SaveChanges();
+                                    i++;
+                                }
+                                else
+                                    break;
+                            }
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        i = 0;
+                    }
+
                 }
             }
 
@@ -510,27 +547,27 @@ namespace VideoGameHash.Repositories
             return byPass;
         }
 
-        public int AddFeedItems(int sectionId)
+        public async Task<int> AddFeedItems(int sectionId)
         {
             var i = 0;
 
             IList<InfoSourceRssUrls> rssList = GetRssUrls(sectionId).ToList();
             foreach (var model in rssList)
             {
-                i += AddRssFeed(model);
+                i += await AddRssFeed(model);
             }
 
             return i;
         }
 
-        public int AddFeedItems()
+        public async Task<int> AddFeedItems()
         {
             var i = 0;
 
             IList<InfoSourceRssUrls> rssList = GetRssUrls().ToList();
             foreach (var model in rssList)
             {
-                i += AddRssFeed(model);
+                i += await AddRssFeed(model);
             }
 
             return i;
