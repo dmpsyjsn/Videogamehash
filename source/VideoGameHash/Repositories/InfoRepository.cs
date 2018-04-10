@@ -47,12 +47,7 @@ namespace VideoGameHash.Repositories
 
         public IEnumerable<InfoSource> GetSources()
         {
-            return _db.InfoSources;
-        }
-
-        public IEnumerable<InfoSource> GetSources(int section)
-        {
-            return _db.InfoSources;
+            return _db.InfoSources.OrderBy(x => x.InfoSourceSortOrder.SortOrder);
         }
 
         public InfoSource GetInfoSource(int id)
@@ -351,12 +346,13 @@ namespace VideoGameHash.Repositories
             }
         }
 
-        public IEnumerable<Articles> GetGameArticles(int section, string gameTitle, string gameSystem)
+        public IEnumerable<Articles> GetGameArticles(string gameTitle)
         {
-            var gameSystemId = GetGameSystemId(gameSystem);
             try
             {
-                return _db.Articles.Where(u => u.InfoTypeId == section && u.Title.Contains(gameTitle) && u.GameSystemId == gameSystemId).OrderByDescending(u => u.DatePublished);
+                var searchTerm = new Regex($@"\b{gameTitle}\b", RegexOptions.IgnoreCase);
+
+                return _db.Articles.AsEnumerable().Where(u => searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content)).OrderByDescending(u => u.DatePublished);
             }
             catch
             {

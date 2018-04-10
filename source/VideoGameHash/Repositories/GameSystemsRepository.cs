@@ -10,7 +10,8 @@ namespace VideoGameHash.Repositories
 
         public IEnumerable<GameSystem> GetGameSystems()
         {
-            return _db.GameSystems.OrderBy(u => u.GameSystemSortOrder.SortOrder);
+            var systems = _db.GameSystems.OrderBy(u => u.GameSystemSortOrder.SortOrder);
+            return systems;
         }
 
         public int AddGameSystem(string gameSystemName)

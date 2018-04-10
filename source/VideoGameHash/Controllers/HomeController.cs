@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Drawing;
 using System.Web.Mvc;
 using PagedList;
 using VideoGameHash.Models;
-using VideoGameHash.Helpers;
-using DotNet.Highcharts;
-using DotNet.Highcharts.Enums;
-using DotNet.Highcharts.Options;
 using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Controllers
@@ -30,12 +25,12 @@ namespace VideoGameHash.Controllers
         {
             ViewBag.Message = "Welcome to VideoGameHash!";
 
-            var model = new HomePageModel();
-
-            model.Polls = _infoRepository.GetPolls();
-
-            model.TopGames = _gamesRepository.GetTopGames(10);
-
+            var model = new HomePageModel
+            {
+                Polls = _infoRepository.GetPolls(),
+                TopGames = _gamesRepository.GetTopGames(10)
+            };
+            
             return View(model);
         }
 
@@ -158,11 +153,11 @@ namespace VideoGameHash.Controllers
 
             var details = new Dictionary<int, IEnumerable<Articles>>();
 
-            foreach (var type in _infoRepository.GetInfoTypes())
-            {
-                if (_infoRepository.ContainsArticles(type.Id, game.GameTitle, currentGameSystem))
-                    details.Add(type.Id, _infoRepository.GetGameArticles(type.Id, game.GameTitle, currentGameSystem));
-            }
+            //foreach (var type in _infoRepository.GetInfoTypes())
+            //{
+            //    if (_infoRepository.ContainsArticles(type.Id, game.GameTitle, currentGameSystem))
+            //        details.Add(type.Id, _infoRepository.GetGameArticles(type.Id, game.GameTitle, currentGameSystem));
+            //}
             
             model.UseInfoMetrics = true;
 
@@ -173,7 +168,6 @@ namespace VideoGameHash.Controllers
             model.UsReleaseDate = _gamesRepository.GetReleaseDate(game.Id, currentGameSystem);
             model.Overview = _gamesRepository.GetOverview(game.Id, currentGameSystem);
             model.GamesDbNetId = _gamesRepository.GetGamesDbNetId(game.Id, currentGameSystem);
-            model.Articles = details;
             ViewBag.GameSystem = currentGameSystem;
 
             return View("GameDetails", model);
@@ -268,121 +262,74 @@ namespace VideoGameHash.Controllers
             return Json(pollVotes, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult GetGameInfometricsPieChart(string gameTitle, string gameSystem)
-        {
-            try
-            {
-                // Retreive the relevant articles
-                var gameArticles = _infoRepository.GetGameArticles(1, gameTitle, gameSystem).ToList();
-                var gameArticlesBySource = gameArticles.GroupBy(u => u.InfoSource.InfoSourceName).Select(u => u.FirstOrDefault()).ToList();
-                var count = gameArticlesBySource.Count();
+        //public ActionResult GetGameInfometricsPieChart(string gameTitle, string gameSystem)
+        //{
+        //    try
+        //    {
+        //        // Retreive the relevant articles
+        //        var gameArticles = _infoRepository.GetGameArticles(1, gameTitle, gameSystem).ToList();
+        //        var gameArticlesBySource = gameArticles.GroupBy(u => u.InfoSource.InfoSourceName).Select(u => u.FirstOrDefault()).ToList();
+        //        var count = gameArticlesBySource.Count();
 
-                var chartData = new object[count, 2];
+        //        var chartData = new object[count, 2];
 
-                // Populate the data series
-                for (var i = 0; i < count; i++)
-                {
-                    var article = gameArticlesBySource[i];
+        //        // Populate the data series
+        //        for (var i = 0; i < count; i++)
+        //        {
+        //            var article = gameArticlesBySource[i];
 
-                    // Set the sector title of the pie chart
-                    chartData.SetValue(article.InfoSource.InfoSourceName, i, 0);
+        //            // Set the sector title of the pie chart
+        //            chartData.SetValue(article.InfoSource.InfoSourceName, i, 0);
 
-                    // Set the sector data of the pie chart
-                    chartData.SetValue(gameArticles.Count(u => u.InfoSourceId == article.InfoSourceId), i, 1);
-                }
+        //            // Set the sector data of the pie chart
+        //            chartData.SetValue(gameArticles.Count(u => u.InfoSourceId == article.InfoSourceId), i, 1);
+        //        }
 
-                // Create the chart
-                var chart = new Highcharts("infometricspiechart")
-                .InitChart(new Chart { PlotShadow = false })
-                .SetTitle(new Title { Text = $"{gameTitle.Replace("'", "\\\'")} News Articles By Source - Last 6 Months"
-                    })
-                .SetTooltip(new Tooltip { Enabled = false })
-                .SetPlotOptions(new PlotOptions
-                {
-                    Pie = new PlotOptionsPie
-                    {
-                        AllowPointSelect = true,
-                        Cursor = Cursors.Pointer,
-                        DataLabels = new PlotOptionsPieDataLabels
-                        {
-                            Color = ColorTranslator.FromHtml("#000000"),
-                            ConnectorColor = ColorTranslator.FromHtml("#000000"),
-                            Formatter = "function() { return '<b>'+ this.point.name +'</b>: '+ this.y; }"
-                        }
-                    }
-                })
-                .SetSeries(new Series
-                {
-                    Type = ChartTypes.Pie,
-                    Name = "News Articles",
-                    Data = new DotNet.Highcharts.Helpers.Data(chartData)
-                });
+        //        // Create the chart
+        //        var chart = new Highcharts("infometricspiechart")
+        //        .InitChart(new Chart { PlotShadow = false })
+        //        .SetTitle(new Title { Text = $"{gameTitle.Replace("'", "\\\'")} News Articles By Source - Last 6 Months"
+        //            })
+        //        .SetTooltip(new Tooltip { Enabled = false })
+        //        .SetPlotOptions(new PlotOptions
+        //        {
+        //            Pie = new PlotOptionsPie
+        //            {
+        //                AllowPointSelect = true,
+        //                Cursor = Cursors.Pointer,
+        //                DataLabels = new PlotOptionsPieDataLabels
+        //                {
+        //                    Color = ColorTranslator.FromHtml("#000000"),
+        //                    ConnectorColor = ColorTranslator.FromHtml("#000000"),
+        //                    Formatter = "function() { return '<b>'+ this.point.name +'</b>: '+ this.y; }"
+        //                }
+        //            }
+        //        })
+        //        .SetSeries(new Series
+        //        {
+        //            Type = ChartTypes.Pie,
+        //            Name = "News Articles",
+        //            Data = new DotNet.Highcharts.Helpers.Data(chartData)
+        //        });
 
-                return PartialView("_ChartView", chart);
-            }
-            catch (Exception ex)
-            {
-                LogError(ex);
+        //        return PartialView("_ChartView", chart);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogError(ex);
 
-                // Just use an empty chart
-                var emptyChart = new Highcharts("infometricspiechart")
-                .InitChart(new Chart { PlotShadow = false })
-                .SetTitle(new Title { Text = "Unable to create chart" })
-                .SetTooltip(new Tooltip { Enabled = false });
-                return PartialView("_ChartView", emptyChart);
-            }
-        }
+        //        // Just use an empty chart
+        //        var emptyChart = new Highcharts("infometricspiechart")
+        //        .InitChart(new Chart { PlotShadow = false })
+        //        .SetTitle(new Title { Text = "Unable to create chart" })
+        //        .SetTooltip(new Tooltip { Enabled = false });
+        //        return PartialView("_ChartView", emptyChart);
+        //    }
+        //}
 
         private void LogError(Exception ex)
         {
             throw new NotImplementedException();
-        }
-
-        public ActionResult GetGameInfometricsLineChart(string gameTitle, string gameSystem)
-        {         
-            var categories = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-            
-            // Retreive the relevant articles
-            var gameArticles = _infoRepository.GetGameArticles(1, gameTitle, gameSystem).ToList(); // 1 = News Section
-            var gameArticlesBySource = gameArticles.GroupBy(u => u.DatePublished.Month).Select(u => u.First()).OrderBy(u => u.DatePublished).ToList();
-            
-            var count = gameArticlesBySource.Count();
-            var monthsUsed = new string[count];
-            var chartData = new object[count, 2];
-            
-            // Populate the data series
-            for (var i = 0; i < count; i++)
-            {
-                var article = gameArticlesBySource[i];
-                monthsUsed[i] = $"{categories[article.DatePublished.Month - 1]} {article.DatePublished.Year}";
-                chartData.SetValue(monthsUsed[i], i, 0);
-                chartData.SetValue(gameArticles.Count(u => u.DatePublished.Month == article.DatePublished.Month), i, 1);
-            }
-            
-            var chart = new Highcharts("infometricslinechart")
-                .InitChart(new Chart { DefaultSeriesType = ChartTypes.Line })
-                .SetLegend(new Legend { Enabled = false })
-                .SetTitle(new Title { Text = $"News Articles Per Month for {gameTitle}"})
-                .SetXAxis(new XAxis { Categories = monthsUsed })
-                .SetYAxis(new YAxis { Title = new YAxisTitle { Text = "# of News Articles" } })
-                .SetTooltip(new Tooltip { Enabled = true, Formatter = @"function() { return '<b>'+ this.series.name +'</b><br/>'+ this.x +': '+ this.y; }" })
-                .SetPlotOptions(new PlotOptions
-                {
-                    Line = new PlotOptionsLine
-                    {
-                        DataLabels = new PlotOptionsLineDataLabels
-                        {
-                            Enabled = true
-                        },
-                        EnableMouseTracking = false
-                    }
-                })
-                .SetSeries(new[]
-                {
-                    new Series { Data = new DotNet.Highcharts.Helpers.Data(chartData) }
-                });
-            
-            return PartialView("_ChartView", chart);
         }
     }
 }

@@ -23,7 +23,6 @@ namespace VideoGameHash.Models
     {
         public Games Game { get; set; }
 
-        public Dictionary<int, IEnumerable<Articles>> Articles { get; set; }
         public List<string> AvailableGameSystems { get; set; }
 
         public Dictionary<string, string> ImageLinks { get; set; }
