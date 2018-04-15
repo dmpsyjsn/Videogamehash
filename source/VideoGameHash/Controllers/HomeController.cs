@@ -13,12 +13,14 @@ namespace VideoGameHash.Controllers
         private readonly InfoRepository _infoRepository;
         private readonly GameSystemsRepository _gameSystemsRepository;
         private readonly GamesRepository _gamesRepository;
+        private readonly ErrorRepository _errorRepository;
 
-        public HomeController(InfoRepository infoRepository, GameSystemsRepository gameSystemsRepository, GamesRepository gamesRepository)
+        public HomeController(InfoRepository infoRepository, GameSystemsRepository gameSystemsRepository, GamesRepository gamesRepository, ErrorRepository errorRepository)
         {
             _infoRepository = infoRepository;
             _gameSystemsRepository = gameSystemsRepository;
             _gamesRepository = gamesRepository;
+            _errorRepository = errorRepository;
         }
 
         public ActionResult Index()
@@ -28,7 +30,8 @@ namespace VideoGameHash.Controllers
             var model = new HomePageModel
             {
                 Polls = _infoRepository.GetPolls(),
-                TopGames = _gamesRepository.GetTopGames(10)
+                TrendingGames = _gamesRepository.GetTrendingGames(10),
+                PopularGames = _gamesRepository.GetPopularGames(10)
             };
             
             return View(model);
@@ -144,24 +147,12 @@ namespace VideoGameHash.Controllers
             var model = new GameDetailsModel
             {
                 Game = game,
-
                 AvailableGameSystems = _gamesRepository.GetGameSystemsForThisGame(game)
             };
 
             var currentGameSystem = model.AvailableGameSystems[0];
-
-
-            var details = new Dictionary<int, IEnumerable<Articles>>();
-
-            //foreach (var type in _infoRepository.GetInfoTypes())
-            //{
-            //    if (_infoRepository.ContainsArticles(type.Id, game.GameTitle, currentGameSystem))
-            //        details.Add(type.Id, _infoRepository.GetGameArticles(type.Id, game.GameTitle, currentGameSystem));
-            //}
-            
+           
             model.UseInfoMetrics = true;
-
-
             model.ImageLinks = _gamesRepository.GetImages(game.Id, model.AvailableGameSystems);
             model.Publisher = _gamesRepository.GetPublisher(game.Id, currentGameSystem);
             model.Developer = _gamesRepository.GetDeveloper(game.Id, currentGameSystem);
@@ -260,76 +251,6 @@ namespace VideoGameHash.Controllers
             }
 
             return Json(pollVotes, JsonRequestBehavior.AllowGet);
-        }
-
-        //public ActionResult GetGameInfometricsPieChart(string gameTitle, string gameSystem)
-        //{
-        //    try
-        //    {
-        //        // Retreive the relevant articles
-        //        var gameArticles = _infoRepository.GetGameArticles(1, gameTitle, gameSystem).ToList();
-        //        var gameArticlesBySource = gameArticles.GroupBy(u => u.InfoSource.InfoSourceName).Select(u => u.FirstOrDefault()).ToList();
-        //        var count = gameArticlesBySource.Count();
-
-        //        var chartData = new object[count, 2];
-
-        //        // Populate the data series
-        //        for (var i = 0; i < count; i++)
-        //        {
-        //            var article = gameArticlesBySource[i];
-
-        //            // Set the sector title of the pie chart
-        //            chartData.SetValue(article.InfoSource.InfoSourceName, i, 0);
-
-        //            // Set the sector data of the pie chart
-        //            chartData.SetValue(gameArticles.Count(u => u.InfoSourceId == article.InfoSourceId), i, 1);
-        //        }
-
-        //        // Create the chart
-        //        var chart = new Highcharts("infometricspiechart")
-        //        .InitChart(new Chart { PlotShadow = false })
-        //        .SetTitle(new Title { Text = $"{gameTitle.Replace("'", "\\\'")} News Articles By Source - Last 6 Months"
-        //            })
-        //        .SetTooltip(new Tooltip { Enabled = false })
-        //        .SetPlotOptions(new PlotOptions
-        //        {
-        //            Pie = new PlotOptionsPie
-        //            {
-        //                AllowPointSelect = true,
-        //                Cursor = Cursors.Pointer,
-        //                DataLabels = new PlotOptionsPieDataLabels
-        //                {
-        //                    Color = ColorTranslator.FromHtml("#000000"),
-        //                    ConnectorColor = ColorTranslator.FromHtml("#000000"),
-        //                    Formatter = "function() { return '<b>'+ this.point.name +'</b>: '+ this.y; }"
-        //                }
-        //            }
-        //        })
-        //        .SetSeries(new Series
-        //        {
-        //            Type = ChartTypes.Pie,
-        //            Name = "News Articles",
-        //            Data = new DotNet.Highcharts.Helpers.Data(chartData)
-        //        });
-
-        //        return PartialView("_ChartView", chart);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogError(ex);
-
-        //        // Just use an empty chart
-        //        var emptyChart = new Highcharts("infometricspiechart")
-        //        .InitChart(new Chart { PlotShadow = false })
-        //        .SetTitle(new Title { Text = "Unable to create chart" })
-        //        .SetTooltip(new Tooltip { Enabled = false });
-        //        return PartialView("_ChartView", emptyChart);
-        //    }
-        //}
-
-        private void LogError(Exception ex)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -1,0 +1,19 @@
+﻿@{
+    ViewBag.Title = "Errors";
+}
+@model VideoGameHash.Models.ErrorModel
+
+<h2>Errors</h2>
+
+@if (Model.ErrorMessages.Any())
+{
+    @Html.ActionLink("Delete error messages", "DeleteAllErrors")
+    <ul class="list-group">
+    
+        @foreach (var item in Model.ErrorMessages)
+        {
+            <li class="list-group-item">@item</li>
+        }
+
+    </ul>
+}

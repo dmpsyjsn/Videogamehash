@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
   <!-- EF Runtime content -->
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-    <Schema Namespace="VGHDatabase.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+    <Schema Namespace="VGHDatabase.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
   <EntityContainer Name="VGHDatabaseStoreContainer">
     <EntitySet Name="Memberships" EntityType="VGHDatabase.Store.Memberships" store:Type="Tables" Schema="dbo" />
     <EntitySet Name="Roles" EntityType="VGHDatabase.Store.Roles" store:Type="Tables" Schema="dbo" />
@@ -24,6 +24,8 @@
     <EntitySet Name="Polls" EntityType="VGHDatabase.Store.Polls" store:Type="Tables" Schema="dbo" />
     <EntitySet Name="PollAnswers" EntityType="VGHDatabase.Store.PollAnswers" store:Type="Tables" Schema="dbo" />
     <EntitySet Name="TrendingGames" EntityType="VGHDatabase.Store.TrendingGames" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="PopularGames" EntityType="VGHDatabase.Store.PopularGames" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="Errors" EntityType="VGHDatabase.Store.Errors" store:Type="Tables" Schema="dbo" />
     <AssociationSet Name="RolesUsersInRoles" Association="VGHDatabase.Store.RolesUsersInRoles">
       <End Role="Roles" EntitySet="Roles" />
       <End Role="UsersInRoles" EntitySet="UsersInRoles" />
@@ -83,6 +85,10 @@
     <AssociationSet Name="GamesTrendingGames" Association="VGHDatabase.Store.GamesTrendingGames">
       <End Role="Games" EntitySet="Games" />
       <End Role="TrendingGames" EntitySet="TrendingGames" />
+    </AssociationSet>
+    <AssociationSet Name="GamesPopularGames" Association="VGHDatabase.Store.GamesPopularGames">
+      <End Role="Games" EntitySet="Games" />
+      <End Role="PopularGames" EntitySet="PopularGames" />
     </AssociationSet>
   </EntityContainer>
   <EntityType Name="Memberships">
@@ -246,6 +252,21 @@
     <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
     <Property Name="ArticleHits" Type="int" Nullable="false" />
     <Property Name="GamesId" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="PopularGames">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="ArticleHits" Type="int" Nullable="false" />
+    <Property Name="GamesId" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Errors">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="ErrorMessage" Type="nvarchar(max)" Nullable="false" />
   </EntityType>
   <Association Name="RolesUsersInRoles">
     <End Role="Roles" Type="VGHDatabase.Store.Roles" Multiplicity="1" />
@@ -427,11 +448,23 @@
       </Dependent>
     </ReferentialConstraint>
   </Association>
+  <Association Name="GamesPopularGames">
+    <End Role="Games" Type="VGHDatabase.Store.Games" Multiplicity="1" />
+    <End Role="PopularGames" Type="VGHDatabase.Store.PopularGames" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Games">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="PopularGames">
+        <PropertyRef Name="GamesId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
 </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
-      <Schema xmlns="http://schemas.microsoft.com/ado/2008/09/edm" xmlns:cg="http://schemas.microsoft.com/ado/2006/04/codegeneration" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" Namespace="VGHDatabase" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
-        <EntityContainer Name="VGHDatabaseContainer" annotation:LazyLoadingEnabled="true">
+      <Schema Namespace="VGHDatabase" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2009/11/edm" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
+        <EntityContainer Name="VGHDatabaseContainer" annotation:LazyLoadingEnabled="true" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
           <EntitySet Name="Memberships" EntityType="VGHDatabase.Membership" />
           <EntitySet Name="Roles" EntityType="VGHDatabase.Roles" />
           <EntitySet Name="UsersInRoles" EntityType="VGHDatabase.UsersInRoles" />
@@ -510,12 +543,18 @@
             <End Role="Games" EntitySet="Games" />
             <End Role="TrendingGames" EntitySet="TrendingGames" />
           </AssociationSet>
+          <EntitySet Name="PopularGames" EntityType="VGHDatabase.PopularGames" />
+          <AssociationSet Name="GamesPopularGames" Association="VGHDatabase.GamesPopularGames">
+            <End Role="Games" EntitySet="Games" />
+            <End Role="PopularGames" EntitySet="PopularGames" />
+          </AssociationSet>
+          <EntitySet Name="Errors" EntityType="VGHDatabase.Errors" />
         </EntityContainer>
         <EntityType Name="Membership">
           <Key>
             <PropertyRef Name="UserId" />
           </Key>
-          <Property Type="Int32" Name="UserId" Nullable="false" annotation:StoreGeneratedPattern="None" />
+          <Property Type="Int32" Name="UserId" Nullable="false" annotation:StoreGeneratedPattern="None" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="DateTime" Name="CreateDate" Nullable="false" />
           <Property Type="String" Name="ConfirmationToken" Nullable="true" />
           <Property Type="Boolean" Name="IsConfirmed" Nullable="false" />
@@ -534,7 +573,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="String" Name="RoleName" Nullable="false" />
           <NavigationProperty Name="UsersInRoles" Relationship="VGHDatabase.RolesUsersInRoles" FromRole="Roles" ToRole="UsersInRoles" />
         </EntityType>
@@ -542,7 +581,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <NavigationProperty Name="Role" Relationship="VGHDatabase.RolesUsersInRoles" FromRole="UsersInRoles" ToRole="Roles" />
           <Property Type="Int32" Name="RolesId" Nullable="false" />
           <NavigationProperty Name="UserProfile" Relationship="VGHDatabase.UserProfileUsersInRoles" FromRole="UsersInRoles" ToRole="UserProfile" />
@@ -564,7 +603,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="String" Name="GameSystemName" Nullable="false" />
           <NavigationProperty Name="GameSystemSortOrder" Relationship="VGHDatabase.GameSystemGameSystemSortOrder" FromRole="GameSystem" ToRole="GameSystemSortOrder" />
           <NavigationProperty Name="GameInfoes" Relationship="VGHDatabase.GameSystemGameInfo" FromRole="GameSystem" ToRole="GameInfo" />
@@ -575,17 +614,18 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="String" Name="GameTitle" Nullable="false" />
           <NavigationProperty Name="GameInfoes" Relationship="VGHDatabase.GamesGameInfo" FromRole="Games" ToRole="GameInfo" />
           <NavigationProperty Name="TrendingGames" Relationship="VGHDatabase.GamesTrendingGames" FromRole="Games" ToRole="TrendingGames" />
+          <NavigationProperty Name="PopularGames" Relationship="VGHDatabase.GamesPopularGames" FromRole="Games" ToRole="PopularGames" />
         </EntityType>
-        <EntityType Name="GameSystemSortOrder" >
+        <EntityType Name="GameSystemSortOrder">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="SortOrder" Nullable="false" />
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="None" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="None" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <NavigationProperty Name="GameSystem" Relationship="VGHDatabase.GameSystemGameSystemSortOrder" FromRole="GameSystemSortOrder" ToRole="GameSystem" />
         </EntityType>
         <Association Name="GameSystemGameSystemSortOrder">
@@ -596,7 +636,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="String" Name="UserName" Nullable="false" />
           <NavigationProperty Name="UsersInRoles" Relationship="VGHDatabase.UserProfileUsersInRoles" FromRole="UserProfile" ToRole="UsersInRoles" />
         </EntityType>
@@ -604,14 +644,14 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="String" Name="GameTitle" Nullable="false" />
         </EntityType>
         <EntityType Name="GameInfo">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="DateTime" Name="USReleaseDate" Nullable="false" />
           <Property Type="String" Name="GameImage" Nullable="true" />
           <Property Type="String" Name="Publisher" Nullable="true" />
@@ -663,7 +703,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="String" Name="InfoTypeName" Nullable="false" />
           <NavigationProperty Name="Articles" Relationship="VGHDatabase.InfoTypeArticles" FromRole="InfoType" ToRole="Articles" />
           <NavigationProperty Name="InfoSourceRssUrls" Relationship="VGHDatabase.InfoTypeInfoSourceRssUrls" FromRole="InfoType" ToRole="InfoSourceRssUrls" />
@@ -674,7 +714,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="String" Name="InfoSourceName" Nullable="false" />
           <NavigationProperty Name="Articles" Relationship="VGHDatabase.InfoSourceArticles" FromRole="InfoSource" ToRole="Articles" />
           <NavigationProperty Name="InfoSourceRssUrls" Relationship="VGHDatabase.InfoSourceInfoSourceRssUrls" FromRole="InfoSource" ToRole="InfoSourceRssUrls" />
@@ -684,7 +724,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <NavigationProperty Name="InfoType" Relationship="VGHDatabase.InfoTypeArticles" FromRole="Articles" ToRole="InfoType" />
           <Property Type="Int32" Name="InfoTypeId" Nullable="false" />
           <NavigationProperty Name="InfoSource" Relationship="VGHDatabase.InfoSourceArticles" FromRole="Articles" ToRole="InfoSource" />
@@ -724,7 +764,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <NavigationProperty Name="InfoSource" Relationship="VGHDatabase.InfoSourceInfoSourceRssUrls" FromRole="InfoSourceRssUrls" ToRole="InfoSource" />
           <Property Type="Int32" Name="InfoSourceId" Nullable="false" />
           <NavigationProperty Name="GameSystem" Relationship="VGHDatabase.GameSystemInfoSourceRssUrls" FromRole="InfoSourceRssUrls" ToRole="GameSystem" />
@@ -785,7 +825,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="Int32" Name="SortOrder" Nullable="false" />
           <NavigationProperty Name="InfoSource" Relationship="VGHDatabase.InfoSourceInfoSourceSortOrder" FromRole="InfoSourceSortOrder" ToRole="InfoSource" />
         </EntityType>
@@ -793,7 +833,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="Int32" Name="SortOrder" Nullable="false" />
           <NavigationProperty Name="InfoType" Relationship="VGHDatabase.InfoTypeInfoTypeSortOrder" FromRole="InfoTypeSortOrder" ToRole="InfoType" />
         </EntityType>
@@ -809,7 +849,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Type="String" Name="Title" Nullable="false" />
           <NavigationProperty Name="PollAnswers" Relationship="VGHDatabase.PollPollAnswers" FromRole="Poll" ToRole="PollAnswers" />
         </EntityType>
@@ -817,7 +857,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <NavigationProperty Name="Poll" Relationship="VGHDatabase.PollPollAnswers" FromRole="PollAnswers" ToRole="Poll" />
           <Property Type="Int32" Name="PollId" Nullable="false" />
           <Property Type="String" Name="Answer" Nullable="false" />
@@ -839,7 +879,7 @@
           <Key>
             <PropertyRef Name="Id" />
           </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <Property Name="ArticleHits" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Game" Relationship="VGHDatabase.GamesTrendingGames" FromRole="TrendingGames" ToRole="Games" />
           <Property Name="GamesId" Type="Int32" Nullable="false" />
@@ -856,11 +896,39 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="PopularGames">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ArticleHits" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Game" Relationship="VGHDatabase.GamesPopularGames" FromRole="PopularGames" ToRole="Games" />
+          <Property Name="GamesId" Type="Int32" Nullable="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
+        </EntityType>
+        <Association Name="GamesPopularGames">
+          <End Type="VGHDatabase.Games" Role="Games" Multiplicity="1" />
+          <End Type="VGHDatabase.PopularGames" Role="PopularGames" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Games">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PopularGames">
+              <PropertyRef Name="GamesId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Errors">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ErrorMessage" Type="String" Nullable="false" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
-    <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2008/09/mapping/cs">
+    <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
   <EntityContainerMapping StorageEntityContainer="VGHDatabaseStoreContainer" CdmEntityContainer="VGHDatabaseContainer">
     <EntitySetMapping Name="Memberships">
       <EntityTypeMapping TypeName="IsTypeOf(VGHDatabase.Membership)">
@@ -1039,6 +1107,23 @@
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
+    <EntitySetMapping Name="PopularGames">
+      <EntityTypeMapping TypeName="IsTypeOf(VGHDatabase.PopularGames)">
+        <MappingFragment StoreEntitySet="PopularGames">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="ArticleHits" ColumnName="ArticleHits" />
+          <ScalarProperty Name="GamesId" ColumnName="GamesId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Errors">
+      <EntityTypeMapping TypeName="IsTypeOf(VGHDatabase.Errors)">
+        <MappingFragment StoreEntitySet="Errors">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="ErrorMessage" ColumnName="ErrorMessage" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
     <AssociationSetMapping Name="GameSystemGameSystemSortOrder" TypeName="VGHDatabase.GameSystemGameSystemSortOrder" StoreEntitySet="GameSystemSortOrders">
       <EndProperty Name="GameSystem">
         <ScalarProperty Name="Id" ColumnName="GameSystem_Id" />
@@ -1067,107 +1152,110 @@
 </Mapping></edmx:Mappings>
   </edmx:Runtime>
   <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
-  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
+  <edmx:Designer>
     <edmx:Connection>
-      <DesignerInfoPropertySet>
-        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
-      </DesignerInfoPropertySet>
+      <edmx:DesignerInfoPropertySet>
+        <edmx:DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </edmx:DesignerInfoPropertySet>
     </edmx:Connection>
     <edmx:Options>
-      <DesignerInfoPropertySet>
-        <DesignerProperty Name="ValidateOnBuild" Value="true" />
-        <DesignerProperty Name="EnablePluralization" Value="True" />
-        <DesignerProperty Name="UseLegacyProvider" Value="True" />
-      </DesignerInfoPropertySet>
+      <edmx:DesignerInfoPropertySet>
+        <edmx:DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <edmx:DesignerProperty Name="EnablePluralization" Value="True" />
+        <edmx:DesignerProperty Name="UseLegacyProvider" Value="True" />
+      </edmx:DesignerInfoPropertySet>
     </edmx:Options>
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram Name="VGHDatabase" >
-        <EntityTypeShape EntityType="VGHDatabase.Membership" Width="3.375" PointX="0.5" PointY="5.5" Height="3.0893053354819608" />
-        <EntityTypeShape EntityType="VGHDatabase.Roles" Width="1.5" PointX="2.625" PointY="2.25" Height="1.3762621772289272" />
-        <EntityTypeShape EntityType="VGHDatabase.UsersInRoles" Width="1.5" PointX="4.875" PointY="1.125" Height="1.3762621772289276" />
-        <AssociationConnector Association="VGHDatabase.RolesUsersInRoles">
-          <ConnectorPoint PointX="4.125" PointY="2.8443815886144641" />
-          <ConnectorPoint PointX="5.40625" PointY="2.8443815886144641" />
-          <ConnectorPoint PointX="5.40625" PointY="2.5012621772289276" />
-        </AssociationConnector>
-        <EntityTypeShape EntityType="VGHDatabase.GameSystem" Width="1.5" PointX="13.125" PointY="4" Height="1.843455765843391" />
-        <EntityTypeShape EntityType="VGHDatabase.Games" Width="1.5" PointX="17" PointY="5.25" Height="1.3762621772289272" />
-        <EntityTypeShape EntityType="VGHDatabase.GameSystemSortOrder" Width="1.5" PointX="13.125" PointY="1.125" Height="1.3762621772289272" />
-        <AssociationConnector Association="VGHDatabase.GameSystemGameSystemSortOrder">
-          <ConnectorPoint PointX="13.875" PointY="4" />
-          <ConnectorPoint PointX="13.875" PointY="2.5012621772289272" />
-        </AssociationConnector>
-        <EntityTypeShape EntityType="VGHDatabase.UserProfile" Width="1.5" PointX="2.5" PointY="0.75" Height="1.2205309810241118" />
-        <EntityTypeShape EntityType="VGHDatabase.GameIgnore" Width="1.5" PointX="0.75" PointY="2" Height="1.2205309810241065" />
-        <EntityTypeShape EntityType="VGHDatabase.GameInfo" Width="1.5" PointX="16" PointY="1.125" Height="2.622111746867497" />
-        <AssociationConnector Association="VGHDatabase.GameSystemGameInfo">
-          <ConnectorPoint PointX="14.625" PointY="4.59375" />
-          <ConnectorPoint PointX="16.46875" PointY="4.59375" />
-          <ConnectorPoint PointX="16.46875" PointY="3.7471117468674975" />
-        </AssociationConnector>
-        <AssociationConnector Association="VGHDatabase.GamesGameInfo">
-          <ConnectorPoint PointX="17.25" PointY="5.25" />
-          <ConnectorPoint PointX="17.25" PointY="3.747111746867497" />
-        </AssociationConnector>
-        <AssociationConnector Association="VGHDatabase.UserProfileUsersInRoles">
-          <ConnectorPoint PointX="4" PointY="1.6256310886144638" />
-          <ConnectorPoint PointX="4.875" PointY="1.6256310886144638" />
-        </AssociationConnector>
-        <EntityTypeShape EntityType="VGHDatabase.InfoType" Width="1.5" PointX="6.125" PointY="5.625" Height="1.843455765843391" />
-        <EntityTypeShape EntityType="VGHDatabase.InfoSource" Width="1.5" PointX="9.125" PointY="2.625" Height="1.5319933734337488" />
-        <EntityTypeShape EntityType="VGHDatabase.Articles" Width="1.5" PointX="11.125" PointY="7.75" Height="2.7778429430723186" />
-        <AssociationConnector Association="VGHDatabase.InfoTypeArticles">
-          <ConnectorPoint PointX="7.625" PointY="7.4054369620482134" />
-          <ConnectorPoint PointX="10.447916666666666" PointY="7.4054369620482126" />
-          <ConnectorPoint PointX="10.614583333333334" PointY="7.4054369620482134" />
-          <ConnectorPoint PointX="11.875" PointY="7.4054369620482134" />
-          <ConnectorPoint PointX="11.875" PointY="7.75" />
-        </AssociationConnector>
-        <AssociationConnector Association="VGHDatabase.InfoSourceArticles">
-          <ConnectorPoint PointX="10.53125" PointY="4.31272456963857" />
-          <ConnectorPoint PointX="10.53125" PointY="8.8440655443072309" />
-          <ConnectorPoint PointX="11.125" PointY="8.8440655443072309" />
-        </AssociationConnector>
-        <EntityTypeShape EntityType="VGHDatabase.InfoSourceRssUrls" Width="1.5" PointX="8.875" PointY="5.125" Height="2.1549181582530359" />
-        <AssociationConnector Association="VGHDatabase.InfoSourceInfoSourceRssUrls">
-          <ConnectorPoint PointX="9.75" PointY="4.1569933734337488" />
-          <ConnectorPoint PointX="9.75" PointY="5.125" />
-        </AssociationConnector>
-        <AssociationConnector Association="VGHDatabase.GameSystemInfoSourceRssUrls">
-          <ConnectorPoint PointX="13.125" PointY="5.4842278829216955" />
-          <ConnectorPoint PointX="10.614583333333334" PointY="5.4842278829216946" />
-          <ConnectorPoint PointX="10.447916666666666" PointY="5.4842278829216955" />
-          <ConnectorPoint PointX="10.375" PointY="5.4842278829216955" />
-        </AssociationConnector>
-        <AssociationConnector Association="VGHDatabase.GameSystemArticles">
-          <ConnectorPoint PointX="13.71875" PointY="5.843455765843391" />
-          <ConnectorPoint PointX="13.71875" PointY="8.09375" />
-          <ConnectorPoint PointX="12.625" PointY="8.09375" />
-        </AssociationConnector>
-        <AssociationConnector Association="VGHDatabase.InfoTypeInfoSourceRssUrls">
-          <ConnectorPoint PointX="7.625" PointY="6.4524590791265179" />
-          <ConnectorPoint PointX="8.875" PointY="6.4524590791265179" />
-        </AssociationConnector>
-        <EntityTypeShape EntityType="VGHDatabase.InfoSourceSortOrder" Width="1.5" PointX="11.5" PointY="2.5" Height="1.3762621772289276" />
-        <EntityTypeShape EntityType="VGHDatabase.InfoTypeSortOrder" Width="1.5" PointX="6" PointY="3.25" Height="1.3762621772289272" />
-        <AssociationConnector Association="VGHDatabase.InfoTypeInfoTypeSortOrder">
-          <ConnectorPoint PointX="6.8125" PointY="5.625" />
-          <ConnectorPoint PointX="6.8125" PointY="4.6262621772289272" />
-        </AssociationConnector>
-        <AssociationConnector Association="VGHDatabase.InfoSourceInfoSourceSortOrder">
-          <ConnectorPoint PointX="10.625" PointY="3.2506310886144636" />
-          <ConnectorPoint PointX="11.5" PointY="3.2506310886144636" />
-        </AssociationConnector>
-        <EntityTypeShape EntityType="VGHDatabase.Poll" Width="1.5" PointX="7.25" PointY="0.625" Height="1.2205309810241065" />
-        <EntityTypeShape EntityType="VGHDatabase.PollAnswers" Width="1.5" PointX="9.25" PointY="0.75" Height="1.6877245696385703" />
-        <AssociationConnector Association="VGHDatabase.PollPollAnswers">
-          <ConnectorPoint PointX="8.75" PointY="1.3756310886144638" />
-          <ConnectorPoint PointX="9.25" PointY="1.3756310886144638" />
-        </AssociationConnector>
-        <EntityTypeShape EntityType="VGHDatabase.TrendingGames" Width="1.5" PointX="17" PointY="7.625" />
-        <AssociationConnector Association="VGHDatabase.GamesTrendingGames" />
-      </Diagram>
+      <edmx:Diagram Name="VGHDatabase">
+        <edmx:EntityTypeShape EntityType="VGHDatabase.Membership" Width="3.375" PointX="0.5" PointY="5.5" Height="3.0893053354819608" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.Roles" Width="1.5" PointX="2.625" PointY="2.25" Height="1.3762621772289272" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.UsersInRoles" Width="1.5" PointX="4.875" PointY="1.125" Height="1.3762621772289276" />
+        <edmx:AssociationConnector Association="VGHDatabase.RolesUsersInRoles">
+          <edmx:ConnectorPoint PointX="4.125" PointY="2.8443815886144641" />
+          <edmx:ConnectorPoint PointX="5.40625" PointY="2.8443815886144641" />
+          <edmx:ConnectorPoint PointX="5.40625" PointY="2.5012621772289276" />
+        </edmx:AssociationConnector>
+        <edmx:EntityTypeShape EntityType="VGHDatabase.GameSystem" Width="1.5" PointX="13.125" PointY="4" Height="1.843455765843391" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.Games" Width="1.5" PointX="17" PointY="5.25" Height="1.3762621772289272" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.GameSystemSortOrder" Width="1.5" PointX="13.125" PointY="1.125" Height="1.3762621772289272" />
+        <edmx:AssociationConnector Association="VGHDatabase.GameSystemGameSystemSortOrder">
+          <edmx:ConnectorPoint PointX="13.875" PointY="4" />
+          <edmx:ConnectorPoint PointX="13.875" PointY="2.5012621772289272" />
+        </edmx:AssociationConnector>
+        <edmx:EntityTypeShape EntityType="VGHDatabase.UserProfile" Width="1.5" PointX="2.5" PointY="0.75" Height="1.2205309810241118" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.GameIgnore" Width="1.5" PointX="0.75" PointY="2" Height="1.2205309810241065" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.GameInfo" Width="1.5" PointX="16" PointY="1.125" Height="2.622111746867497" />
+        <edmx:AssociationConnector Association="VGHDatabase.GameSystemGameInfo">
+          <edmx:ConnectorPoint PointX="14.625" PointY="4.59375" />
+          <edmx:ConnectorPoint PointX="16.46875" PointY="4.59375" />
+          <edmx:ConnectorPoint PointX="16.46875" PointY="3.7471117468674975" />
+        </edmx:AssociationConnector>
+        <edmx:AssociationConnector Association="VGHDatabase.GamesGameInfo">
+          <edmx:ConnectorPoint PointX="17.25" PointY="5.25" />
+          <edmx:ConnectorPoint PointX="17.25" PointY="3.747111746867497" />
+        </edmx:AssociationConnector>
+        <edmx:AssociationConnector Association="VGHDatabase.UserProfileUsersInRoles">
+          <edmx:ConnectorPoint PointX="4" PointY="1.6256310886144638" />
+          <edmx:ConnectorPoint PointX="4.875" PointY="1.6256310886144638" />
+        </edmx:AssociationConnector>
+        <edmx:EntityTypeShape EntityType="VGHDatabase.InfoType" Width="1.5" PointX="6.125" PointY="5.625" Height="1.843455765843391" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.InfoSource" Width="1.5" PointX="9.125" PointY="2.625" Height="1.5319933734337488" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.Articles" Width="1.5" PointX="11.125" PointY="7.75" Height="2.7778429430723186" />
+        <edmx:AssociationConnector Association="VGHDatabase.InfoTypeArticles">
+          <edmx:ConnectorPoint PointX="7.625" PointY="7.4054369620482134" />
+          <edmx:ConnectorPoint PointX="10.447916666666666" PointY="7.4054369620482126" />
+          <edmx:ConnectorPoint PointX="10.614583333333334" PointY="7.4054369620482134" />
+          <edmx:ConnectorPoint PointX="11.875" PointY="7.4054369620482134" />
+          <edmx:ConnectorPoint PointX="11.875" PointY="7.75" />
+        </edmx:AssociationConnector>
+        <edmx:AssociationConnector Association="VGHDatabase.InfoSourceArticles">
+          <edmx:ConnectorPoint PointX="10.53125" PointY="4.31272456963857" />
+          <edmx:ConnectorPoint PointX="10.53125" PointY="8.8440655443072309" />
+          <edmx:ConnectorPoint PointX="11.125" PointY="8.8440655443072309" />
+        </edmx:AssociationConnector>
+        <edmx:EntityTypeShape EntityType="VGHDatabase.InfoSourceRssUrls" Width="1.5" PointX="8.875" PointY="5.125" Height="2.1549181582530359" />
+        <edmx:AssociationConnector Association="VGHDatabase.InfoSourceInfoSourceRssUrls">
+          <edmx:ConnectorPoint PointX="9.75" PointY="4.1569933734337488" />
+          <edmx:ConnectorPoint PointX="9.75" PointY="5.125" />
+        </edmx:AssociationConnector>
+        <edmx:AssociationConnector Association="VGHDatabase.GameSystemInfoSourceRssUrls">
+          <edmx:ConnectorPoint PointX="13.125" PointY="5.4842278829216955" />
+          <edmx:ConnectorPoint PointX="10.614583333333334" PointY="5.4842278829216946" />
+          <edmx:ConnectorPoint PointX="10.447916666666666" PointY="5.4842278829216955" />
+          <edmx:ConnectorPoint PointX="10.375" PointY="5.4842278829216955" />
+        </edmx:AssociationConnector>
+        <edmx:AssociationConnector Association="VGHDatabase.GameSystemArticles">
+          <edmx:ConnectorPoint PointX="13.71875" PointY="5.843455765843391" />
+          <edmx:ConnectorPoint PointX="13.71875" PointY="8.09375" />
+          <edmx:ConnectorPoint PointX="12.625" PointY="8.09375" />
+        </edmx:AssociationConnector>
+        <edmx:AssociationConnector Association="VGHDatabase.InfoTypeInfoSourceRssUrls">
+          <edmx:ConnectorPoint PointX="7.625" PointY="6.4524590791265179" />
+          <edmx:ConnectorPoint PointX="8.875" PointY="6.4524590791265179" />
+        </edmx:AssociationConnector>
+        <edmx:EntityTypeShape EntityType="VGHDatabase.InfoSourceSortOrder" Width="1.5" PointX="11.5" PointY="2.5" Height="1.3762621772289276" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.InfoTypeSortOrder" Width="1.5" PointX="6" PointY="3.25" Height="1.3762621772289272" />
+        <edmx:AssociationConnector Association="VGHDatabase.InfoTypeInfoTypeSortOrder">
+          <edmx:ConnectorPoint PointX="6.8125" PointY="5.625" />
+          <edmx:ConnectorPoint PointX="6.8125" PointY="4.6262621772289272" />
+        </edmx:AssociationConnector>
+        <edmx:AssociationConnector Association="VGHDatabase.InfoSourceInfoSourceSortOrder">
+          <edmx:ConnectorPoint PointX="10.625" PointY="3.2506310886144636" />
+          <edmx:ConnectorPoint PointX="11.5" PointY="3.2506310886144636" />
+        </edmx:AssociationConnector>
+        <edmx:EntityTypeShape EntityType="VGHDatabase.Poll" Width="1.5" PointX="7.25" PointY="0.625" Height="1.2205309810241065" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.PollAnswers" Width="1.5" PointX="9.25" PointY="0.75" Height="1.6877245696385703" />
+        <edmx:AssociationConnector Association="VGHDatabase.PollPollAnswers">
+          <edmx:ConnectorPoint PointX="8.75" PointY="1.3756310886144638" />
+          <edmx:ConnectorPoint PointX="9.25" PointY="1.3756310886144638" />
+        </edmx:AssociationConnector>
+        <edmx:EntityTypeShape EntityType="VGHDatabase.TrendingGames" Width="1.5" PointX="17" PointY="7.625" />
+        <edmx:AssociationConnector Association="VGHDatabase.GamesTrendingGames" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.PopularGames" Width="1.5" PointX="15" PointY="7.75" />
+        <edmx:AssociationConnector Association="VGHDatabase.GamesPopularGames" />
+        <edmx:EntityTypeShape EntityType="VGHDatabase.Errors" Width="1.5" PointX="4.125" PointY="6.375" />
+      </edmx:Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

@@ -7,11 +7,12 @@ namespace VideoGameHash.Models
     {
         public HomePageModel()
         {
-            TopGames = new List<string>();
+            TrendingGames = new List<string>();
             Polls = new List<Poll>();
         }
 
-        public List<string> TopGames { get; set; }
+        public List<string> TrendingGames { get; set; }
+        public List<string> PopularGames { get; set; }
         public List<Poll> Polls { get; set; }
     }
 
@@ -43,12 +44,6 @@ namespace VideoGameHash.Models
         public string Source { get; set; }
         public bool Small { get; set; }
         public List<QDFeedParser.BaseFeedItem> Entries { get; set; }
-    }
-
-    public class TrendingInfoModel
-    {
-        public int Section { get; set; }
-        public int TrendingGameId { get; set; }
     }
 
     public class PollGraphModel

@@ -34,6 +34,7 @@ using System.Xml.Serialization;
 [assembly: EdmRelationshipAttribute("VGHDatabase", "InfoSourceInfoSourceSortOrder", "InfoSource", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.InfoSource), "InfoSourceSortOrder", System.Data.Metadata.Edm.RelationshipMultiplicity.ZeroOrOne, typeof(VideoGameHash.Models.InfoSourceSortOrder))]
 [assembly: EdmRelationshipAttribute("VGHDatabase", "PollPollAnswers", "Poll", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.Poll), "PollAnswers", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.PollAnswers), true)]
 [assembly: EdmRelationshipAttribute("VGHDatabase", "GamesTrendingGames", "Games", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.Games), "TrendingGames", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.TrendingGames), true)]
+[assembly: EdmRelationshipAttribute("VGHDatabase", "GamesPopularGames", "Games", System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(VideoGameHash.Models.Games), "PopularGames", System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(VideoGameHash.Models.PopularGames), true)]
 
 #endregion
 
@@ -56,7 +57,7 @@ namespace VideoGameHash.Models
             this.ContextOptions.LazyLoadingEnabled = true;
             OnContextCreated();
         }
-       
+    
         #endregion
     
         #region Partial Methods
@@ -354,6 +355,38 @@ namespace VideoGameHash.Models
             }
         }
         private ObjectSet<TrendingGames> _TrendingGames;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<PopularGames> PopularGames
+        {
+            get
+            {
+                if ((_PopularGames == null))
+                {
+                    _PopularGames = base.CreateObjectSet<PopularGames>("PopularGames");
+                }
+                return _PopularGames;
+            }
+        }
+        private ObjectSet<PopularGames> _PopularGames;
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        public ObjectSet<Errors> Errors
+        {
+            get
+            {
+                if ((_Errors == null))
+                {
+                    _Errors = base.CreateObjectSet<Errors>("Errors");
+                }
+                return _Errors;
+            }
+        }
+        private ObjectSet<Errors> _Errors;
 
         #endregion
 
@@ -502,6 +535,22 @@ namespace VideoGameHash.Models
         {
             base.AddObject("TrendingGames", trendingGames);
         }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the PopularGames EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToPopularGames(PopularGames popularGames)
+        {
+            base.AddObject("PopularGames", popularGames);
+        }
+    
+        /// <summary>
+        /// Deprecated Method for adding a new object to the Errors EntitySet. Consider using the .Add method of the associated ObjectSet&lt;T&gt; property instead.
+        /// </summary>
+        public void AddToErrors(Errors errors)
+        {
+            base.AddObject("Errors", errors);
+        }
 
         #endregion
 
@@ -548,7 +597,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -567,7 +616,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -592,7 +641,7 @@ namespace VideoGameHash.Models
             {
                 OnInfoTypeIdChanging(value);
                 ReportPropertyChanging("InfoTypeId");
-                _InfoTypeId = StructuralObject.SetValidValue(value);
+                _InfoTypeId = StructuralObject.SetValidValue(value, "InfoTypeId");
                 ReportPropertyChanged("InfoTypeId");
                 OnInfoTypeIdChanged();
             }
@@ -616,7 +665,7 @@ namespace VideoGameHash.Models
             {
                 OnInfoSourceIdChanging(value);
                 ReportPropertyChanging("InfoSourceId");
-                _InfoSourceId = StructuralObject.SetValidValue(value);
+                _InfoSourceId = StructuralObject.SetValidValue(value, "InfoSourceId");
                 ReportPropertyChanged("InfoSourceId");
                 OnInfoSourceIdChanged();
             }
@@ -640,7 +689,7 @@ namespace VideoGameHash.Models
             {
                 OnGameSystemIdChanging(value);
                 ReportPropertyChanging("GameSystemId");
-                _GameSystemId = StructuralObject.SetValidValue(value);
+                _GameSystemId = StructuralObject.SetValidValue(value, "GameSystemId");
                 ReportPropertyChanged("GameSystemId");
                 OnGameSystemIdChanged();
             }
@@ -664,7 +713,7 @@ namespace VideoGameHash.Models
             {
                 OnTitleChanging(value);
                 ReportPropertyChanging("Title");
-                _Title = StructuralObject.SetValidValue(value, false);
+                _Title = StructuralObject.SetValidValue(value, false, "Title");
                 ReportPropertyChanged("Title");
                 OnTitleChanged();
             }
@@ -688,7 +737,7 @@ namespace VideoGameHash.Models
             {
                 OnContentChanging(value);
                 ReportPropertyChanging("Content");
-                _Content = StructuralObject.SetValidValue(value, false);
+                _Content = StructuralObject.SetValidValue(value, false, "Content");
                 ReportPropertyChanged("Content");
                 OnContentChanged();
             }
@@ -712,7 +761,7 @@ namespace VideoGameHash.Models
             {
                 OnLinkChanging(value);
                 ReportPropertyChanging("Link");
-                _Link = StructuralObject.SetValidValue(value, false);
+                _Link = StructuralObject.SetValidValue(value, false, "Link");
                 ReportPropertyChanged("Link");
                 OnLinkChanged();
             }
@@ -736,7 +785,7 @@ namespace VideoGameHash.Models
             {
                 OnDatePublishedChanging(value);
                 ReportPropertyChanging("DatePublished");
-                _DatePublished = StructuralObject.SetValidValue(value);
+                _DatePublished = StructuralObject.SetValidValue(value, "DatePublished");
                 ReportPropertyChanged("DatePublished");
                 OnDatePublishedChanged();
             }
@@ -747,7 +796,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -871,6 +919,88 @@ namespace VideoGameHash.Models
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
+    [EdmEntityTypeAttribute(NamespaceName="VGHDatabase", Name="Errors")]
+    [Serializable()]
+    [DataContractAttribute(IsReference=true)]
+    public partial class Errors : EntityObject
+    {
+        #region Factory Method
+    
+        /// <summary>
+        /// Create a new Errors object.
+        /// </summary>
+        /// <param name="id">Initial value of the Id property.</param>
+        /// <param name="errorMessage">Initial value of the ErrorMessage property.</param>
+        public static Errors CreateErrors(global::System.Int32 id, global::System.String errorMessage)
+        {
+            Errors errors = new Errors();
+            errors.Id = id;
+            errors.ErrorMessage = errorMessage;
+            return errors;
+        }
+
+        #endregion
+
+        #region Simple Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 Id
+        {
+            get
+            {
+                return _Id;
+            }
+            set
+            {
+                if (_Id != value)
+                {
+                    OnIdChanging(value);
+                    ReportPropertyChanging("Id");
+                    _Id = StructuralObject.SetValidValue(value, "Id");
+                    ReportPropertyChanged("Id");
+                    OnIdChanged();
+                }
+            }
+        }
+        private global::System.Int32 _Id;
+        partial void OnIdChanging(global::System.Int32 value);
+        partial void OnIdChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.String ErrorMessage
+        {
+            get
+            {
+                return _ErrorMessage;
+            }
+            set
+            {
+                OnErrorMessageChanging(value);
+                ReportPropertyChanging("ErrorMessage");
+                _ErrorMessage = StructuralObject.SetValidValue(value, false, "ErrorMessage");
+                ReportPropertyChanged("ErrorMessage");
+                OnErrorMessageChanged();
+            }
+        }
+        private global::System.String _ErrorMessage;
+        partial void OnErrorMessageChanging(global::System.String value);
+        partial void OnErrorMessageChanged();
+
+        #endregion
+
+    }
+    
+    /// <summary>
+    /// No Metadata Documentation available.
+    /// </summary>
     [EdmEntityTypeAttribute(NamespaceName="VGHDatabase", Name="GameIgnore")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
@@ -893,7 +1023,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -912,7 +1042,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -937,7 +1067,7 @@ namespace VideoGameHash.Models
             {
                 OnGameTitleChanging(value);
                 ReportPropertyChanging("GameTitle");
-                _GameTitle = StructuralObject.SetValidValue(value, false);
+                _GameTitle = StructuralObject.SetValidValue(value, false, "GameTitle");
                 ReportPropertyChanged("GameTitle");
                 OnGameTitleChanged();
             }
@@ -948,7 +1078,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
     }
     
     /// <summary>
@@ -982,7 +1111,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1001,7 +1130,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -1026,7 +1155,7 @@ namespace VideoGameHash.Models
             {
                 OnUSReleaseDateChanging(value);
                 ReportPropertyChanging("USReleaseDate");
-                _USReleaseDate = StructuralObject.SetValidValue(value);
+                _USReleaseDate = StructuralObject.SetValidValue(value, "USReleaseDate");
                 ReportPropertyChanged("USReleaseDate");
                 OnUSReleaseDateChanged();
             }
@@ -1050,7 +1179,7 @@ namespace VideoGameHash.Models
             {
                 OnGameImageChanging(value);
                 ReportPropertyChanging("GameImage");
-                _GameImage = StructuralObject.SetValidValue(value, true);
+                _GameImage = StructuralObject.SetValidValue(value, true, "GameImage");
                 ReportPropertyChanged("GameImage");
                 OnGameImageChanged();
             }
@@ -1074,7 +1203,7 @@ namespace VideoGameHash.Models
             {
                 OnPublisherChanging(value);
                 ReportPropertyChanging("Publisher");
-                _Publisher = StructuralObject.SetValidValue(value, true);
+                _Publisher = StructuralObject.SetValidValue(value, true, "Publisher");
                 ReportPropertyChanged("Publisher");
                 OnPublisherChanged();
             }
@@ -1098,7 +1227,7 @@ namespace VideoGameHash.Models
             {
                 OnDeveloperChanging(value);
                 ReportPropertyChanging("Developer");
-                _Developer = StructuralObject.SetValidValue(value, true);
+                _Developer = StructuralObject.SetValidValue(value, true, "Developer");
                 ReportPropertyChanged("Developer");
                 OnDeveloperChanged();
             }
@@ -1122,7 +1251,7 @@ namespace VideoGameHash.Models
             {
                 OnOverviewChanging(value);
                 ReportPropertyChanging("Overview");
-                _Overview = StructuralObject.SetValidValue(value, true);
+                _Overview = StructuralObject.SetValidValue(value, true, "Overview");
                 ReportPropertyChanged("Overview");
                 OnOverviewChanged();
             }
@@ -1146,7 +1275,7 @@ namespace VideoGameHash.Models
             {
                 OnGamesDbNetIdChanging(value);
                 ReportPropertyChanging("GamesDbNetId");
-                _GamesDbNetId = StructuralObject.SetValidValue(value);
+                _GamesDbNetId = StructuralObject.SetValidValue(value, "GamesDbNetId");
                 ReportPropertyChanged("GamesDbNetId");
                 OnGamesDbNetIdChanged();
             }
@@ -1170,7 +1299,7 @@ namespace VideoGameHash.Models
             {
                 OnGameSystemIdChanging(value);
                 ReportPropertyChanging("GameSystemId");
-                _GameSystemId = StructuralObject.SetValidValue(value);
+                _GameSystemId = StructuralObject.SetValidValue(value, "GameSystemId");
                 ReportPropertyChanged("GameSystemId");
                 OnGameSystemIdChanged();
             }
@@ -1194,7 +1323,7 @@ namespace VideoGameHash.Models
             {
                 OnGamesIdChanging(value);
                 ReportPropertyChanging("GamesId");
-                _GamesId = StructuralObject.SetValidValue(value);
+                _GamesId = StructuralObject.SetValidValue(value, "GamesId");
                 ReportPropertyChanged("GamesId");
                 OnGamesIdChanged();
             }
@@ -1205,7 +1334,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -1313,7 +1441,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1332,7 +1460,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -1357,7 +1485,7 @@ namespace VideoGameHash.Models
             {
                 OnGameTitleChanging(value);
                 ReportPropertyChanging("GameTitle");
-                _GameTitle = StructuralObject.SetValidValue(value, false);
+                _GameTitle = StructuralObject.SetValidValue(value, false, "GameTitle");
                 ReportPropertyChanged("GameTitle");
                 OnGameTitleChanged();
             }
@@ -1368,7 +1496,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -1414,6 +1541,28 @@ namespace VideoGameHash.Models
                 }
             }
         }
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "GamesPopularGames", "PopularGames")]
+        public EntityCollection<PopularGames> PopularGames
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedCollection<PopularGames>("VGHDatabase.GamesPopularGames", "PopularGames");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedCollection<PopularGames>("VGHDatabase.GamesPopularGames", "PopularGames", value);
+                }
+            }
+        }
 
         #endregion
 
@@ -1444,7 +1593,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1463,7 +1612,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -1488,7 +1637,7 @@ namespace VideoGameHash.Models
             {
                 OnGameSystemNameChanging(value);
                 ReportPropertyChanging("GameSystemName");
-                _GameSystemName = StructuralObject.SetValidValue(value, false);
+                _GameSystemName = StructuralObject.SetValidValue(value, false, "GameSystemName");
                 ReportPropertyChanged("GameSystemName");
                 OnGameSystemNameChanged();
             }
@@ -1499,7 +1648,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -1635,7 +1783,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1652,7 +1800,7 @@ namespace VideoGameHash.Models
             {
                 OnSortOrderChanging(value);
                 ReportPropertyChanging("SortOrder");
-                _SortOrder = StructuralObject.SetValidValue(value);
+                _SortOrder = StructuralObject.SetValidValue(value, "SortOrder");
                 ReportPropertyChanged("SortOrder");
                 OnSortOrderChanged();
             }
@@ -1678,7 +1826,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -1690,7 +1838,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -1760,7 +1907,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1779,7 +1926,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -1804,7 +1951,7 @@ namespace VideoGameHash.Models
             {
                 OnInfoSourceNameChanging(value);
                 ReportPropertyChanging("InfoSourceName");
-                _InfoSourceName = StructuralObject.SetValidValue(value, false);
+                _InfoSourceName = StructuralObject.SetValidValue(value, false, "InfoSourceName");
                 ReportPropertyChanged("InfoSourceName");
                 OnInfoSourceNameChanged();
             }
@@ -1815,7 +1962,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -1935,7 +2081,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -1954,7 +2100,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -1979,7 +2125,7 @@ namespace VideoGameHash.Models
             {
                 OnInfoSourceIdChanging(value);
                 ReportPropertyChanging("InfoSourceId");
-                _InfoSourceId = StructuralObject.SetValidValue(value);
+                _InfoSourceId = StructuralObject.SetValidValue(value, "InfoSourceId");
                 ReportPropertyChanged("InfoSourceId");
                 OnInfoSourceIdChanged();
             }
@@ -2003,7 +2149,7 @@ namespace VideoGameHash.Models
             {
                 OnGameSystemIdChanging(value);
                 ReportPropertyChanging("GameSystemId");
-                _GameSystemId = StructuralObject.SetValidValue(value);
+                _GameSystemId = StructuralObject.SetValidValue(value, "GameSystemId");
                 ReportPropertyChanged("GameSystemId");
                 OnGameSystemIdChanged();
             }
@@ -2027,7 +2173,7 @@ namespace VideoGameHash.Models
             {
                 OnInfoTypeIdChanging(value);
                 ReportPropertyChanging("InfoTypeId");
-                _InfoTypeId = StructuralObject.SetValidValue(value);
+                _InfoTypeId = StructuralObject.SetValidValue(value, "InfoTypeId");
                 ReportPropertyChanged("InfoTypeId");
                 OnInfoTypeIdChanged();
             }
@@ -2051,7 +2197,7 @@ namespace VideoGameHash.Models
             {
                 OnURLChanging(value);
                 ReportPropertyChanging("URL");
-                _URL = StructuralObject.SetValidValue(value, false);
+                _URL = StructuralObject.SetValidValue(value, false, "URL");
                 ReportPropertyChanged("URL");
                 OnURLChanged();
             }
@@ -2062,7 +2208,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -2208,7 +2353,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -2227,7 +2372,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -2252,7 +2397,7 @@ namespace VideoGameHash.Models
             {
                 OnSortOrderChanging(value);
                 ReportPropertyChanging("SortOrder");
-                _SortOrder = StructuralObject.SetValidValue(value);
+                _SortOrder = StructuralObject.SetValidValue(value, "SortOrder");
                 ReportPropertyChanged("SortOrder");
                 OnSortOrderChanged();
             }
@@ -2263,7 +2408,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -2335,7 +2479,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -2354,7 +2498,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -2379,7 +2523,7 @@ namespace VideoGameHash.Models
             {
                 OnInfoTypeNameChanging(value);
                 ReportPropertyChanging("InfoTypeName");
-                _InfoTypeName = StructuralObject.SetValidValue(value, false);
+                _InfoTypeName = StructuralObject.SetValidValue(value, false, "InfoTypeName");
                 ReportPropertyChanged("InfoTypeName");
                 OnInfoTypeNameChanged();
             }
@@ -2403,7 +2547,7 @@ namespace VideoGameHash.Models
             {
                 OnUseGameSystemChanging(value);
                 ReportPropertyChanging("UseGameSystem");
-                _UseGameSystem = StructuralObject.SetValidValue(value);
+                _UseGameSystem = StructuralObject.SetValidValue(value, "UseGameSystem");
                 ReportPropertyChanged("UseGameSystem");
                 OnUseGameSystemChanged();
             }
@@ -2414,7 +2558,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -2528,7 +2671,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -2547,7 +2690,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -2572,7 +2715,7 @@ namespace VideoGameHash.Models
             {
                 OnSortOrderChanging(value);
                 ReportPropertyChanging("SortOrder");
-                _SortOrder = StructuralObject.SetValidValue(value);
+                _SortOrder = StructuralObject.SetValidValue(value, "SortOrder");
                 ReportPropertyChanged("SortOrder");
                 OnSortOrderChanged();
             }
@@ -2583,7 +2726,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -2665,7 +2807,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -2684,7 +2826,7 @@ namespace VideoGameHash.Models
                 {
                     OnUserIdChanging(value);
                     ReportPropertyChanging("UserId");
-                    _UserId = StructuralObject.SetValidValue(value);
+                    _UserId = StructuralObject.SetValidValue(value, "UserId");
                     ReportPropertyChanged("UserId");
                     OnUserIdChanged();
                 }
@@ -2709,7 +2851,7 @@ namespace VideoGameHash.Models
             {
                 OnCreateDateChanging(value);
                 ReportPropertyChanging("CreateDate");
-                _CreateDate = StructuralObject.SetValidValue(value);
+                _CreateDate = StructuralObject.SetValidValue(value, "CreateDate");
                 ReportPropertyChanged("CreateDate");
                 OnCreateDateChanged();
             }
@@ -2733,7 +2875,7 @@ namespace VideoGameHash.Models
             {
                 OnConfirmationTokenChanging(value);
                 ReportPropertyChanging("ConfirmationToken");
-                _ConfirmationToken = StructuralObject.SetValidValue(value, true);
+                _ConfirmationToken = StructuralObject.SetValidValue(value, true, "ConfirmationToken");
                 ReportPropertyChanged("ConfirmationToken");
                 OnConfirmationTokenChanged();
             }
@@ -2757,7 +2899,7 @@ namespace VideoGameHash.Models
             {
                 OnIsConfirmedChanging(value);
                 ReportPropertyChanging("IsConfirmed");
-                _IsConfirmed = StructuralObject.SetValidValue(value);
+                _IsConfirmed = StructuralObject.SetValidValue(value, "IsConfirmed");
                 ReportPropertyChanged("IsConfirmed");
                 OnIsConfirmedChanged();
             }
@@ -2781,7 +2923,7 @@ namespace VideoGameHash.Models
             {
                 OnLastPasswordFailureDateChanging(value);
                 ReportPropertyChanging("LastPasswordFailureDate");
-                _LastPasswordFailureDate = StructuralObject.SetValidValue(value);
+                _LastPasswordFailureDate = StructuralObject.SetValidValue(value, "LastPasswordFailureDate");
                 ReportPropertyChanged("LastPasswordFailureDate");
                 OnLastPasswordFailureDateChanged();
             }
@@ -2805,7 +2947,7 @@ namespace VideoGameHash.Models
             {
                 OnPasswordFailuresSinceLastSuccessChanging(value);
                 ReportPropertyChanging("PasswordFailuresSinceLastSuccess");
-                _PasswordFailuresSinceLastSuccess = StructuralObject.SetValidValue(value);
+                _PasswordFailuresSinceLastSuccess = StructuralObject.SetValidValue(value, "PasswordFailuresSinceLastSuccess");
                 ReportPropertyChanged("PasswordFailuresSinceLastSuccess");
                 OnPasswordFailuresSinceLastSuccessChanged();
             }
@@ -2829,7 +2971,7 @@ namespace VideoGameHash.Models
             {
                 OnPasswordChanging(value);
                 ReportPropertyChanging("Password");
-                _Password = StructuralObject.SetValidValue(value, false);
+                _Password = StructuralObject.SetValidValue(value, false, "Password");
                 ReportPropertyChanged("Password");
                 OnPasswordChanged();
             }
@@ -2853,7 +2995,7 @@ namespace VideoGameHash.Models
             {
                 OnPasswordChangeDateChanging(value);
                 ReportPropertyChanging("PasswordChangeDate");
-                _PasswordChangeDate = StructuralObject.SetValidValue(value);
+                _PasswordChangeDate = StructuralObject.SetValidValue(value, "PasswordChangeDate");
                 ReportPropertyChanged("PasswordChangeDate");
                 OnPasswordChangeDateChanged();
             }
@@ -2877,7 +3019,7 @@ namespace VideoGameHash.Models
             {
                 OnPasswordSaltChanging(value);
                 ReportPropertyChanging("PasswordSalt");
-                _PasswordSalt = StructuralObject.SetValidValue(value, false);
+                _PasswordSalt = StructuralObject.SetValidValue(value, false, "PasswordSalt");
                 ReportPropertyChanged("PasswordSalt");
                 OnPasswordSaltChanged();
             }
@@ -2901,7 +3043,7 @@ namespace VideoGameHash.Models
             {
                 OnPasswordVerificationTokenChanging(value);
                 ReportPropertyChanging("PasswordVerificationToken");
-                _PasswordVerificationToken = StructuralObject.SetValidValue(value, true);
+                _PasswordVerificationToken = StructuralObject.SetValidValue(value, true, "PasswordVerificationToken");
                 ReportPropertyChanged("PasswordVerificationToken");
                 OnPasswordVerificationTokenChanged();
             }
@@ -2925,7 +3067,7 @@ namespace VideoGameHash.Models
             {
                 OnPasswordVerificationTokenExpirationDateChanging(value);
                 ReportPropertyChanging("PasswordVerificationTokenExpirationDate");
-                _PasswordVerificationTokenExpirationDate = StructuralObject.SetValidValue(value);
+                _PasswordVerificationTokenExpirationDate = StructuralObject.SetValidValue(value, "PasswordVerificationTokenExpirationDate");
                 ReportPropertyChanged("PasswordVerificationTokenExpirationDate");
                 OnPasswordVerificationTokenExpirationDateChanged();
             }
@@ -2949,7 +3091,7 @@ namespace VideoGameHash.Models
             {
                 OnEmailChanging(value);
                 ReportPropertyChanging("Email");
-                _Email = StructuralObject.SetValidValue(value, false);
+                _Email = StructuralObject.SetValidValue(value, false, "Email");
                 ReportPropertyChanged("Email");
                 OnEmailChanged();
             }
@@ -2973,7 +3115,7 @@ namespace VideoGameHash.Models
             {
                 OnSecurityQuestionChanging(value);
                 ReportPropertyChanging("SecurityQuestion");
-                _SecurityQuestion = StructuralObject.SetValidValue(value, false);
+                _SecurityQuestion = StructuralObject.SetValidValue(value, false, "SecurityQuestion");
                 ReportPropertyChanged("SecurityQuestion");
                 OnSecurityQuestionChanged();
             }
@@ -2997,7 +3139,7 @@ namespace VideoGameHash.Models
             {
                 OnSecurityAnswerChanging(value);
                 ReportPropertyChanging("SecurityAnswer");
-                _SecurityAnswer = StructuralObject.SetValidValue(value, false);
+                _SecurityAnswer = StructuralObject.SetValidValue(value, false, "SecurityAnswer");
                 ReportPropertyChanged("SecurityAnswer");
                 OnSecurityAnswerChanged();
             }
@@ -3008,7 +3150,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
     }
     
     /// <summary>
@@ -3036,7 +3177,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3055,7 +3196,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -3080,7 +3221,7 @@ namespace VideoGameHash.Models
             {
                 OnTitleChanging(value);
                 ReportPropertyChanging("Title");
-                _Title = StructuralObject.SetValidValue(value, false);
+                _Title = StructuralObject.SetValidValue(value, false, "Title");
                 ReportPropertyChanged("Title");
                 OnTitleChanged();
             }
@@ -3091,7 +3232,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3149,7 +3289,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3168,7 +3308,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -3193,7 +3333,7 @@ namespace VideoGameHash.Models
             {
                 OnPollIdChanging(value);
                 ReportPropertyChanging("PollId");
-                _PollId = StructuralObject.SetValidValue(value);
+                _PollId = StructuralObject.SetValidValue(value, "PollId");
                 ReportPropertyChanged("PollId");
                 OnPollIdChanged();
             }
@@ -3217,7 +3357,7 @@ namespace VideoGameHash.Models
             {
                 OnAnswerChanging(value);
                 ReportPropertyChanging("Answer");
-                _Answer = StructuralObject.SetValidValue(value, false);
+                _Answer = StructuralObject.SetValidValue(value, false, "Answer");
                 ReportPropertyChanged("Answer");
                 OnAnswerChanged();
             }
@@ -3241,7 +3381,7 @@ namespace VideoGameHash.Models
             {
                 OnNumVotesChanging(value);
                 ReportPropertyChanging("NumVotes");
-                _NumVotes = StructuralObject.SetValidValue(value);
+                _NumVotes = StructuralObject.SetValidValue(value, "NumVotes");
                 ReportPropertyChanged("NumVotes");
                 OnNumVotesChanged();
             }
@@ -3252,7 +3392,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3300,6 +3439,156 @@ namespace VideoGameHash.Models
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
+    [EdmEntityTypeAttribute(NamespaceName="VGHDatabase", Name="PopularGames")]
+    [Serializable()]
+    [DataContractAttribute(IsReference=true)]
+    public partial class PopularGames : EntityObject
+    {
+        #region Factory Method
+    
+        /// <summary>
+        /// Create a new PopularGames object.
+        /// </summary>
+        /// <param name="id">Initial value of the Id property.</param>
+        /// <param name="articleHits">Initial value of the ArticleHits property.</param>
+        /// <param name="gamesId">Initial value of the GamesId property.</param>
+        public static PopularGames CreatePopularGames(global::System.Int32 id, global::System.Int32 articleHits, global::System.Int32 gamesId)
+        {
+            PopularGames popularGames = new PopularGames();
+            popularGames.Id = id;
+            popularGames.ArticleHits = articleHits;
+            popularGames.GamesId = gamesId;
+            return popularGames;
+        }
+
+        #endregion
+
+        #region Simple Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 Id
+        {
+            get
+            {
+                return _Id;
+            }
+            set
+            {
+                if (_Id != value)
+                {
+                    OnIdChanging(value);
+                    ReportPropertyChanging("Id");
+                    _Id = StructuralObject.SetValidValue(value, "Id");
+                    ReportPropertyChanged("Id");
+                    OnIdChanged();
+                }
+            }
+        }
+        private global::System.Int32 _Id;
+        partial void OnIdChanging(global::System.Int32 value);
+        partial void OnIdChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 ArticleHits
+        {
+            get
+            {
+                return _ArticleHits;
+            }
+            set
+            {
+                OnArticleHitsChanging(value);
+                ReportPropertyChanging("ArticleHits");
+                _ArticleHits = StructuralObject.SetValidValue(value, "ArticleHits");
+                ReportPropertyChanged("ArticleHits");
+                OnArticleHitsChanged();
+            }
+        }
+        private global::System.Int32 _ArticleHits;
+        partial void OnArticleHitsChanging(global::System.Int32 value);
+        partial void OnArticleHitsChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.Int32 GamesId
+        {
+            get
+            {
+                return _GamesId;
+            }
+            set
+            {
+                OnGamesIdChanging(value);
+                ReportPropertyChanging("GamesId");
+                _GamesId = StructuralObject.SetValidValue(value, "GamesId");
+                ReportPropertyChanged("GamesId");
+                OnGamesIdChanged();
+            }
+        }
+        private global::System.Int32 _GamesId;
+        partial void OnGamesIdChanging(global::System.Int32 value);
+        partial void OnGamesIdChanged();
+
+        #endregion
+
+        #region Navigation Properties
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [XmlIgnoreAttribute()]
+        [SoapIgnoreAttribute()]
+        [DataMemberAttribute()]
+        [EdmRelationshipNavigationPropertyAttribute("VGHDatabase", "GamesPopularGames", "Games")]
+        public Games Game
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Games>("VGHDatabase.GamesPopularGames", "Games").Value;
+            }
+            set
+            {
+                ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Games>("VGHDatabase.GamesPopularGames", "Games").Value = value;
+            }
+        }
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [BrowsableAttribute(false)]
+        [DataMemberAttribute()]
+        public EntityReference<Games> GameReference
+        {
+            get
+            {
+                return ((IEntityWithRelationships)this).RelationshipManager.GetRelatedReference<Games>("VGHDatabase.GamesPopularGames", "Games");
+            }
+            set
+            {
+                if ((value != null))
+                {
+                    ((IEntityWithRelationships)this).RelationshipManager.InitializeRelatedReference<Games>("VGHDatabase.GamesPopularGames", "Games", value);
+                }
+            }
+        }
+
+        #endregion
+
+    }
+    
+    /// <summary>
+    /// No Metadata Documentation available.
+    /// </summary>
     [EdmEntityTypeAttribute(NamespaceName="VGHDatabase", Name="Roles")]
     [Serializable()]
     [DataContractAttribute(IsReference=true)]
@@ -3322,7 +3611,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3341,7 +3630,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -3366,7 +3655,7 @@ namespace VideoGameHash.Models
             {
                 OnRoleNameChanging(value);
                 ReportPropertyChanging("RoleName");
-                _RoleName = StructuralObject.SetValidValue(value, false);
+                _RoleName = StructuralObject.SetValidValue(value, false, "RoleName");
                 ReportPropertyChanged("RoleName");
                 OnRoleNameChanged();
             }
@@ -3377,7 +3666,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3433,7 +3721,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3452,7 +3740,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -3477,7 +3765,7 @@ namespace VideoGameHash.Models
             {
                 OnArticleHitsChanging(value);
                 ReportPropertyChanging("ArticleHits");
-                _ArticleHits = StructuralObject.SetValidValue(value);
+                _ArticleHits = StructuralObject.SetValidValue(value, "ArticleHits");
                 ReportPropertyChanged("ArticleHits");
                 OnArticleHitsChanged();
             }
@@ -3501,7 +3789,7 @@ namespace VideoGameHash.Models
             {
                 OnGamesIdChanging(value);
                 ReportPropertyChanging("GamesId");
-                _GamesId = StructuralObject.SetValidValue(value);
+                _GamesId = StructuralObject.SetValidValue(value, "GamesId");
                 ReportPropertyChanged("GamesId");
                 OnGamesIdChanged();
             }
@@ -3512,7 +3800,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3582,7 +3869,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3601,7 +3888,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -3626,7 +3913,7 @@ namespace VideoGameHash.Models
             {
                 OnUserNameChanging(value);
                 ReportPropertyChanging("UserName");
-                _UserName = StructuralObject.SetValidValue(value, false);
+                _UserName = StructuralObject.SetValidValue(value, false, "UserName");
                 ReportPropertyChanged("UserName");
                 OnUserNameChanged();
             }
@@ -3637,7 +3924,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3693,7 +3979,7 @@ namespace VideoGameHash.Models
 
         #endregion
 
-        #region Primitive Properties
+        #region Simple Properties
     
         /// <summary>
         /// No Metadata Documentation available.
@@ -3712,7 +3998,7 @@ namespace VideoGameHash.Models
                 {
                     OnIdChanging(value);
                     ReportPropertyChanging("Id");
-                    _Id = StructuralObject.SetValidValue(value);
+                    _Id = StructuralObject.SetValidValue(value, "Id");
                     ReportPropertyChanged("Id");
                     OnIdChanged();
                 }
@@ -3737,7 +4023,7 @@ namespace VideoGameHash.Models
             {
                 OnRolesIdChanging(value);
                 ReportPropertyChanging("RolesId");
-                _RolesId = StructuralObject.SetValidValue(value);
+                _RolesId = StructuralObject.SetValidValue(value, "RolesId");
                 ReportPropertyChanged("RolesId");
                 OnRolesIdChanged();
             }
@@ -3761,7 +4047,7 @@ namespace VideoGameHash.Models
             {
                 OnUserProfileIdChanging(value);
                 ReportPropertyChanging("UserProfileId");
-                _UserProfileId = StructuralObject.SetValidValue(value);
+                _UserProfileId = StructuralObject.SetValidValue(value, "UserProfileId");
                 ReportPropertyChanged("UserProfileId");
                 OnUserProfileIdChanged();
             }
@@ -3772,7 +4058,6 @@ namespace VideoGameHash.Models
 
         #endregion
 
-    
         #region Navigation Properties
     
         /// <summary>
@@ -3857,5 +4142,4 @@ namespace VideoGameHash.Models
 
     #endregion
 
-    
 }

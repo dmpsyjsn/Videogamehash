@@ -2,7 +2,7 @@
 -- --------------------------------------------------
 -- Entity Designer DDL Script for SQL Server 2005, 2008, 2012 and Azure
 -- --------------------------------------------------
--- Date Created: 04/01/2018 21:02:51
+-- Date Created: 04/14/2018 19:32:48
 -- Generated from EDMX file: C:\Projects\Videogamehash\source\VideoGameHash\Models\VGHDatabase.edmx
 -- --------------------------------------------------
 
@@ -288,6 +288,21 @@ CREATE TABLE [dbo].[TrendingGames] (
 );
 GO
 
+-- Creating table 'PopularGames'
+CREATE TABLE [dbo].[PopularGames] (
+    [Id] int IDENTITY(1,1) NOT NULL,
+    [ArticleHits] int  NOT NULL,
+    [GamesId] int  NOT NULL
+);
+GO
+
+-- Creating table 'Errors'
+CREATE TABLE [dbo].[Errors] (
+    [Id] int IDENTITY(1,1) NOT NULL,
+    [ErrorMessage] nvarchar(max)  NOT NULL
+);
+GO
+
 -- --------------------------------------------------
 -- Creating all PRIMARY KEY constraints
 -- --------------------------------------------------
@@ -397,6 +412,18 @@ GO
 -- Creating primary key on [Id] in table 'TrendingGames'
 ALTER TABLE [dbo].[TrendingGames]
 ADD CONSTRAINT [PK_TrendingGames]
+    PRIMARY KEY CLUSTERED ([Id] ASC);
+GO
+
+-- Creating primary key on [Id] in table 'PopularGames'
+ALTER TABLE [dbo].[PopularGames]
+ADD CONSTRAINT [PK_PopularGames]
+    PRIMARY KEY CLUSTERED ([Id] ASC);
+GO
+
+-- Creating primary key on [Id] in table 'Errors'
+ALTER TABLE [dbo].[Errors]
+ADD CONSTRAINT [PK_Errors]
     PRIMARY KEY CLUSTERED ([Id] ASC);
 GO
 
@@ -626,6 +653,21 @@ GO
 -- Creating non-clustered index for FOREIGN KEY 'FK_GamesTrendingGames'
 CREATE INDEX [IX_FK_GamesTrendingGames]
 ON [dbo].[TrendingGames]
+    ([GamesId]);
+GO
+
+-- Creating foreign key on [GamesId] in table 'PopularGames'
+ALTER TABLE [dbo].[PopularGames]
+ADD CONSTRAINT [FK_GamesPopularGames]
+    FOREIGN KEY ([GamesId])
+    REFERENCES [dbo].[Games]
+        ([Id])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_GamesPopularGames'
+CREATE INDEX [IX_FK_GamesPopularGames]
+ON [dbo].[PopularGames]
     ([GamesId]);
 GO
 

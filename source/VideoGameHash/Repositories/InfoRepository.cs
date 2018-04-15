@@ -102,7 +102,7 @@ namespace VideoGameHash.Repositories
                 infoType = GetInfoType(name);
                 order.Id = infoType.Id;
                 order.InfoType = infoType;
-                order.SortOrder = maxValue + 1 ?? 1;
+                order.SortOrder = (int) (maxValue + 1);
 
                 _db.InfoTypeSortOrders.AddObject(order);
                 _db.SaveChanges();
@@ -136,7 +136,7 @@ namespace VideoGameHash.Repositories
                 infoSource = GetInfoSource(name);
                 order.Id = infoSource.Id;
                 order.InfoSource = infoSource;
-                order.SortOrder = maxValue + 1 ?? 1;
+                order.SortOrder = (int) (maxValue + 1);
 
                 _db.InfoSourceSortOrders.AddObject(order);
                 _db.SaveChanges();
@@ -238,17 +238,17 @@ namespace VideoGameHash.Repositories
 
         public int GetInfoTypeId(string infoType)
         {
-            return _db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == infoType).Id;
+            return _db.InfoTypes.Single(u => u.InfoTypeName == infoType).Id;
         }
 
         public int GetInfoSourceId(string source)
         {
-            return _db.InfoSources.SingleOrDefault(u => u.InfoSourceName == source).Id;
+            return _db.InfoSources.Single(u => u.InfoSourceName == source).Id;
         }
 
         public int GetGameSystemId(string gameSystem)
         {
-            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem).Id;
+            return _db.GameSystems.Single(u => u.GameSystemName == gameSystem).Id;
         }
 
         internal int GetNumSourceEntriesByGameSystem(int section, int source, int gameSystem)
@@ -371,7 +371,7 @@ namespace VideoGameHash.Repositories
 
                 success = matched.Any();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 success = false;
             }
@@ -416,7 +416,7 @@ namespace VideoGameHash.Repositories
                                        where t.Id == order.Id
                                        select t).SingleOrDefault();
 
-            dbOrder.SortOrder = order.SortOrder;
+            if (dbOrder != null) dbOrder.SortOrder = order.SortOrder;
 
             _db.SaveChanges();
         }
@@ -427,14 +427,14 @@ namespace VideoGameHash.Repositories
                                          where t.Id == order.Id
                                          select t).SingleOrDefault();
 
-            dbOrder.SortOrder = order.SortOrder;
+            if (dbOrder != null) dbOrder.SortOrder = order.SortOrder;
 
             _db.SaveChanges();
         }
 
         public bool UseGameSystem(string section)
         {
-            return _db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == section).UseGameSystem;
+            return _db.InfoTypes.Single(u => u.InfoTypeName == section).UseGameSystem;
         }
 
         public async Task<int> AddRssFeed(InfoSourceRssUrls model)
@@ -465,7 +465,7 @@ namespace VideoGameHash.Repositories
                                 Title = item.Title
                             };
 
-                            if (!IsDuplicateArticle(article) && SourceSpecificBypass(model.InfoTypeId, model.InfoSourceId, article))
+                            if (!IsDuplicateArticle(article))
                             {
                                 _db.Articles.AddObject(article);
                                 _db.SaveChanges();
@@ -476,7 +476,7 @@ namespace VideoGameHash.Repositories
                         }
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     try
                     {
@@ -498,7 +498,7 @@ namespace VideoGameHash.Repositories
                                     Title = item.Title
                                 };
 
-                                if (!IsDuplicateArticle(article) && SourceSpecificBypass(model.InfoTypeId, model.InfoSourceId, article))
+                                if (!IsDuplicateArticle(article))
                                 {
                                     _db.Articles.AddObject(article);
                                     _db.SaveChanges();
@@ -509,7 +509,7 @@ namespace VideoGameHash.Repositories
                             }
                         }
                     }
-                    catch (Exception exception)
+                    catch (Exception)
                     {
                         i = 0;
                     }
@@ -518,29 +518,6 @@ namespace VideoGameHash.Repositories
             }
 
             return i;
-        }
-
-        private bool SourceSpecificBypass(int infoTypeId, int infoSourceId, Articles article)
-        {
-            var byPass = true;
-
-            if (GetInfoSourceName(infoSourceId) == "N4G")
-            {
-                var title = article.Title.ToUpper();
-                
-                if (GetInfoTypeName(infoTypeId) == "Reviews")
-                {
-                    if (title.Contains("PREVIEW") || !title.Contains("REVIEW"))
-                        byPass = false;
-                }
-                else if (GetInfoTypeName(infoTypeId) == "News")
-                {
-                    if (!title.Contains("PREVIEW") && title.Contains("REVIEW"))
-                        byPass = false;
-                }
-            }
-
-            return byPass;
         }
 
         public async Task<int> AddFeedItems(int sectionId)
@@ -589,16 +566,10 @@ namespace VideoGameHash.Repositories
                                               article.Title == u.Title &&
                                               article.Link == u.Link);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                LogError(ex);
                 return false;
             }
-        }
-
-        private void LogError(Exception ex)
-        {
-            throw new NotImplementedException();
         }
 
         public void DeleteOldArticles()
@@ -659,18 +630,50 @@ namespace VideoGameHash.Repositories
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var matchingArticles = _db.Articles.AsEnumerable().Where(d => d.DatePublished >= DateTime.Now.AddDays(-30) && (searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content))).ToList();
+                var matchingArticles = _db.Articles.AsEnumerable().Where(d => d.DatePublished >= DateTime.Now.AddDays(-14) && (searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content))).ToList();
 
-                if (matchingArticles.Any())
+                if (!matchingArticles.Any()) continue;
+
+                var trendingGame = new TrendingGames
                 {
-                    var trendingGame = new TrendingGames
-                    {
-                        GamesId = game.Id,
-                        ArticleHits = matchingArticles.Count
-                    };
+                    GamesId = game.Id,
+                    ArticleHits = matchingArticles.Count
+                };
 
-                    _db.TrendingGames.AddObject(trendingGame);
-                }
+                _db.TrendingGames.AddObject(trendingGame);
+            }
+
+            _db.SaveChanges();
+        }
+
+        public void MakePopular()
+        {
+            foreach (var game in _db.PopularGames)
+            {
+                _db.DeleteObject(game);
+            }
+
+            _db.SaveChanges();
+
+            // Get games
+            var games = _db.Games.ToList();
+
+            // See if any articles contain game title
+            foreach (var game in games)
+            {
+                var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
+                
+                var matchingArticles = _db.Articles.AsEnumerable().Where(d => (searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content))).ToList();
+
+                if (!matchingArticles.Any()) continue;
+
+                var popularGame = new PopularGames
+                {
+                    GamesId = game.Id,
+                    ArticleHits = matchingArticles.Count
+                };
+
+                _db.PopularGames.AddObject(popularGame);
             }
 
             _db.SaveChanges();
@@ -680,7 +683,7 @@ namespace VideoGameHash.Repositories
         {
             try
             {
-                return _db.InfoSourceRssUrls.SingleOrDefault(u => u.InfoTypeId == sectionId && u.InfoSourceId == sourceId && u.GameSystemId == gameSystemId).URL;
+                return _db.InfoSourceRssUrls.Single(u => u.InfoTypeId == sectionId && u.InfoSourceId == sourceId && u.GameSystemId == gameSystemId).URL;
             }
             catch
             {
@@ -692,7 +695,7 @@ namespace VideoGameHash.Repositories
         {
             try
             {
-                return _db.GameSystems.SingleOrDefault(u => u.Id == gameSystemId).GameSystemName;
+                return _db.GameSystems.Single(u => u.Id == gameSystemId).GameSystemName;
             }
             catch
             {
@@ -709,7 +712,7 @@ namespace VideoGameHash.Repositories
                                   tempArticle.GameSystemId == gameSystemId
                             select tempArticle;
 
-                return count != null && count.Count() > 0;
+                return count.Any();
             }
             catch
             {
@@ -854,17 +857,10 @@ namespace VideoGameHash.Repositories
 
         internal void DeleteUrl(int id)
         {
-            try
-            {
-                var url = GetRssUrl(id);
+            var url = GetRssUrl(id);
 
-                _db.InfoSourceRssUrls.DeleteObject(url);
-                _db.SaveChanges();
-            }
-            catch
-            {
-
-            }
+            _db.InfoSourceRssUrls.DeleteObject(url);
+            _db.SaveChanges();
         }
     }
 }

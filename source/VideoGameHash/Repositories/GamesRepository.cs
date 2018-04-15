@@ -3,7 +3,6 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -64,21 +63,13 @@ namespace VideoGameHash.Repositories
 
         public void AddGame(string gameSystem)
         {
-            try
-            {
-                if (gameSystem != "All")
-                {
-                    var url = $"http://thegamesdb.net/api/PlatformGames.php?platform={GetPlatform(gameSystem)}";
+            if (gameSystem == "All") return;
 
-                    ProcessGamesFromWebService(url, gameSystem);
+            var url = $"http://thegamesdb.net/api/PlatformGames.php?platform={GetPlatform(gameSystem)}";
 
-                    ProcessAdditionalDetailsFromWebService(gameSystem);
-                }
-            }
-            catch (Exception e)
-            {
-                // Do nothing
-            }
+            ProcessGamesFromWebService(url, gameSystem);
+
+            ProcessAdditionalDetailsFromWebService(gameSystem);
         }
 
         public Games GetGame(int id)
@@ -149,11 +140,7 @@ namespace VideoGameHash.Repositories
 
                 var gameResponse = (PlatformGamesData) serializer.Deserialize(response.GetResponseStream() ?? throw new InvalidOperationException());
                 var cutoff = DateTime.Now.AddMonths(-3);
-                var items = gameResponse.Games.Where(u => u != null &&
-                                                          !string.IsNullOrEmpty(u.Thumb) &&
-                                                          !string.IsNullOrEmpty(u.ReleaseDate) &&
-                                                          u.ReleaseDate.IndexOf('/') > 0 &&
-                                                          Convert.ToDateTime(u.ReleaseDate) >= cutoff).ToArray();
+                var items = gameResponse.Games.Where(u => !string.IsNullOrEmpty(u?.Thumb) && !string.IsNullOrEmpty(u.ReleaseDate) && u.ReleaseDate.IndexOf('/') > 0 && Convert.ToDateTime(u.ReleaseDate) >= cutoff).ToArray();
                 foreach (var game in items)
                 {
                     var gameDb = new Games();
@@ -165,33 +152,31 @@ namespace VideoGameHash.Repositories
                     if (game.ReleaseDate != null && game.ReleaseDate.IndexOf('/') > 0)
                         usReleaseDate = Convert.ToDateTime(game.ReleaseDate);
 
-                    if (gameDb.GameTitle != null && usReleaseDate != DateTime.MinValue && !IgnoreThisGame(gameDb))
-                    {
-                        if (!IsDuplicateGame(gameDb))
-                        {
-                            _db.Games.AddObject(gameDb);
-                            _db.SaveChanges();
-                        }
-                        else
-                        {
-                            gameDb = GetGame(gameDb.GameTitle);
-                        }
+                    if (gameDb.GameTitle == null || usReleaseDate == DateTime.MinValue || IgnoreThisGame(gameDb)) continue;
 
-                        var gameInfo = new GameInfo
-                        {
-                            GamesId = gameDb.Id,
-                            GameSystemId = GetGameSystemId(gameSystem),
-                            USReleaseDate = usReleaseDate,
-                            GamesDbNetId = Convert.ToInt32(game.Id),
-                            GameImage = "http://thegamesdb.net/banners/" + game.Thumb
-                        };
-                        
-                        if (!IsDuplicateGameInfo(gameInfo))
-                        {
-                            _db.GameInfoes.AddObject(gameInfo);
-                            _db.SaveChanges();
-                        } 
+                    if (!IsDuplicateGame(gameDb))
+                    {
+                        _db.Games.AddObject(gameDb);
+                        _db.SaveChanges();
                     }
+                    else
+                    {
+                        gameDb = GetGame(gameDb.GameTitle);
+                    }
+
+                    var gameInfo = new GameInfo
+                    {
+                        GamesId = gameDb.Id,
+                        GameSystemId = GetGameSystemId(gameSystem),
+                        USReleaseDate = usReleaseDate,
+                        GamesDbNetId = Convert.ToInt32(game.Id),
+                        GameImage = "http://thegamesdb.net/banners/" + game.Thumb
+                    };
+
+                    if (IsDuplicateGameInfo(gameInfo)) continue;
+
+                    _db.GameInfoes.AddObject(gameInfo);
+                    _db.SaveChanges();
                 }
             }
         }
@@ -226,7 +211,7 @@ namespace VideoGameHash.Repositories
                         {
                             var serializer = new XmlSerializer(typeof(DataByGameId));
 
-                            var gameResponse = (DataByGameId) serializer.Deserialize(response.GetResponseStream());
+                            var gameResponse = (DataByGameId) serializer.Deserialize(response.GetResponseStream() ?? throw new InvalidOperationException());
 
                             if (!string.IsNullOrWhiteSpace(gameResponse.Game[0].Publisher) ||
                                 !string.IsNullOrWhiteSpace(gameResponse.Game[0].Developer))
@@ -252,89 +237,11 @@ namespace VideoGameHash.Repositories
                 DeleteGameFromGameInfoes(game);
         }
 
-        public DateTime ConvertJsonDate(string date, string gameSystem)
-        {
-            if (date.ToLower().Contains("unreleased"))
-                return DateTime.MinValue;
-            var parts = date.Split('|');
-            if (parts.Count() >= 4)
-                try
-                {
-                    if (gameSystem == "Wii U")
-                    {
-                        int number;
-                        if (!int.TryParse(parts[3], out number))
-                            number = ConvertMonthTextToNumber(parts[3]);
-                        return new DateTime(Convert.ToInt32(parts[2]), number, Convert.ToInt32(parts[4]));
-                    }
-                    else
-                    {
-                        int number;
-                        if (!int.TryParse(parts[2], out number))
-                            number = ConvertMonthTextToNumber(parts[2]);
-                        return new DateTime(Convert.ToInt32(parts[1]), number, Convert.ToInt32(parts[3]));
-                    }
-                }
-                catch
-                {
-                    return DateTime.MinValue;
-                }
-            return DateTime.MinValue;
-        }
-
-        private int ConvertMonthTextToNumber(string month)
-        {
-            month = month.ToUpper();
-
-            switch (month)
-            {
-                case "JANUARY":
-                    return 1;
-                case "FEBRUARY":
-                    return 2;
-                case "MARCH":
-                    return 3;
-                case "APRIL":
-                    return 4;
-                case "MAY":
-                    return 5;
-                case "JUNE":
-                    return 6;
-                case "JULY":
-                    return 7;
-                case "AUGUST":
-                    return 8;
-                case "SEPTEMBER":
-                    return 9;
-                case "OCTOBER":
-                    return 10;
-                case "NOVEMBER":
-                    return 11;
-                default:
-                    return 12;
-            }
-        }
-
-        public string TrimEndString(string value, string toTrim)
-        {
-            if (value.EndsWith(toTrim))
-            {
-                var startIndex = toTrim.Length;
-                return value.Substring(0, value.Length - startIndex);
-            }
-            return value;
-        }
-
         private IEnumerable<GameInfo> GetGameInfoBySystem(string gameSystem)
         {
             var gameSystemId = GetGameSystemId(gameSystem);
             return _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
         }
-
-        //private GameInfo GetGameInfo(int Id)
-        //{
-        //    return db.GameInfoes.SingleOrDefault(u => u.Id == Id);
-        //}
 
         private bool IsDuplicateGameInfo(GameInfo gameInfo)
         {
@@ -342,7 +249,7 @@ namespace VideoGameHash.Repositories
                 where tempDb.GamesId == gameInfo.GamesId && tempDb.GameSystemId == gameInfo.GameSystemId
                 select tempDb;
 
-            return temp != null && temp.Count() > 0;
+            return temp.Any();
         }
 
         public bool IgnoreThisGame(Games game)
@@ -351,7 +258,7 @@ namespace VideoGameHash.Repositories
                 where tempDb.GameTitle == game.GameTitle
                 select tempDb;
 
-            return temp != null && temp.Count() > 0;
+            return temp.Any();
         }
 
         public string GetGameSystemName(string name)
@@ -364,9 +271,14 @@ namespace VideoGameHash.Repositories
             return _db.Games;
         }
 
-        public List<string> GetTopGames(int count)
+        public List<string> GetTrendingGames(int count)
         {
             return _db.TrendingGames.OrderByDescending(x => x.ArticleHits).Take(10).Select(x => x.Game.GameTitle).ToList();
+        }
+
+        public List<string> GetPopularGames(int count)
+        {
+            return _db.PopularGames.OrderByDescending(x => x.ArticleHits).Take(10).Select(x => x.Game.GameTitle).ToList();
         }
 
         public bool IsDuplicateGame(Games game)
@@ -375,7 +287,7 @@ namespace VideoGameHash.Repositories
                 where game.GameTitle == tempGameItem.GameTitle
                 select tempGameItem;
 
-            return isDuplicate != null && isDuplicate.Count() > 0;
+            return isDuplicate.Any();
         }
 
         public void DeleteGame(int id)
@@ -405,7 +317,7 @@ namespace VideoGameHash.Repositories
             var isDuplate = from tempDb in _db.GameIgnores
                 where game.GameTitle == tempDb.GameTitle
                 select tempDb;
-            return isDuplate != null && isDuplate.Count() > 0;
+            return isDuplate.Any();
         }
 
         private void DeleteGameInfo(int id)
@@ -414,17 +326,6 @@ namespace VideoGameHash.Repositories
             foreach (var gameInfo in gameInfos)
                 _db.GameInfoes.DeleteObject(gameInfo);
             _db.SaveChanges();
-        }
-
-        private IEnumerable<GameInfo> GetGameInfoByGameId(int id)
-        {
-            return _db.GameInfoes.Where(u => u.GamesId == id);
-        }
-
-        private GameInfo GetGameInfo(int gameId, string gameSystem)
-        {
-            var gameSystemId = GetGameSystemId(gameSystem);
-            return _db.GameInfoes.SingleOrDefault(u => u.GamesId == gameId && u.GameSystemId == gameSystemId);
         }
 
         internal Dictionary<string, string> GetImages(int id, List<string> gameSystems)
@@ -454,7 +355,7 @@ namespace VideoGameHash.Repositories
             try
             {
                 var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId).Publisher;
+                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId).Publisher;
             }
             catch
             {
@@ -467,7 +368,7 @@ namespace VideoGameHash.Repositories
             try
             {
                 var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId).Developer;
+                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId).Developer;
             }
             catch
             {
@@ -480,7 +381,7 @@ namespace VideoGameHash.Repositories
             try
             {
                 var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId).Overview;
+                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId).Overview;
             }
             catch
             {
@@ -493,7 +394,7 @@ namespace VideoGameHash.Repositories
             try
             {
                 var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId)
+                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId)
                     .GamesDbNetId;
             }
             catch
@@ -507,7 +408,7 @@ namespace VideoGameHash.Repositories
             try
             {
                 var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId)
+                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId)
                     .USReleaseDate;
             }
             catch

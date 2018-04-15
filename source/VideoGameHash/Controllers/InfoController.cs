@@ -12,11 +12,13 @@ namespace VideoGameHash.Controllers
     {
         private readonly InfoRepository _infoRepository;
         private readonly GameSystemsRepository _gameSystemsRepository;
+        private readonly ErrorRepository _errorRepository;
 
-        public InfoController(InfoRepository infoRepository, GameSystemsRepository gameSystemsRepository)
+        public InfoController(InfoRepository infoRepository, GameSystemsRepository gameSystemsRepository, ErrorRepository errorRepository)
         {
             _infoRepository = infoRepository;
             _gameSystemsRepository = gameSystemsRepository;
+            _errorRepository = errorRepository;
         }
 
         public ActionResult Index()
@@ -232,6 +234,12 @@ namespace VideoGameHash.Controllers
             return RedirectToAction("Index");
         }
 
+        public ActionResult MakePopular()
+        {
+            _infoRepository.MakePopular();
+            return RedirectToAction("Index");
+        }
+
         public ActionResult DeleteInfoType(int id)
         {
             _infoRepository.DeleteInfoType(id);
@@ -298,6 +306,19 @@ namespace VideoGameHash.Controllers
             }
 
             return RedirectToAction("Index");
+        }
+
+        public ActionResult Errors()
+        {
+            var errorModel = new ErrorModel {ErrorMessages = _errorRepository.GetErrorMessages().ToList()};
+
+            return View(errorModel);
+        }
+
+        public ActionResult DeleteAllErrors()
+        {
+            _errorRepository.DeleteAllErrors();
+            return RedirectToAction("Manage", "Account");
         }
     }
 }
