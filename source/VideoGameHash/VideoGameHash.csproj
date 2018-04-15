@@ -224,7 +224,8 @@
     <Compile Include="Helpers\NewsHelper.cs" />
     <Compile Include="Helpers\RegexUtilities.cs" />
     <Compile Include="Models\AccountModels.cs" />
-    <Compile Include="Models\HighchartModels\LinechartModel.cs" />
+    <Compile Include="Models\HighchartModels\LineChartModel.cs" />
+    <Compile Include="Models\HighchartModels\PieChartModel.cs" />
     <Compile Include="Models\ImportModel.cs" />
     <Compile Include="Models\InfoModels.cs" />
     <Compile Include="Repositories\InfoRepository.cs" />
@@ -373,6 +374,7 @@
     <Content Include="Scripts\_references.js" />
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Charts\PieChartView.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

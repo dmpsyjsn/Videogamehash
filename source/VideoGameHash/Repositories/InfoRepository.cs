@@ -659,7 +659,7 @@ namespace VideoGameHash.Repositories
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var matchingArticles = _db.Articles.AsEnumerable().Where(d => searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content)).ToList();
+                var matchingArticles = _db.Articles.AsEnumerable().Where(d => d.DatePublished >= DateTime.Now.AddDays(-30) && (searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content))).ToList();
 
                 if (matchingArticles.Any())
                 {
@@ -674,11 +674,6 @@ namespace VideoGameHash.Repositories
             }
 
             _db.SaveChanges();
-        }
-
-        private string GetGameTitle(int gameId)
-        {
-            return _db.Games.SingleOrDefault(u => u.Id == gameId).GameTitle;
         }
 
         public string GetUrl(int sectionId, int sourceId, int gameSystemId)

@@ -301,13 +301,6 @@ $(function () {
         return false;
     });
 
-    $('header#vgh_master_header').on('mouseover', function () {
-        var nav_bar = document.getElementById('vgh_scroll_nav');
-        if (isElementInViewport(nav_bar) == false) {
-            $('#vgh_nav').fadeIn('fast');
-        }
-    });
-
     $('header#vgh_master_header').on('mouseleave', function () {
         if ($('#vgh_nav').is(':visible')) {
             $('#vgh_nav').fadeOut('fast');
@@ -421,17 +414,6 @@ $(function () {
         $('#info_actions').hide();
         $('#loading').fadeIn('slow');
     });
-
-    function isElementInViewport(el) {
-        var rect = el.getBoundingClientRect();
-
-        return (
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
-        rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
-        );
-    }
 
     $("#importDialog").dialog({
         autoOpen: false,

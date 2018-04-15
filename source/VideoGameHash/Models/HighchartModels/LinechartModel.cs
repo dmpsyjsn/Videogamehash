@@ -3,10 +3,16 @@ using Highsoft.Web.Mvc.Charts;
 
 namespace VideoGameHash.Models.HighchartModels
 {
-    public class LinechartModel
+    public class LineChartModel
     {
+        public LineChartModel()
+        {
+            Categories = new List<string>();
+            ChartSeries = new List<Series>();
+        }
+
         public List<string> Categories { get; set; }
-        public List<LineSeriesData> ChartData { get; set; }
+        public List<Series> ChartSeries { get; set; }
     }
 
     public enum LineChartTickRate

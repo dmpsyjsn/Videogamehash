@@ -10,9 +10,12 @@
     var link = string.Format("http://thegamesdb.net/game/{0}/", Model.GamesDbNetId);
 }
 
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+
 <h2>&nbsp;</h2>
 
- 
+
 <div class="col-xs-12">
     <h3 class="toolbox toolbox_header">@Model.Game.GameTitle</h3>
     <div class="col-xs-8" style="border-left: 1px solid #DDD; min-height: 370px; padding-top: 10px">
@@ -51,10 +54,10 @@
             </div>
         }
     </div>
-                
+
     <div class="col-xs-3 pull-right" style="border-right: 1px solid #DDD; padding-top: 10px; min-height: 370px">
         <img alt="" src="" id="gameImageSrc" style="height: 300px; width: 200px;" class="img-polaroid" />
-        <ul class="nav nav-pills" style="margin-top: 5px; margin-bottom: 5px; background: url('Content\Images\ajax-loader1.gif')">
+        <ul class="nav nav-pills" style="margin-top: 5px; margin-bottom: 5px;">
             @foreach (var gameSystem in Model.AvailableGameSystems)
             {
                 <li class="gameSystemListItem"><a class="game-details-systems" href="#" data-url="@Model.ImageLinks[gameSystem]">@gameSystem</a></li>
@@ -76,34 +79,27 @@
 
 <div class="row"></div>
 <div class="col-xs-12" style="min-height: 150px">
-    <!-- Nav tabs -->
-    <ul class="nav nav-tabs nav-justified">
-        <li class="nav-item">
-            <a class="nav-link active" data-toggle="tab" href="#panel1" role="tab">Metrics</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-toggle="tab" href="#panel2" role="tab">Articles</a>
-        </li>
-    </ul>
-    <!-- Tab panels -->
-    <div class="tab-content card">
-        <!--Panel 1-->
-        <div class="tab-pane fade in show active" id="panel1" role="tabpanel">
-            @Html.Action("GetGameInfometricsLineChart", "Charts", new { gameTitle = Model.Game.GameTitle})
+
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-1">Metrics</a></li>
+            <li><a href="#tabs-2">Articles</a></li>
+        </ul>
+        <div id="tabs-1">
+            @Html.Action("GetLineChart", "Charts", new { gameTitle = Model.Game.GameTitle })
+            <div class="row"></div>
+            @Html.Action("GetPieChart", "Charts", new { gameTitle = Model.Game.GameTitle })
         </div>
-        <!--/.Panel 1-->
-        <!--Panel 2-->
-        <div class="tab-pane fade" id="panel2" role="tabpanel">
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nihil odit magnam minima, soluta doloribus
-                reiciendis molestiae placeat unde eos molestias. Quisquam aperiam, pariatur. Tempora, placeat ratione
-                porro voluptate odit minima.</p>
+        <div id="tabs-2">
+            <p>Morbi tincidunt, dui sit amet facilisis feugiat, odio metus gravida ante, ut pharetra massa metus id nunc. Duis scelerisque molestie turpis. Sed fringilla, massa eget luctus malesuada, metus eros molestie lectus, ut tempus eros massa ut dolor. Aenean aliquet fringilla sem. Suspendisse sed ligula in ligula suscipit aliquam. Praesent in eros vestibulum mi adipiscing adipiscing. Morbi facilisis. Curabitur ornare consequat nunc. Aenean vel metus. Ut posuere viverra nulla. Aliquam erat volutpat. Pellentesque convallis. Maecenas feugiat, tellus pellentesque pretium posuere, felis lorem euismod felis, eu ornare leo nisi vel felis. Mauris consectetur tortor et purus.</p>
         </div>
-        <!--/.Panel 2-->
     </div>
 </div>
 
 <script type="text/javascript">
-    $(function() {
+    $(function () {
+        $("#tabs").tabs();
+
         var scrollBar = $('#scrollbar1');
 
         if (scrollBar.length > 0) {
@@ -121,7 +117,7 @@
             $(".gameSystemListItem").removeClass("active");
             var $url = $(this).data('url');
             $(this).closest("li").addClass("active");
-            $('#gameImageSrc').attr("src",$url);
+            $('#gameImageSrc').attr("src", $url);
         });
 
         $('a.game-details-systems:first').click();

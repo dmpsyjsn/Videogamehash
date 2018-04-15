@@ -1,0 +1,49 @@
+﻿@using Highsoft.Web.Mvc.Charts
+@using Chart = Highsoft.Web.Mvc.Charts.Chart
+
+@model VideoGameHash.Models.HighchartModels.PieChartModel
+
+@(Html.Highsoft().Highcharts(
+      new Highcharts
+      {
+          Chart = new Chart
+          {
+              PlotBackgroundColor = null,
+              PlotBorderWidth = null,
+              PlotShadow = new Shadow
+              {
+                  Enabled = false
+              }
+          },
+          Title = new Title
+          {
+              Text = "Articles by Source"
+          },
+          Tooltip = new Tooltip
+          {
+              PointFormat = "<b>{point.y}</b>"
+          },
+          PlotOptions = new PlotOptions
+          {
+              Pie = new PlotOptionsPie
+              {
+                  AllowPointSelect = true,
+                  Cursor = PlotOptionsPieCursor.Pointer,
+                  DataLabels = new PlotOptionsPieDataLabels
+                  {
+                      Enabled = true,
+                      Format = "<b>{point.name}</b>: {point.y}"
+                  }
+              }
+          },        
+          Series = new List<Series>
+          {                    
+              new PieSeries
+              {                    
+                  Data = Model.PieSeriesData
+              },
+                
+          }
+      }
+      , "chart1")
+      )

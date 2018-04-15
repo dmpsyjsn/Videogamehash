@@ -1,8 +1,5 @@
-﻿@*You need to add a reference to jQuery prior to referencing the highcharts javascript file*@
-<script src="http://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
-
-@model VideoGameHash.Models.HighchartModels.LinechartModel
+﻿
+@model VideoGameHash.Models.HighchartModels.LineChartModel
 
 @using Highsoft.Web.Mvc.Charts
 
@@ -11,12 +8,7 @@
                     {
                         Title = new Title
                         {
-                            Text = "Monthly Average Temperature",
-                            X = -20
-                        },
-                        Subtitle = new Subtitle
-                        {
-                            Text = "Source: WorldClimate.com",
+                            Text = "Articles",
                             X = -20
                         },
                         XAxis = new List<XAxis>
@@ -33,7 +25,7 @@
                             {
                                 Title = new YAxisTitle
                                 {
-                                    Text = ""
+                                    Text = "# of Articles"
                                 },
                                 PlotLines = new List<YAxisPlotLines>
                                 {
@@ -48,7 +40,7 @@
                         },
                         Tooltip = new Tooltip
                         {
-                            ValueSuffix = "°C"
+                            ValueSuffix = " articles"
                         },
                         Legend = new Legend
                         {
@@ -57,14 +49,7 @@
                             VerticalAlign = LegendVerticalAlign.Middle,
                             BorderWidth = 0
                         },
-                        Series = new List<Series>
-                        {
-                            new LineSeries
-                            {
-                            Name = "Tokyo",
-                            Data = Model.ChartData
-                            }
-                        }
+                        Series = Model.ChartSeries
                     }
                     , "chart")
 )

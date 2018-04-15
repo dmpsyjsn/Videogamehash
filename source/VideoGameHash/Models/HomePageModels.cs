@@ -57,17 +57,4 @@ namespace VideoGameHash.Models
         public string Title { get; set; }
         public int NumVotes { get; set; }
     }
-
-    public class PieChartModel
-    {
-        public string Type;
-        public string Name;
-        public List<PieChartSourceModel> Data;
-    }
-
-    public class PieChartSourceModel
-    {
-        public string Source;
-        public int NumStories;
-    }
 }

@@ -207,9 +207,9 @@ namespace VideoGameHash.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult GetArticles(int section)
+        public async Task<ActionResult> GetArticles(int section)
         {
-            _infoRepository.AddFeedItems(section);
+            await _infoRepository.AddFeedItems(section);
 
             return RedirectToAction("Index");
         }
