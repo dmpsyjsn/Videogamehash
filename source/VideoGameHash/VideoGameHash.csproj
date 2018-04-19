@@ -379,6 +379,7 @@
     <Content Include="Views\Charts\PieChartView.cshtml" />
     <Content Include="Views\Info\Errors.cshtml" />
     <Content Include="Views\Error\Index.cshtml" />
+    <Content Include="Views\Home\Article.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -426,7 +427,7 @@
     <Content Include="Views\Info\AddInfo.cshtml" />
     <Content Include="Views\Info\Index.cshtml" />
     <Content Include="Views\Info\AddUrl.cshtml" />
-    <Content Include="Views\Home\ViewArticles.cshtml" />
+    <Content Include="Views\Home\ArticleContainer.cshtml" />
     <Content Include="Views\Shared\EditorTemplates\InfoTypeSortOrder.cshtml" />
     <Content Include="Views\Info\InfoTypeList.cshtml" />
     <Content Include="Views\Info\InfoSourceList.cshtml" />

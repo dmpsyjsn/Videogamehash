@@ -16,6 +16,54 @@ namespace VideoGameHash.Models
         public List<Poll> Polls { get; set; }
     }
 
+    public class GetGameContainerQuery
+    {
+        public string GameTitle { get; set; }
+    }
+
+    public class GetGameArticlesQuery
+    {
+        public string GameTitle { get; set; }
+        public string Source { get; set; }
+        public string System { get; set; }
+        public int Page { get; set; }
+        public string View { get; set; }
+
+    }
+
+    public class GameArticlesHeaderModel
+    {
+        public GameArticlesHeaderModel()
+        {
+            Sources = new List<string>();
+            Systems = new List<string>();
+        }
+
+        public string GameTitle { get; set; }
+        public List<string> Sources { get; set; }
+        public List<string> Systems { get; set; }
+    }
+
+    public class GameArticlesViewModel
+    {
+        public GameArticlesViewModel()
+        {
+            Articles = new List<ArticleViewModel>();
+        }
+
+        public List<ArticleViewModel> Articles { get; set; }
+        public string View { get; set; }
+    }
+
+    public class ArticleViewModel
+    {
+        public string Title { get; set; }
+        public string DatePublished { get; set; }
+        public string Source { get; set; }
+        public string System { get; set; }
+        public string Link { get; set; }
+    }
+
     public class MainPageViewModel
     {
         public int Section { get; set; }

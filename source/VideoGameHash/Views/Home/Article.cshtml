@@ -1,0 +1,26 @@
+﻿@model VideoGameHash.Models.GameArticlesViewModel
+
+@if (Model.View == "List")
+{
+    <div class="row">
+        @foreach (var item in Model.Articles)
+        {
+            <div class="col-xs-12" style="margin-left:0">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="NewsItemWrapper">
+                            <div class="article_body_small" data-GameSystem="@item.System">
+                                <h4 class="NewsHeadline"><a href="@item.Link" target="_blank" title="Continue reading at @item.Source">@(new HtmlString(item.Title))</a></h4>
+                            </div>
+                            <div class="NewsItem">
+                                <div class="NewsItemText pull-right">
+                                    Continue article at <a href="@item.Link" target="_blank"><b>@item.Source</b></a>. Published on <b>@item.DatePublished</b>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

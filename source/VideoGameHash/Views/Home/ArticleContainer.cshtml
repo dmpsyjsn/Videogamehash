@@ -1,0 +1,76 @@
+﻿@model VideoGameHash.Models.GameArticlesHeaderModel
+
+<ul class="nav nav-pills">
+    @if (!Model.Sources.Contains("All"))
+    {
+        <li><button type="button" class="btn btn-info btn-xxs active infoselector">All</button></li>
+    }
+
+    @foreach (var source in Model.Sources)
+    {
+        if (source.Equals("All"))
+        {
+            <li><button type="button" class="btn btn-info btn-xxs active infoselector">@source</button></li>
+        }
+        <li><button type="button" class="btn btn-info btn-xxs infoselector">@source</button></li>
+    }
+</ul>
+
+<div class="row"></div>
+<div class="row" style="margin-top: 5px"></div>
+<ul class="nav nav-pills">
+    @if (!Model.Systems.Contains("All"))
+    {
+        <li><button type="button" class="btn btn-primary btn-xxs active systemselector">All</button></li>
+    }
+
+    @foreach (var gameSystem in Model.Systems)
+    {
+        if (gameSystem.Equals("All"))
+        {
+            <li><button type="button" class="btn btn-primary btn-xxs active systemselector">@gameSystem</button></li>
+        }
+        else
+        {
+            <li><button type="button" class="btn btn-primary btn-xxs systemselector">@gameSystem</button></li>
+        }
+
+    }
+    <li class="pull-right">
+        <button type="button" class="btn btn-xs pull-right" aria-label="Left Align">
+            <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
+        </button>
+    </li>
+    <li class="pull-right">
+        <button type="button" class="btn btn-xs pull-right" aria-label="Left Align">
+            <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+        </button>
+    </li>
+</ul>
+
+<div class="row" style="margin-top: 5px"></div>
+<div id="articlesContentContainer"></div>
+
+<script type="text/javascript">
+    $(function() {
+        $(".infoselector").click(function() {
+            $(".infoselector").removeClass("active");
+            $(this).addClass("active");
+        });
+
+        $(".systemselector").click(function() {
+            $(".systemselector").removeClass("active");
+            $(this).addClass("active");
+        });
+
+        $.get('/Home/GetGameArticles',
+            {
+                GameTitle: "@Model.GameTitle",
+                View: "List",
+                Page: 1
+            }).done(function(data) {
+            $("#articlesContentContainer").html(data);
+        });
+    });
+</script>
+

@@ -252,5 +252,42 @@ namespace VideoGameHash.Controllers
 
             return Json(pollVotes, JsonRequestBehavior.AllowGet);
         }
+
+        [HttpGet]
+        public ActionResult GetGameArticleContainer(GetGameContainerQuery query)
+        {
+            var articles = _infoRepository.GetGameArticles(query.GameTitle).ToList();
+            
+            var model = new GameArticlesHeaderModel
+            {
+                GameTitle = query.GameTitle,
+                Sources = articles.GroupBy(x => x.InfoSource).OrderBy(x => x.Key.InfoSourceSortOrder.SortOrder).Select(x => x.Key.InfoSourceName).ToList(),
+                Systems = articles.GroupBy(x => x.GameSystem).OrderBy(x => x.Key.GameSystemSortOrder.SortOrder).Select(x => x.Key.GameSystemName).ToList()
+            };
+
+            return PartialView("ArticleContainer", model);
+        }
+
+        [HttpGet]
+        public ActionResult GetGameArticles(GetGameArticlesQuery query)
+        {
+            var articles = _infoRepository.GetGameArticles(query.GameTitle).Skip(query.Page * 10).Take(10).ToList();
+
+            var model = new GameArticlesViewModel
+            {
+                Articles = articles.Select(x => new ArticleViewModel
+                {
+                    Title = x.Title,
+                    Source = x.InfoSource.InfoSourceName,
+                    DatePublished = x.DatePublished.ToShortDateString(),
+                    System = x.GameSystem.GameSystemName,
+                    Link = x.Link
+
+                }).ToList(),
+                View = query.View
+            };
+
+            return PartialView("Article", model);
+        }
     }
 }
