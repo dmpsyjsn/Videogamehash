@@ -3,16 +3,16 @@
 <ul class="nav nav-pills">
     @if (!Model.Sources.Contains("All"))
     {
-        <li><button type="button" class="btn btn-info btn-xxs active infoselector">All</button></li>
+        <li><button type="button" class="btn btn-info btn-xxs active infoselector" data-sourceval="All">All</button></li>
     }
 
     @foreach (var source in Model.Sources)
     {
         if (source.Equals("All"))
         {
-            <li><button type="button" class="btn btn-info btn-xxs active infoselector">@source</button></li>
+            <li><button type="button" class="btn btn-info btn-xxs active infoselector" data-sourceval="@source">@source</button></li>
         }
-        <li><button type="button" class="btn btn-info btn-xxs infoselector">@source</button></li>
+        <li><button type="button" class="btn btn-info btn-xxs infoselector" data-sourceval="@source">@source</button></li>
     }
 </ul>
 
@@ -37,12 +37,12 @@
 
     }
     <li class="pull-right">
-        <button type="button" class="btn btn-xs pull-right" aria-label="Left Align">
+        <button type="button" class="btn btn-xs pull-right viewselector" aria-label="Left Align" title="Grid View" data-viewval="Grid">
             <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
         </button>
     </li>
     <li class="pull-right">
-        <button type="button" class="btn btn-xs pull-right" aria-label="Left Align">
+        <button type="button" class="btn btn-xs pull-right active viewselector" aria-label="Left Align" title="List View" data-viewval="List">
             <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
         </button>
     </li>
@@ -50,26 +50,63 @@
 
 <div class="row" style="margin-top: 5px"></div>
 <div id="articlesContentContainer"></div>
+<div class="row"></div>
+
 
 <script type="text/javascript">
     $(function() {
+        $.get('/Home/GetGameArticles',
+            {
+                GameTitle: "@Model.GameTitle",
+                View: "List",
+                Source: "All",
+                System: "All",
+                Page: 1
+            }).done(function(data) {
+            $("#articlesContentContainer").html(data);
+        });
+
+        var reloadArticles = function(page) {
+
+            var source = $(".infoselector").closest(".active").data("sourceval");
+            var system = $(".systemselector").closest(".active").text();
+            var view = $(".viewselector").closest(".active").data("viewval");
+
+            $.get('/Home/GetGameArticles',
+                {
+                    GameTitle: "@Model.GameTitle",
+                    Source: source,
+                    System: system,
+                    View: view,
+                    Page: parseInt(page)
+                }).done(function(data) {
+                $("#articlesContentContainer").html(data);
+            });
+        };
+
         $(".infoselector").click(function() {
             $(".infoselector").removeClass("active");
             $(this).addClass("active");
+
+            reloadArticles("1");
         });
 
         $(".systemselector").click(function() {
             $(".systemselector").removeClass("active");
             $(this).addClass("active");
+
+            reloadArticles("1");
         });
 
-        $.get('/Home/GetGameArticles',
-            {
-                GameTitle: "@Model.GameTitle",
-                View: "List",
-                Page: 1
-            }).done(function(data) {
-            $("#articlesContentContainer").html(data);
+        $(".viewselector").click(function() {
+            $(".viewselector").removeClass("active");
+            $(this).addClass("active");
+
+            reloadArticles("1");
+        });
+
+        $('#articlesContentContainer').on('click', '.pageselector', function() {
+            reloadArticles($(this).data("pagenum"));
         });
     });
 </script>

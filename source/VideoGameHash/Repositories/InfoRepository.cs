@@ -284,26 +284,6 @@ namespace VideoGameHash.Repositories
             return _db.Articles.Where(u => u.InfoTypeId == section);
         }
 
-        public IQueryable<Articles> GetArticles(int section, int gameSystem)
-        {
-            return _db.Articles.Where(u => u.InfoTypeId == section && u.GameSystemId == gameSystem);
-        }
-
-        public IQueryable<Articles> GetArticles(int section, int source, int gameSystem)
-        {
-            if (source < 0 && gameSystem == GetGameSystemId("All"))
-                return GetArticles(section).OrderByDescending(d => d.DatePublished).Take(210);
-            else
-            {
-                if (source < 0)
-                    return GetArticles(section).Where(u => u.GameSystemId == gameSystem).OrderByDescending(u => u.DatePublished).Take(210);
-                else if (gameSystem == GetGameSystemId("All"))
-                    return GetArticles(section).Where(u => u.InfoSourceId == source).OrderByDescending(u => u.DatePublished).Take(210);
-                else
-                    return GetArticles(section).Where(u => u.InfoSourceId == source && u.GameSystemId == gameSystem).OrderByDescending(u => u.DatePublished).Take(210);
-            }
-        }
-
         public IQueryable<Articles> GetArticles(int section, int source, int gameSystem, string search)
         {
             if (source < 0 && gameSystem == GetGameSystemId("All"))
@@ -316,18 +296,6 @@ namespace VideoGameHash.Repositories
                     return GetArticles(section).Where(u => u.InfoSourceId == source && u.Title.Contains(search)).OrderByDescending(u => u.DatePublished).Take(210);
                 else
                     return GetArticles(section).Where(u => u.InfoSourceId == source && u.GameSystemId == gameSystem && u.Title.Contains(search)).OrderByDescending(u => u.DatePublished).Take(210);
-            }
-        }
-
-        public IEnumerable<Articles> GetGameArticles(int section, string gameTitle)
-        {
-            try
-            {
-                return _db.Articles.Where(u => u.InfoTypeId == section && u.Title.Contains(gameTitle)).GroupBy(u => u.Title).Select(u => u.FirstOrDefault()).OrderByDescending(u => u.DatePublished);
-            }
-            catch
-            {
-                return null;
             }
         }
 
@@ -346,13 +314,40 @@ namespace VideoGameHash.Repositories
             }
         }
 
-        public IEnumerable<Articles> GetGameArticles(string gameTitle)
+        public IEnumerable<Articles> GetGameArticles(string gameTitle, string source, string system)
         {
             try
             {
                 var searchTerm = new Regex($@"\b{gameTitle}\b", RegexOptions.IgnoreCase);
 
-                return _db.Articles.AsEnumerable().Where(u => searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content)).OrderByDescending(u => u.DatePublished);
+                if (source.Equals("All") && system.Equals("All"))
+                {
+                    return _db.Articles.AsEnumerable()
+                        .Where(u => searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content))
+                        .OrderByDescending(u => u.DatePublished);
+                }
+
+                if (source.Equals("All"))
+                {
+                    return _db.Articles.AsEnumerable()
+                        .Where(u => (searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content)) &&
+                                    u.GameSystem.GameSystemName.Equals(system))
+                        .OrderByDescending(u => u.DatePublished);
+                }
+                
+                if (system.Equals("All"))
+                {
+                    return _db.Articles.AsEnumerable()
+                        .Where(u => (searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content)) &&
+                                    u.InfoSource.InfoSourceName.Equals(source))
+                        .OrderByDescending(u => u.DatePublished);
+                }
+
+                return _db.Articles.AsEnumerable()
+                    .Where(u => (searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content)) &&
+                                u.InfoSource.InfoSourceName.Equals(source) &&
+                                u.GameSystem.GameSystemName.Equals(system))
+                    .OrderByDescending(u => u.DatePublished); 
             }
             catch
             {

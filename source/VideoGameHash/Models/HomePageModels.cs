@@ -42,6 +42,7 @@ namespace VideoGameHash.Models
         public string GameTitle { get; set; }
         public List<string> Sources { get; set; }
         public List<string> Systems { get; set; }
+
     }
 
     public class GameArticlesViewModel
@@ -51,8 +52,15 @@ namespace VideoGameHash.Models
             Articles = new List<ArticleViewModel>();
         }
 
+        public string GameTitle { get; set; }
         public List<ArticleViewModel> Articles { get; set; }
         public string View { get; set; }
+        
+        public bool ShowNextPage => Articles.Count >= PageMultiplier;
+        public bool ShowPrevPage { get; set; }
+        public int NextPage { get; set; }
+        public int PrevPage { get; set; }
+        public int PageMultiplier { get; set; }
     }
 
     public class ArticleViewModel

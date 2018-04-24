@@ -47,93 +47,7 @@ namespace VideoGameHash.Controllers
             return View();
         }
 
-        public ActionResult ViewArticlesN(int section, int gameSystem, string search, string viewType)
-        {
-            var model = new MainPageViewModel
-            {
-                GameSystemList = new List<string>(),
-                SourceList = new List<string>(),
-
-                Section = section,
-                Source = -1,
-                GameSystem = gameSystem,
-                Search = search,
-                ViewType = viewType ?? "List",  // TO DO: Get this from database
-                CurrentPage = 1
-            };
-
-            foreach (var system in _gameSystemsRepository.GetGameSystems())
-            {
-                if (system.GameSystemName == "All" || _infoRepository.GetNumSourceEntriesByGameSystem(section, system.Id) > 0)
-                    model.GameSystemList.Add(system.GameSystemName);
-            }
-
-            foreach (var source in _infoRepository.GetSources())
-            {
-                if (_infoRepository.GetNumEntriesBySectionAndSource(section, source.InfoSourceName) > 0)
-                    model.SourceList.Add(source.InfoSourceName);
-            }
-
-            return View("ViewArticles", model);
-        }
-
-        //
-        // GET: News
-        public ActionResult ViewArticles(int section, int source, int gameSystem, string search, string viewType)
-        {
-            var model = new MainPageViewModel
-            {
-                GameSystemList = new List<string>(),
-                SourceList = new List<string>()
-            };
-
-            if (source > 0 && _infoRepository.GetNumSourceEntriesByGameSystem(section, source, gameSystem) == 0)
-                gameSystem = _infoRepository.GetGameSystemId("All");
-
-            model.Section = section;
-            model.Source = source;
-            model.GameSystem = gameSystem;
-            model.Search = search;
-            model.ViewType = viewType ?? "List";  // TO DO: Get this from database
-
-            foreach (var system in _gameSystemsRepository.GetGameSystems())
-            {
-                if (system.GameSystemName == "All" || _infoRepository.GetNumSourceEntriesByGameSystem(section, source, system.Id) > 0)
-                    model.GameSystemList.Add(system.GameSystemName);
-            }
-
-            foreach (var src in _infoRepository.GetSources())
-            {
-                if (_infoRepository.GetNumEntriesBySectionAndSource(section, src.InfoSourceName) > 0)
-                    model.SourceList.Add(src.InfoSourceName);
-            }
-
-            return View(model);
-        }
-
-        //
-        // ChangeView
-        public ActionResult ChangeView(string viewType, int section, int gameSystem, int source)
-        {
-            if (source < 0)
-                return RedirectToAction("ViewArticlesN", new { Section = section, GameSystem = gameSystem, ViewType = viewType });
-            else
-                return RedirectToAction("ViewArticles", new { Section = section, Source = source, GameSystem = gameSystem, ViewType = viewType });
-        }
-
-        //
-        // POST: SearchNews
-        [HttpPost]
-        public ActionResult SearchArticles(string search, int section, int source, int gameSystem, string viewType)
-        {
-            if (search.Trim().Length == 0)
-                search = null;
-            if (source < 0)
-                return RedirectToAction("ViewArticlesN", new { Section = section, GameSystem = gameSystem, Search = search, ViewType = viewType });
-
-            return RedirectToAction("ViewArticles", new { Section = section, Source = source, GameSystem = gameSystem, Search = search, ViewType = viewType });
-        }
-
+ 
         public ActionResult GameDetails(string gameTitle)
         {
             if (string.IsNullOrEmpty(gameTitle))
@@ -165,68 +79,6 @@ namespace VideoGameHash.Controllers
         }
         
         [HttpPost]
-        public ActionResult GetLatestArticles(int section, int source, int gameSystem, bool small)
-        {
-            var entries = new List<QDFeedParser.BaseFeedItem>();
-
-            var url = _infoRepository.GetUrl(section, source, gameSystem);
-            var systemName = _infoRepository.GetGameSystemName(gameSystem);
-
-            var feedUri = new Uri(url);
-            QDFeedParser.IFeedFactory factory = new QDFeedParser.HttpFeedFactory();
-            var feed = factory.CreateFeed(feedUri);
-
-            var maxItems = small ? 5 : 10;
-
-            if (feed.Items.Any())
-            {
-                for (var j = 0; j < maxItems; j++)
-                {
-                    if (feed.Items.Count() < j)
-                        break;
-                    entries.Add(feed.Items[j]);
-                }
-            }
-
-            var model = new LatestInfoModels
-            {
-                Entries = entries,
-                Small = small
-            };
-            if (systemName == "All")
-                model.Source = $"Latest News from {_infoRepository.GetInfoSourceName(source)}";
-            else
-                model.Source = $"Latest {systemName} News from {_infoRepository.GetInfoSourceName(source)}";
-
-            return PartialView("LatestInfo", model);
-        }
-
-        public ActionResult GetArticles(int section, int source, int gameSystem, string search, string viewType, int articleIndex)
-        {
-            var model = new ArticleModel
-            {
-                Section = section,
-                Source = source,
-                GameSystem = gameSystem,
-                Search = search,
-                ViewType = viewType ?? "List"
-            };
-
-            const int pageSize = 9;
-
-            IQueryable<Articles> items;
-
-            if (!String.IsNullOrEmpty(search))
-                items = _infoRepository.GetArticles(section, source, gameSystem, search).Skip(articleIndex * pageSize).Take(pageSize);
-            else
-                items = _infoRepository.GetArticles(section, source, gameSystem).Skip(articleIndex * pageSize).Take(pageSize);
-
-            model.CurrentPage = items.ToPagedList(articleIndex, pageSize);
-
-            return PartialView(model);
-        }
-
-        [HttpPost]
         public ActionResult SearchGames(string search)
         {
             var list = _gamesRepository.SearchGameTitles(search).ToList();
@@ -256,13 +108,13 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public ActionResult GetGameArticleContainer(GetGameContainerQuery query)
         {
-            var articles = _infoRepository.GetGameArticles(query.GameTitle).ToList();
+            var articles = _infoRepository.GetGameArticles(query.GameTitle, "All", "All").ToList();
             
             var model = new GameArticlesHeaderModel
             {
                 GameTitle = query.GameTitle,
                 Sources = articles.GroupBy(x => x.InfoSource).OrderBy(x => x.Key.InfoSourceSortOrder.SortOrder).Select(x => x.Key.InfoSourceName).ToList(),
-                Systems = articles.GroupBy(x => x.GameSystem).OrderBy(x => x.Key.GameSystemSortOrder.SortOrder).Select(x => x.Key.GameSystemName).ToList()
+                Systems = articles.GroupBy(x => x.GameSystem).OrderBy(x => x.Key.GameSystemSortOrder.SortOrder).Select(x => x.Key.GameSystemName).ToList(),
             };
 
             return PartialView("ArticleContainer", model);
@@ -271,20 +123,25 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public ActionResult GetGameArticles(GetGameArticlesQuery query)
         {
-            var articles = _infoRepository.GetGameArticles(query.GameTitle).Skip(query.Page * 10).Take(10).ToList();
+            var articles = _infoRepository.GetGameArticles(query.GameTitle, query.Source, query.System).ToList();
+            var multiplier = query.View.Equals("List") ? 10 : 12;
 
             var model = new GameArticlesViewModel
             {
-                Articles = articles.Select(x => new ArticleViewModel
+                GameTitle = query.GameTitle,
+                Articles = articles.Skip((query.Page - 1) * multiplier).Take(multiplier).Select(x => new ArticleViewModel
                 {
                     Title = x.Title,
                     Source = x.InfoSource.InfoSourceName,
                     DatePublished = x.DatePublished.ToShortDateString(),
                     System = x.GameSystem.GameSystemName,
                     Link = x.Link
-
                 }).ToList(),
-                View = query.View
+                PageMultiplier = multiplier,
+                View = query.View,
+                ShowPrevPage = query.Page - 1 > 0,
+                NextPage = query.Page + 1,
+                PrevPage = query.Page - 1
             };
 
             return PartialView("Article", model);

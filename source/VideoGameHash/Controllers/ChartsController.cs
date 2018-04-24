@@ -24,7 +24,7 @@ namespace VideoGameHash.Controllers
             var model = new LineChartModel();
 
             // Retrieve the relevant articles
-            var gameArticles = _infoRepository.GetGameArticles(gameTitle).Where(x => InTimeRange(x.DatePublished, range)).OrderBy(x => x.DatePublished).ToList();
+            var gameArticles = _infoRepository.GetGameArticles(gameTitle, "All", "All").Where(x => InTimeRange(x.DatePublished, range)).OrderBy(x => x.DatePublished).ToList();
 
             if (!gameArticles.Any()) return PartialView("LineChartView", model);
 
@@ -111,7 +111,7 @@ namespace VideoGameHash.Controllers
             var model = new PieChartModel();
 
             // Retrieve the relevant articles
-            var gameArticles = _infoRepository.GetGameArticles(gameTitle).OrderBy(x => x.DatePublished).ToList();
+            var gameArticles = _infoRepository.GetGameArticles(gameTitle, "All", "All").OrderBy(x => x.DatePublished).ToList();
 
             if (!gameArticles.Any()) return PartialView("PieChartView", model);
 

@@ -24,3 +24,47 @@
         }
     </div>
 }
+else // ViewType == Grid
+{
+    <div class="row" style="margin-left: 0px; padding-left: 0px">
+        <div class="col-xs-12" style="margin-left: 0px; padding-left: 0px">
+            <ul class="thumbnails" style="margin-left: 0px; padding-left: 0px">
+                @foreach (var item in Model.Articles)
+                {
+                    var classMasterName = "thumbnail-master";
+                    var className = "thumbnail thumbnail_extra";
+
+                    className += " thumbnail_small";
+
+                    <li class="col-xs-4" style="list-style: none">
+                        <div class="@classMasterName">
+                            <div class="@className gradient" data-GameSystem="@item.Source">
+                                <div class="thumbnailheaderleft">@(new HtmlString(item.System))</div>
+                                <div class="gridcontent">
+                                    <div class="caption">
+                                        <h5 class="NewsHeadline"><a href="@item.Link" target="_blank" title="Continue reading at @item.Source">@(new HtmlString(item.Title))</a></h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="NewsItemThumb"><a href="@item.Link" target="_blank" title="Published on @item.DatePublished"><b>@item.Source</b></a></div>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@if (Model.ShowPrevPage)
+{
+    <button data-pagenum="@Model.PrevPage" type="button" class="btn btn-xs pull-left pageselector" aria-label="Left Align">
+        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+    </button>
+}
+
+@if (Model.ShowNextPage)
+{
+    <button data-pagenum="@Model.NextPage" type="button" class="btn btn-xs pull-right pageselector" aria-label="Right Align">
+        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    </button>
+}
