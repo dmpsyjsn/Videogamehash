@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
-using PagedList;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -10,17 +8,14 @@ namespace VideoGameHash.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly InfoRepository _infoRepository;
-        private readonly GameSystemsRepository _gameSystemsRepository;
         private readonly GamesRepository _gamesRepository;
-        private readonly ErrorRepository _errorRepository;
+        private readonly InfoRepository _infoRepository;
 
-        public HomeController(InfoRepository infoRepository, GameSystemsRepository gameSystemsRepository, GamesRepository gamesRepository, ErrorRepository errorRepository)
+        public HomeController(InfoRepository infoRepository,
+            GamesRepository gamesRepository)
         {
             _infoRepository = infoRepository;
-            _gameSystemsRepository = gameSystemsRepository;
             _gamesRepository = gamesRepository;
-            _errorRepository = errorRepository;
         }
 
         public ActionResult Index()
@@ -33,7 +28,7 @@ namespace VideoGameHash.Controllers
                 TrendingGames = _gamesRepository.GetTrendingGames(10),
                 PopularGames = _gamesRepository.GetPopularGames(10)
             };
-            
+
             return View(model);
         }
 
@@ -47,7 +42,7 @@ namespace VideoGameHash.Controllers
             return View();
         }
 
- 
+
         public ActionResult GameDetails(string gameTitle)
         {
             if (string.IsNullOrEmpty(gameTitle))
@@ -65,7 +60,7 @@ namespace VideoGameHash.Controllers
             };
 
             var currentGameSystem = model.AvailableGameSystems[0];
-           
+
             model.UseInfoMetrics = true;
             model.ImageLinks = _gamesRepository.GetImages(game.Id, model.AvailableGameSystems);
             model.Publisher = _gamesRepository.GetPublisher(game.Id, currentGameSystem);
@@ -77,7 +72,7 @@ namespace VideoGameHash.Controllers
 
             return View("GameDetails", model);
         }
-        
+
         [HttpPost]
         public ActionResult SearchGames(string search)
         {
@@ -108,13 +103,15 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public ActionResult GetGameArticleContainer(GetGameContainerQuery query)
         {
-            var articles = _infoRepository.GetGameArticles(query.GameTitle, "All", "All").ToList();
-            
+            var game = _gamesRepository.GetGame(query.GameTitle);
+            var articles = _infoRepository.GetGameArticles(game, "All", "All").ToList();
+
             var model = new GameArticlesHeaderModel
             {
                 GameTitle = query.GameTitle,
-                Sources = articles.GroupBy(x => x.InfoSource).OrderBy(x => x.Key.InfoSourceSortOrder.SortOrder).Select(x => x.Key.InfoSourceName).ToList(),
-                Systems = articles.GroupBy(x => x.GameSystem).OrderBy(x => x.Key.GameSystemSortOrder.SortOrder).Select(x => x.Key.GameSystemName).ToList(),
+                Sources = articles.GroupBy(x => x.InfoSource).OrderBy(x => x.Key.InfoSourceSortOrder.SortOrder)
+                    .Select(x => x.Key.InfoSourceName).ToList(),
+                Systems = game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Distinct().ToList()
             };
 
             return PartialView("ArticleContainer", model);
@@ -123,20 +120,22 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public ActionResult GetGameArticles(GetGameArticlesQuery query)
         {
-            var articles = _infoRepository.GetGameArticles(query.GameTitle, query.Source, query.System).ToList();
+            var game = _gamesRepository.GetGame(query.GameTitle);
+            var articles = _infoRepository.GetGameArticles(game, query.Source, query.System).ToList();
             var multiplier = query.View.Equals("List") ? 10 : 12;
 
             var model = new GameArticlesViewModel
             {
                 GameTitle = query.GameTitle,
-                Articles = articles.Skip((query.Page - 1) * multiplier).Take(multiplier).Select(x => new ArticleViewModel
-                {
-                    Title = x.Title,
-                    Source = x.InfoSource.InfoSourceName,
-                    DatePublished = x.DatePublished.ToShortDateString(),
-                    System = x.GameSystem.GameSystemName,
-                    Link = x.Link
-                }).ToList(),
+                Articles = articles.Skip((query.Page - 1) * multiplier).Take(multiplier).Select(x =>
+                    new ArticleViewModel
+                    {
+                        Title = x.Title,
+                        Source = x.InfoSource.InfoSourceName,
+                        DatePublished = x.DatePublished.ToShortDateString(),
+                        System = x.GameSystem.GameSystemName,
+                        Link = x.Link
+                    }).ToList(),
                 PageMultiplier = multiplier,
                 View = query.View,
                 ShowPrevPage = query.Page - 1 > 0,

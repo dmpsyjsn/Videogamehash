@@ -209,13 +209,6 @@ namespace VideoGameHash.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task<ActionResult> GetArticles(int section)
-        {
-            await _infoRepository.AddFeedItems(section);
-
-            return RedirectToAction("Index");
-        }
-
         public async Task<ActionResult> GetAllArticles()
         {
             await _infoRepository.AddFeedItems();
@@ -319,6 +312,13 @@ namespace VideoGameHash.Controllers
         {
             _errorRepository.DeleteAllErrors();
             return RedirectToAction("Manage", "Account");
+        }
+
+        public ActionResult ReplaceGameSystemNamedAll()
+        {
+            _infoRepository.ReplaceGameSystemAll();
+
+            return RedirectToAction("Index");
         }
     }
 }

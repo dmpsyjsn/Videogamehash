@@ -87,16 +87,6 @@ namespace VideoGameHash.Repositories
             return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem)?.Id ?? -1;
         }
 
-        public bool ContainsEntries(string gameTitle)
-        {
-            return _infoRepository.ContainsArticles(gameTitle);
-        }
-
-        public bool ContainsEntries(string gameTitle, string gameSystem)
-        {
-            return _infoRepository.ContainsArticles(gameTitle, gameSystem);
-        }
-
         public string GetPlatform(string gameSystem)
         {
             if (gameSystem == "Xbox 360")
@@ -306,6 +296,16 @@ namespace VideoGameHash.Repositories
 
                 // Delete from GameInfo first
                 DeleteGameInfo(game.Id);
+
+                // Delete from Trending Games
+                var trendingGame = _db.TrendingGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
+                if (trendingGame != null)
+                    _db.TrendingGames.DeleteObject(trendingGame);
+
+                // Delete from all time games list
+                var allTimeGame = _db.PopularGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
+                if (allTimeGame != null)
+                    _db.PopularGames.DeleteObject(allTimeGame);
 
                 _db.Games.DeleteObject(game);
                 _db.SaveChanges();
