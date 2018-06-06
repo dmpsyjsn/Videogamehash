@@ -51,16 +51,17 @@
 @*POLL SECTION////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*@
 <div class="col-xs-12">
     <div class="row"></div>
-        <div class="main_page featured_section">
-            <h3>Poll</h3>
-        </div>
-        @foreach (var item in Model.Polls)
-        {
-            var className = "radio_class" + item.Id;
-            var fieldIdName = "field_Id_" + item.Id;
-            var radio_div_id = "radio_div_id_" + item.Id;
-            var chartId = "chart_Id_" + item.Id;
-            var pollBoxHeight = String.Format("{0}px", item.PollAnswers.Count() * 12 + 150);
+    <div class="main_page featured_section">
+        <h3>Polls</h3>
+    </div>
+    @foreach (var item in Model.Polls)
+    {
+        var className = "radio_class" + item.Id;
+        var fieldIdName = "field_Id_" + item.Id;
+        var radio_div_id = "radio_div_id_" + item.Id;
+        var chartId = "chart_Id_" + item.Id;
+        var pollBoxHeight = String.Format("{0}px", item.PollAnswers.Count() * 12 + 150);
+        <div class="col-xs-4">
             <div class="toolbox toolbox_bottom_space" style="height: @pollBoxHeight">
                 <h6 class="toolbox_header">@item.Title</h6>
                 <div id="@radio_div_id" class="toolbox_info">
@@ -71,12 +72,13 @@
                         }
                     </ol>
                     <p>
-                        <input type="submit" class="btn inactive poll_button" value="Vote" data-url="@Url.Action("SubmitPollVote", new { PollId = item.Id })" data-fieldid="@fieldIdName" data-chartid="@chartId" data-radiodivid="@radio_div_id"/>
+                        <input type="submit" class="btn inactive poll_button" value="Vote" data-url="@Url.Action("SubmitPollVote", new { PollId = item.Id })" data-fieldid="@fieldIdName" data-chartid="@chartId" data-radiodivid="@radio_div_id" />
                     </p>
                 </div>
                 <div id="@chartId" style="width:95%"></div>
             </div>
-        }
+        </div>
+    }
 </div>
 
     

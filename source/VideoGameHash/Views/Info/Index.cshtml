@@ -40,7 +40,7 @@
             <ul>
             @foreach (var item in Model.Polls)
             {
-                @*<li>@item.Title (@Html.ActionLink("Edit", "EditPoll", new { id = item.Id }) @Html.ActionLink("Delete", "DeletePoll", new { id = item.Id }))</li>*@
+                <li>@item.Title (@Html.ActionLink("Edit", "EditPoll", new { id = item.Id }) @Html.ActionLink("Delete", "DeletePoll", new { id = item.Id }))</li>
             }
             </ul>
             <ul>

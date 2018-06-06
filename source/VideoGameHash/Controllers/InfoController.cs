@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -256,6 +257,28 @@ namespace VideoGameHash.Controllers
         public ActionResult AddPoll(AddPollModel model)
         {
             _infoRepository.AddPoll(model);
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public ActionResult EditPoll(int id)
+        {
+            var poll = _infoRepository.GetPoll(id);
+
+            var model =  new EditPollModel
+            {
+                Id = poll.Id,
+                Title = poll.Title,
+                Answers = string.Join(Environment.NewLine, poll.PollAnswers.Select(x => x.Answer).ToList())
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult EditPoll(EditPollModel model)
+        {
+            _infoRepository.EditPoll(model);
             return RedirectToAction("Index");
         }
 

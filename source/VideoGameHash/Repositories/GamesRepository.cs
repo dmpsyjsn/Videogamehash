@@ -16,40 +16,15 @@ namespace VideoGameHash.Repositories
     public class GamesRepository
     {
         private readonly VGHDatabaseContainer _db;
-        private readonly InfoRepository _infoRepository;
 
-        public GamesRepository(VGHDatabaseContainer db, InfoRepository infoRepository)
+        public GamesRepository(VGHDatabaseContainer db)
         {
             _db = db;
-            _infoRepository = infoRepository;
         }
 
         public IEnumerable<Games> GetGames()
         {
             return _db.Games.OrderBy(u => u.GameTitle);
-        }
-
-        public IEnumerable<Games> GetSortedGames()
-        {
-            return _db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle);
-        }
-
-        public IEnumerable<Games> GetSortedGamesByLetter(char letter)
-        {
-            var returnedList = new List<Games>();
-            returnedList.AddRange(letter == '0'
-                ? _db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle)
-                    .Where(game => game.GameTitle[0] >= '0' && game.GameTitle[0] <= '9')
-                : _db.Games.Where(u => u.GameInfoes.Count > 0).OrderBy(u => u.GameTitle)
-                    .Where(x => x.GameTitle[0] == letter));
-
-            return returnedList.AsEnumerable();
-        }
-
-        public IEnumerable<Games> SearchGames(string search)
-        {
-            return _db.Games.Where(u => u.GameInfoes.Count > 0 && u.GameTitle.Contains(search)).Take(20)
-                .OrderBy(u => u.GameTitle);
         }
 
         public IEnumerable<string> SearchGameTitles(string search)
@@ -101,22 +76,6 @@ namespace VideoGameHash.Repositories
                 gameSystem = "Sony+Playstation+4";
             else if (gameSystem == "Switch")
                 gameSystem = "Nintendo+Switch";
-
-            return gameSystem;
-        }
-
-        public string GetWikipediaPlatform(string gameSystem)
-        {
-            if (gameSystem == "Xbox 360")
-                gameSystem = "List of Xbox 360 games";
-            else if (gameSystem == "Xbox One")
-                gameSystem = "List of Xbox One games";
-            else if (gameSystem == "Wii U")
-                gameSystem = "List of Wii U games";
-            else if (gameSystem == "PS3")
-                gameSystem = "List of PlayStation 3 games";
-            else if (gameSystem == "PS4")
-                gameSystem = "List_of_PlayStation_4_games";
 
             return gameSystem;
         }
@@ -244,16 +203,7 @@ namespace VideoGameHash.Repositories
 
         public bool IgnoreThisGame(Games game)
         {
-            var temp = from tempDb in _db.GameIgnores
-                where tempDb.GameTitle == game.GameTitle
-                select tempDb;
-
-            return temp.Any();
-        }
-
-        public string GetGameSystemName(string name)
-        {
-            return name;
+            return _db.GameIgnores.Any(x => x.GameTitle.Equals(game.GameTitle, StringComparison.OrdinalIgnoreCase));
         }
 
         public IQueryable<Games> GetGamesQuery()
@@ -314,10 +264,7 @@ namespace VideoGameHash.Repositories
 
         private bool IsDuplicateIgnoredGame(Games game)
         {
-            var isDuplate = from tempDb in _db.GameIgnores
-                where game.GameTitle == tempDb.GameTitle
-                select tempDb;
-            return isDuplate.Any();
+            return _db.GameIgnores.Any(x => x.GameTitle.Equals(game.GameTitle, StringComparison.OrdinalIgnoreCase));
         }
 
         private void DeleteGameInfo(int id)

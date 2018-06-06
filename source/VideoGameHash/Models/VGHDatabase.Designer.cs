@@ -9,10 +9,8 @@
 
 using System;
 using System.ComponentModel;
-using System.Data.EntityClient;
 using System.Data.Objects;
 using System.Data.Objects.DataClasses;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
 
@@ -41,13 +39,13 @@ using System.Xml.Serialization;
 namespace VideoGameHash.Models
 {
     #region Contexts
-    
+
     /// <summary>
     /// No Metadata Documentation available.
     /// </summary>
     public partial class VGHDatabaseContainer : ObjectContext
     {
-        #region Constructors
+        #region Constructor
     
         /// <summary>
         /// Initializes a new VGHDatabaseContainer object using the connection string found in the 'VGHDatabaseContainer' section of the application configuration file.
@@ -3167,11 +3165,13 @@ namespace VideoGameHash.Models
         /// </summary>
         /// <param name="id">Initial value of the Id property.</param>
         /// <param name="title">Initial value of the Title property.</param>
-        public static Poll CreatePoll(global::System.Int32 id, global::System.String title)
+        /// <param name="dateCreated">Initial value of the DateCreated property.</param>
+        public static Poll CreatePoll(global::System.Int32 id, global::System.String title, global::System.DateTime dateCreated)
         {
             Poll poll = new Poll();
             poll.Id = id;
             poll.Title = title;
+            poll.DateCreated = dateCreated;
             return poll;
         }
 
@@ -3229,6 +3229,30 @@ namespace VideoGameHash.Models
         private global::System.String _Title;
         partial void OnTitleChanging(global::System.String value);
         partial void OnTitleChanged();
+    
+        /// <summary>
+        /// No Metadata Documentation available.
+        /// </summary>
+        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
+        [DataMemberAttribute()]
+        public global::System.DateTime DateCreated
+        {
+            get
+            {
+                return _DateCreated;
+            }
+            set
+            {
+                OnDateCreatedChanging(value);
+                ReportPropertyChanging("DateCreated");
+                _DateCreated = StructuralObject.SetValidValue(value, "DateCreated");
+                ReportPropertyChanged("DateCreated");
+                OnDateCreatedChanged();
+            }
+        }
+        private global::System.DateTime _DateCreated;
+        partial void OnDateCreatedChanging(global::System.DateTime value);
+        partial void OnDateCreatedChanged();
 
         #endregion
 

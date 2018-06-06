@@ -43,6 +43,13 @@ namespace VideoGameHash.Models
         public string Answers { get; set; }
     }
 
+    public class EditPollModel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Answers { get; set; }
+    }
+
     public class AddUrlViewModel
     {
         public AddUrlModel Model { get; }

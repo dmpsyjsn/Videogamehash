@@ -2,7 +2,7 @@
 -- --------------------------------------------------
 -- Entity Designer DDL Script for SQL Server 2005, 2008, 2012 and Azure
 -- --------------------------------------------------
--- Date Created: 04/14/2018 19:32:48
+-- Date Created: 06/05/2018 21:05:17
 -- Generated from EDMX file: C:\Projects\Videogamehash\source\VideoGameHash\Models\VGHDatabase.edmx
 -- --------------------------------------------------
 
@@ -62,6 +62,9 @@ GO
 IF OBJECT_ID(N'[dbo].[FK_GamesTrendingGames]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[TrendingGames] DROP CONSTRAINT [FK_GamesTrendingGames];
 GO
+IF OBJECT_ID(N'[dbo].[FK_GamesPopularGames]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[PopularGames] DROP CONSTRAINT [FK_GamesPopularGames];
+GO
 
 -- --------------------------------------------------
 -- Dropping existing tables
@@ -120,6 +123,12 @@ IF OBJECT_ID(N'[dbo].[PollAnswers]', 'U') IS NOT NULL
 GO
 IF OBJECT_ID(N'[dbo].[TrendingGames]', 'U') IS NOT NULL
     DROP TABLE [dbo].[TrendingGames];
+GO
+IF OBJECT_ID(N'[dbo].[PopularGames]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[PopularGames];
+GO
+IF OBJECT_ID(N'[dbo].[Errors]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[Errors];
 GO
 
 -- --------------------------------------------------
@@ -267,7 +276,8 @@ GO
 -- Creating table 'Polls'
 CREATE TABLE [dbo].[Polls] (
     [Id] int IDENTITY(1,1) NOT NULL,
-    [Title] nvarchar(max)  NOT NULL
+    [Title] nvarchar(max)  NOT NULL,
+    [DateCreated] datetime  NOT NULL
 );
 GO
 

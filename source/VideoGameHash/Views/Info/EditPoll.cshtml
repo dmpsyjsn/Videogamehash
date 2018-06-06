@@ -1,15 +1,16 @@
-﻿@model VideoGameHash.Models.AddPollModel
+﻿@model VideoGameHash.Models.EditPollModel
 
 @{
-    ViewBag.Title = "Add Poll";
+    ViewBag.Title = "Edit Poll";
 }
 
-<h2>Add Poll</h2>
+<h2>Edit Poll</h2>
 
 @using (Html.BeginForm())
 {
     @Html.ValidationSummary(true)
 
+    @Html.HiddenFor(x => x.Id)
     <fieldset>
         <legend>Add Poll</legend>
         <div class="editor-label">
