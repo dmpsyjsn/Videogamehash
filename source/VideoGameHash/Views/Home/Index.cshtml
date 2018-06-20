@@ -1,7 +1,5 @@
 ﻿@model VideoGameHash.Models.HomePageModel
-@using System
 @using System.Linq
-@using VideoGameHash.Helpers;
 
 @{
     ViewBag.Title = "Home Page";
@@ -31,7 +29,7 @@
         <ul>
             @foreach (var item in Model.TrendingGames)
             {
-                <li>@Html.ActionLink(@item, "GameDetails", new {gameTitle=item})</li>
+                <li>@Html.ActionLink(@item.Value, "GameDetails", new {id=item.Key})</li>
             }
         </ul>
 </div>
@@ -43,7 +41,7 @@
         <ul>
             @foreach (var item in Model.PopularGames)
             {
-                <li>@Html.ActionLink(@item, "GameDetails", new { gameTitle = item })</li>
+                <li>@Html.ActionLink(@item.Value, "GameDetails", new { id = item.Key })</li>
             }
         </ul>
 </div>

@@ -211,14 +211,14 @@ namespace VideoGameHash.Repositories
             return _db.Games;
         }
 
-        public List<string> GetTrendingGames(int count)
+        public List<KeyValuePair<int, string>> GetTrendingGames(int count)
         {
-            return _db.TrendingGames.OrderByDescending(x => x.ArticleHits).Take(10).Select(x => x.Game.GameTitle).ToList();
+            return _db.TrendingGames.OrderByDescending(x => x.ArticleHits).Take(10).AsEnumerable().Select(x => new KeyValuePair<int, string>(x.Game.Id, x.Game.GameTitle)).ToList();
         }
 
-        public List<string> GetPopularGames(int count)
+        public List<KeyValuePair<int, string>> GetPopularGames(int count)
         {
-            return _db.PopularGames.OrderByDescending(x => x.ArticleHits).Take(10).Select(x => x.Game.GameTitle).ToList();
+            return _db.PopularGames.OrderByDescending(x => x.ArticleHits).Take(10).AsEnumerable().Select(x => new KeyValuePair<int, string>(x.Game.Id, x.Game.GameTitle)).ToList();
         }
 
         public bool IsDuplicateGame(Games game)

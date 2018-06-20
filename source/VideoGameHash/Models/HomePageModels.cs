@@ -7,12 +7,13 @@ namespace VideoGameHash.Models
     {
         public HomePageModel()
         {
-            TrendingGames = new List<string>();
+            TrendingGames = new List<KeyValuePair<int, string>>();
+            PopularGames = new List<KeyValuePair<int, string>>();
             Polls = new List<Poll>();
         }
 
-        public List<string> TrendingGames { get; set; }
-        public List<string> PopularGames { get; set; }
+        public List<KeyValuePair<int, string>> TrendingGames { get; set; }
+        public List<KeyValuePair<int, string>> PopularGames { get; set; }
         public List<Poll> Polls { get; set; }
     }
 
@@ -72,24 +73,10 @@ namespace VideoGameHash.Models
         public string Link { get; set; }
     }
 
-    public class MainPageViewModel
-    {
-        public int Section { get; set; }
-        public int Source { get; set; }
-        public int GameSystem { get; set; }
-        public string Search { get; set; }
-        public string ViewType { get; set; }
-        public int CurrentPage { get; set; }
-        public List<string> SourceList { get; set; }
-        public List<string> GameSystemList { get; set; }
-    }
-
     public class ArticleModel
     {
         public int Section { get; set; }
         public int Source { get; set; }
-        public int GameSystem { get; set; }
-        public string Search { get; set; }
         public string ViewType { get; set; }
 
         public IPagedList<Articles> CurrentPage { get; set; }

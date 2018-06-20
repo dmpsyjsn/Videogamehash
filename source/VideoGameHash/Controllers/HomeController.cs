@@ -43,12 +43,12 @@ namespace VideoGameHash.Controllers
         }
 
 
-        public ActionResult GameDetails(string gameTitle)
+        public ActionResult GameDetails(int id)
         {
-            if (string.IsNullOrEmpty(gameTitle))
+            if (id < 0)
                 return RedirectToAction("Index");
 
-            var game = _gamesRepository.GetGame(gameTitle);
+            var game = _gamesRepository.GetGame(id);
 
             if (game == null)
                 return RedirectToAction("Index");
