@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CodeHollow.FeedReader;
@@ -27,18 +26,6 @@ namespace VideoGameHash.Repositories
         public InfoType GetInfoType(int id)
         {
             return _db.InfoTypes.SingleOrDefault(u => u.Id == id);
-        }
-
-        public string GetInfoTypeName(int id)
-        {
-            try
-            {
-                return _db.InfoTypes.SingleOrDefault(u => u.Id == id)?.InfoTypeName ?? string.Empty;
-            }
-            catch
-            {
-                return string.Empty;
-            }
         }
 
         public InfoType GetInfoType(string name)
@@ -254,7 +241,7 @@ namespace VideoGameHash.Repositories
                 if (source.Equals("All") && system.Equals("All"))
                 {
                     return _db.Articles.AsEnumerable()
-                        .Where(u => (searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content)) && 
+                        .Where(u => searchTerm.IsMatch(u.Title) && 
                                     game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Contains(u.GameSystem.GameSystemName))
                         .OrderByDescending(u => u.DatePublished);
                 }
@@ -262,7 +249,7 @@ namespace VideoGameHash.Repositories
                 if (source.Equals("All"))
                 {
                     return _db.Articles.AsEnumerable()
-                        .Where(u => (searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content)) &&
+                        .Where(u => searchTerm.IsMatch(u.Title) &&
                                     u.GameSystem.GameSystemName.Equals(system))
                         .OrderByDescending(u => u.DatePublished);
                 }
@@ -270,13 +257,13 @@ namespace VideoGameHash.Repositories
                 if (system.Equals("All"))
                 {
                     return _db.Articles.AsEnumerable()
-                        .Where(u => (searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content)) &&
+                        .Where(u => searchTerm.IsMatch(u.Title) &&
                                     u.InfoSource.InfoSourceName.Equals(source) && game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Contains(u.GameSystem.GameSystemName))
                         .OrderByDescending(u => u.DatePublished);
                 }
 
                 return _db.Articles.AsEnumerable()
-                    .Where(u => (searchTerm.IsMatch(u.Title) || searchTerm.IsMatch(u.Content)) &&
+                    .Where(u => searchTerm.IsMatch(u.Title) &&
                                 u.InfoSource.InfoSourceName.Equals(source) &&
                                 u.GameSystem.GameSystemName.Equals(system))
                     .OrderByDescending(u => u.DatePublished); 
@@ -507,7 +494,7 @@ namespace VideoGameHash.Repositories
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var matchingArticles = _db.Articles.AsEnumerable().Where(d => d.DatePublished >= DateTime.Now.AddDays(-7) && (searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content))).ToList();
+                var matchingArticles = _db.Articles.AsEnumerable().Where(d => d.DatePublished >= DateTime.Now.AddDays(-7) && searchTerm.IsMatch(d.Title)).ToList();
 
                 if (!matchingArticles.Any()) continue;
 
@@ -540,7 +527,7 @@ namespace VideoGameHash.Repositories
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var matchingArticles = _db.Articles.AsEnumerable().Where(d => searchTerm.IsMatch(d.Title) || searchTerm.IsMatch(d.Content)).ToList();
+                var matchingArticles = _db.Articles.AsEnumerable().Where(d => searchTerm.IsMatch(d.Title)).ToList();
 
                 if (!matchingArticles.Any()) continue;
 
@@ -739,7 +726,7 @@ namespace VideoGameHash.Repositories
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var articles = _db.Articles.AsEnumerable().Where(x => (searchTerm.IsMatch(x.Title) || searchTerm.IsMatch(x.Content)) && x.GameSystem.GameSystemName.Equals("All")).ToList();
+                var articles = _db.Articles.AsEnumerable().Where(x => searchTerm.IsMatch(x.Title) && x.GameSystem.GameSystemName.Equals("All")).ToList();
 
                 foreach (var article in articles)
                 {
