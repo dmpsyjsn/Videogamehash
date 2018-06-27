@@ -334,7 +334,6 @@ namespace VideoGameHash.Repositories
                                     InfoTypeId = rssUrl.InfoTypeId,
                                     InfoSourceId = rssUrl.InfoSourceId,
                                     GameSystemId = system,
-                                    Content = item.Content,
                                     DatePublished = item.DatePublished,
                                     Link = item.Link,
                                     Title = item.Title
@@ -374,7 +373,6 @@ namespace VideoGameHash.Repositories
                                         InfoTypeId = rssUrl.InfoTypeId,
                                         InfoSourceId = rssUrl.InfoSourceId,
                                         GameSystemId = system,
-                                        Content = item.Content,
                                         DatePublished = item.PublishingDate ?? DateTime.Today,
                                         Link = item.Link,
                                         Title = item.Title
@@ -736,7 +734,6 @@ namespace VideoGameHash.Repositories
                     {
                         var gameSystemArticle = new Articles
                         {
-                            Content = article.Content,
                             DatePublished = article.DatePublished,
                             GameSystemId = system.Id,
                             InfoSourceId = article.InfoSourceId,
@@ -746,16 +743,12 @@ namespace VideoGameHash.Repositories
                         };
 
                         if (!articlesToReAdd.Any(x =>
-                            x.Content.Equals(gameSystemArticle.Content) && x.DatePublished.Equals(gameSystemArticle
-                                                                            .DatePublished)
-                                                                        && x.GameSystemId.Equals(gameSystemArticle
-                                                                            .GameSystemId)
-                                                                        && x.InfoSourceId.Equals(gameSystemArticle
-                                                                            .InfoSourceId)
-                                                                        && x.Title.Equals(gameSystemArticle.Title)
-                                                                        && x.InfoTypeId.Equals(gameSystemArticle
-                                                                            .InfoTypeId)
-                                                                        && x.Link.Equals(gameSystemArticle.Link)))
+                             x.DatePublished.Equals(gameSystemArticle.DatePublished)
+                            && x.GameSystemId.Equals(gameSystemArticle.GameSystemId)
+                            && x.InfoSourceId.Equals(gameSystemArticle.InfoSourceId)
+                            && x.Title.Equals(gameSystemArticle.Title)
+                            && x.InfoTypeId.Equals(gameSystemArticle.InfoTypeId)
+                            && x.Link.Equals(gameSystemArticle.Link)))
                         {
                             articlesToReAdd.Add(gameSystemArticle);
                         }

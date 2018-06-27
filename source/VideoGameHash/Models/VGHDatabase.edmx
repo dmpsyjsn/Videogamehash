@@ -199,7 +199,6 @@
     <Property Name="InfoSourceId" Type="int" Nullable="false" />
     <Property Name="GameSystemId" Type="int" Nullable="false" />
     <Property Name="Title" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="Content" Type="nvarchar(max)" Nullable="false" />
     <Property Name="Link" Type="nvarchar(max)" Nullable="false" />
     <Property Name="DatePublished" Type="datetime" Nullable="false" />
   </EntityType>
@@ -733,7 +732,6 @@
           <NavigationProperty Name="GameSystem" Relationship="VGHDatabase.GameSystemArticles" FromRole="Articles" ToRole="GameSystem" />
           <Property Type="Int32" Name="GameSystemId" Nullable="false" />
           <Property Type="String" Name="Title" Nullable="false" />
-          <Property Type="String" Name="Content" Nullable="false" />
           <Property Type="String" Name="Link" Nullable="false" />
           <Property Type="DateTime" Name="DatePublished" Nullable="false" />
         </EntityType>
@@ -1049,7 +1047,6 @@
           <ScalarProperty Name="InfoSourceId" ColumnName="InfoSourceId" />
           <ScalarProperty Name="GameSystemId" ColumnName="GameSystemId" />
           <ScalarProperty Name="Title" ColumnName="Title" />
-          <ScalarProperty Name="Content" ColumnName="Content" />
           <ScalarProperty Name="Link" ColumnName="Link" />
           <ScalarProperty Name="DatePublished" ColumnName="DatePublished" />
         </MappingFragment>

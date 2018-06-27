@@ -45,7 +45,7 @@ namespace VideoGameHash.Models
     /// </summary>
     public partial class VGHDatabaseContainer : ObjectContext
     {
-        #region Constructor
+        #region Constructors
     
         /// <summary>
         /// Initializes a new VGHDatabaseContainer object using the connection string found in the 'VGHDatabaseContainer' section of the application configuration file.
@@ -55,7 +55,7 @@ namespace VideoGameHash.Models
             this.ContextOptions.LazyLoadingEnabled = true;
             OnContextCreated();
         }
-    
+       
         #endregion
     
         #region Partial Methods
@@ -576,10 +576,9 @@ namespace VideoGameHash.Models
         /// <param name="infoSourceId">Initial value of the InfoSourceId property.</param>
         /// <param name="gameSystemId">Initial value of the GameSystemId property.</param>
         /// <param name="title">Initial value of the Title property.</param>
-        /// <param name="content">Initial value of the Content property.</param>
         /// <param name="link">Initial value of the Link property.</param>
         /// <param name="datePublished">Initial value of the DatePublished property.</param>
-        public static Articles CreateArticles(global::System.Int32 id, global::System.Int32 infoTypeId, global::System.Int32 infoSourceId, global::System.Int32 gameSystemId, global::System.String title, global::System.String content, global::System.String link, global::System.DateTime datePublished)
+        public static Articles CreateArticles(global::System.Int32 id, global::System.Int32 infoTypeId, global::System.Int32 infoSourceId, global::System.Int32 gameSystemId, global::System.String title, global::System.String link, global::System.DateTime datePublished)
         {
             Articles articles = new Articles();
             articles.Id = id;
@@ -587,7 +586,6 @@ namespace VideoGameHash.Models
             articles.InfoSourceId = infoSourceId;
             articles.GameSystemId = gameSystemId;
             articles.Title = title;
-            articles.Content = content;
             articles.Link = link;
             articles.DatePublished = datePublished;
             return articles;
@@ -719,30 +717,6 @@ namespace VideoGameHash.Models
         private global::System.String _Title;
         partial void OnTitleChanging(global::System.String value);
         partial void OnTitleChanged();
-    
-        /// <summary>
-        /// No Metadata Documentation available.
-        /// </summary>
-        [EdmScalarPropertyAttribute(EntityKeyProperty=false, IsNullable=false)]
-        [DataMemberAttribute()]
-        public global::System.String Content
-        {
-            get
-            {
-                return _Content;
-            }
-            set
-            {
-                OnContentChanging(value);
-                ReportPropertyChanging("Content");
-                _Content = StructuralObject.SetValidValue(value, false, "Content");
-                ReportPropertyChanged("Content");
-                OnContentChanged();
-            }
-        }
-        private global::System.String _Content;
-        partial void OnContentChanging(global::System.String value);
-        partial void OnContentChanged();
     
         /// <summary>
         /// No Metadata Documentation available.

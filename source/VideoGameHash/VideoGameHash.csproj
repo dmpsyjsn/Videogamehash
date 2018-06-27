@@ -87,7 +87,7 @@
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Highcharts.Web.Mvc, Version=6.1.0.0, Culture=neutral, PublicKeyToken=90b74bd27a557bd3, processorArchitecture=MSIL">
-      <HintPath>..\packages\Highsoft.Highcharts.6.1.0.33\lib\net40\Highcharts.Web.Mvc.dll</HintPath>
+      <HintPath>..\packages\Highsoft.Highcharts.6.1.0.46\lib\net40\Highcharts.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.5.1.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <HintPath>..\packages\HtmlAgilityPack.1.5.1\lib\Net45\HtmlAgilityPack.dll</HintPath>
@@ -393,7 +393,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EntityDeploy>
     <Content Include="app.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\PublishProfiles\videogamehash - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\videogamehash - Web Deploy.pubxml" />
     <Content Include="Views\Account\ChangePassword.cshtml" />

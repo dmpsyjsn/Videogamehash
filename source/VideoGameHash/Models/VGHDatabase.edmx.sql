@@ -2,7 +2,7 @@
 -- --------------------------------------------------
 -- Entity Designer DDL Script for SQL Server 2005, 2008, 2012 and Azure
 -- --------------------------------------------------
--- Date Created: 06/05/2018 21:05:17
+-- Date Created: 06/27/2018 13:37:39
 -- Generated from EDMX file: C:\Projects\Videogamehash\source\VideoGameHash\Models\VGHDatabase.edmx
 -- --------------------------------------------------
 
@@ -241,7 +241,6 @@ CREATE TABLE [dbo].[Articles] (
     [InfoSourceId] int  NOT NULL,
     [GameSystemId] int  NOT NULL,
     [Title] nvarchar(max)  NOT NULL,
-    [Content] nvarchar(max)  NOT NULL,
     [Link] nvarchar(max)  NOT NULL,
     [DatePublished] datetime  NOT NULL
 );
