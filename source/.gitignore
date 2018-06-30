@@ -251,3 +251,5 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+C:\Projects\Videogamehash\source\VideoGameHash\Web.Release.config
