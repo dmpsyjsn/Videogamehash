@@ -252,4 +252,4 @@ paket-files/
 .idea/
 *.sln.iml
 
-C:\Projects\Videogamehash\source\VideoGameHash\Web.Release.config
+.\VideoGameHash\Web.Release.config

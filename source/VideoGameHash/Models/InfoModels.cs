@@ -26,11 +26,6 @@ namespace VideoGameHash.Models
         public bool UseGameSystem { get; set; }
     }
 
-    public class AddTypeModel
-    {
-        public string Name { get; set; }
-    }
-
     public class AddInfoModel
     {
         public string Name { get; set; }
@@ -65,14 +60,6 @@ namespace VideoGameHash.Models
             var gameSystems = new List<string>();
             GameSystem = new SelectList(gameSystems, model.GameSystem);
         }
-
-        public AddUrlViewModel()
-        {
-            Model = null;
-            Section = null;
-            Source = null;
-            GameSystem = null;
-        }
     }
 
     public class AddUrlModel
@@ -102,12 +89,5 @@ namespace VideoGameHash.Models
     public class InfoSourceSortOrderEdit
     {
         public IEnumerable<InfoSourceSortOrder> InfoSourceSortOrders { get; set; }
-    }
-
-    public class FeaturedClass
-    {
-        public int Id { get; set; }
-        public Articles Article { get; set; }
-        public string Image { get; set; }
     }
 }
