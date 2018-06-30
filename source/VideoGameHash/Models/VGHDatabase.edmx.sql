@@ -2,7 +2,7 @@
 -- --------------------------------------------------
 -- Entity Designer DDL Script for SQL Server 2005, 2008, 2012 and Azure
 -- --------------------------------------------------
--- Date Created: 06/27/2018 13:37:39
+-- Date Created: 06/28/2018 19:09:02
 -- Generated from EDMX file: C:\Projects\Videogamehash\source\VideoGameHash\Models\VGHDatabase.edmx
 -- --------------------------------------------------
 
@@ -17,23 +17,26 @@ GO
 -- Dropping existing FOREIGN KEY constraints
 -- --------------------------------------------------
 
-IF OBJECT_ID(N'[dbo].[FK_RolesUsersInRoles]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[UsersInRoles] DROP CONSTRAINT [FK_RolesUsersInRoles];
+IF OBJECT_ID(N'[dbo].[FK_GamesGameInfo]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[GameInfoes] DROP CONSTRAINT [FK_GamesGameInfo];
 GO
-IF OBJECT_ID(N'[dbo].[FK_GameSystemGameSystemSortOrder]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[GameSystemSortOrders] DROP CONSTRAINT [FK_GameSystemGameSystemSortOrder];
+IF OBJECT_ID(N'[dbo].[FK_GamesPopularGames]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[PopularGames] DROP CONSTRAINT [FK_GamesPopularGames];
+GO
+IF OBJECT_ID(N'[dbo].[FK_GamesTrendingGames]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[TrendingGames] DROP CONSTRAINT [FK_GamesTrendingGames];
+GO
+IF OBJECT_ID(N'[dbo].[FK_GameSystemArticles]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[Articles] DROP CONSTRAINT [FK_GameSystemArticles];
 GO
 IF OBJECT_ID(N'[dbo].[FK_GameSystemGameInfo]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[GameInfoes] DROP CONSTRAINT [FK_GameSystemGameInfo];
 GO
-IF OBJECT_ID(N'[dbo].[FK_GamesGameInfo]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[GameInfoes] DROP CONSTRAINT [FK_GamesGameInfo];
+IF OBJECT_ID(N'[dbo].[FK_GameSystemGameSystemSortOrder]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[GameSystemSortOrders] DROP CONSTRAINT [FK_GameSystemGameSystemSortOrder];
 GO
-IF OBJECT_ID(N'[dbo].[FK_UserProfileUsersInRoles]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[UsersInRoles] DROP CONSTRAINT [FK_UserProfileUsersInRoles];
-GO
-IF OBJECT_ID(N'[dbo].[FK_InfoTypeArticles]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[Articles] DROP CONSTRAINT [FK_InfoTypeArticles];
+IF OBJECT_ID(N'[dbo].[FK_GameSystemInfoSourceRssUrls]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[InfoSourceRssUrls] DROP CONSTRAINT [FK_GameSystemInfoSourceRssUrls];
 GO
 IF OBJECT_ID(N'[dbo].[FK_InfoSourceArticles]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[Articles] DROP CONSTRAINT [FK_InfoSourceArticles];
@@ -41,11 +44,11 @@ GO
 IF OBJECT_ID(N'[dbo].[FK_InfoSourceInfoSourceRssUrls]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[InfoSourceRssUrls] DROP CONSTRAINT [FK_InfoSourceInfoSourceRssUrls];
 GO
-IF OBJECT_ID(N'[dbo].[FK_GameSystemInfoSourceRssUrls]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[InfoSourceRssUrls] DROP CONSTRAINT [FK_GameSystemInfoSourceRssUrls];
+IF OBJECT_ID(N'[dbo].[FK_InfoSourceInfoSourceSortOrder]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[InfoSourceSortOrders] DROP CONSTRAINT [FK_InfoSourceInfoSourceSortOrder];
 GO
-IF OBJECT_ID(N'[dbo].[FK_GameSystemArticles]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[Articles] DROP CONSTRAINT [FK_GameSystemArticles];
+IF OBJECT_ID(N'[dbo].[FK_InfoTypeArticles]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[Articles] DROP CONSTRAINT [FK_InfoTypeArticles];
 GO
 IF OBJECT_ID(N'[dbo].[FK_InfoTypeInfoSourceRssUrls]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[InfoSourceRssUrls] DROP CONSTRAINT [FK_InfoTypeInfoSourceRssUrls];
@@ -53,43 +56,25 @@ GO
 IF OBJECT_ID(N'[dbo].[FK_InfoTypeInfoTypeSortOrder]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[InfoTypeSortOrders] DROP CONSTRAINT [FK_InfoTypeInfoTypeSortOrder];
 GO
-IF OBJECT_ID(N'[dbo].[FK_InfoSourceInfoSourceSortOrder]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[InfoSourceSortOrders] DROP CONSTRAINT [FK_InfoSourceInfoSourceSortOrder];
-GO
 IF OBJECT_ID(N'[dbo].[FK_PollPollAnswers]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[PollAnswers] DROP CONSTRAINT [FK_PollPollAnswers];
 GO
-IF OBJECT_ID(N'[dbo].[FK_GamesTrendingGames]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[TrendingGames] DROP CONSTRAINT [FK_GamesTrendingGames];
+IF OBJECT_ID(N'[dbo].[FK_RolesUsersInRoles]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[UsersInRoles] DROP CONSTRAINT [FK_RolesUsersInRoles];
 GO
-IF OBJECT_ID(N'[dbo].[FK_GamesPopularGames]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[PopularGames] DROP CONSTRAINT [FK_GamesPopularGames];
+IF OBJECT_ID(N'[dbo].[FK_UserProfileUsersInRoles]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[UsersInRoles] DROP CONSTRAINT [FK_UserProfileUsersInRoles];
 GO
 
 -- --------------------------------------------------
 -- Dropping existing tables
 -- --------------------------------------------------
 
-IF OBJECT_ID(N'[dbo].[Memberships]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[Memberships];
+IF OBJECT_ID(N'[dbo].[Articles]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[Articles];
 GO
-IF OBJECT_ID(N'[dbo].[Roles]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[Roles];
-GO
-IF OBJECT_ID(N'[dbo].[UsersInRoles]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[UsersInRoles];
-GO
-IF OBJECT_ID(N'[dbo].[GameSystems]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[GameSystems];
-GO
-IF OBJECT_ID(N'[dbo].[Games]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[Games];
-GO
-IF OBJECT_ID(N'[dbo].[GameSystemSortOrders]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[GameSystemSortOrders];
-GO
-IF OBJECT_ID(N'[dbo].[UserProfiles]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[UserProfiles];
+IF OBJECT_ID(N'[dbo].[Errors]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[Errors];
 GO
 IF OBJECT_ID(N'[dbo].[GameIgnores]', 'U') IS NOT NULL
     DROP TABLE [dbo].[GameIgnores];
@@ -97,38 +82,53 @@ GO
 IF OBJECT_ID(N'[dbo].[GameInfoes]', 'U') IS NOT NULL
     DROP TABLE [dbo].[GameInfoes];
 GO
-IF OBJECT_ID(N'[dbo].[InfoTypes]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[InfoTypes];
+IF OBJECT_ID(N'[dbo].[Games]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[Games];
 GO
-IF OBJECT_ID(N'[dbo].[InfoSources]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[InfoSources];
+IF OBJECT_ID(N'[dbo].[GameSystems]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[GameSystems];
 GO
-IF OBJECT_ID(N'[dbo].[Articles]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[Articles];
+IF OBJECT_ID(N'[dbo].[GameSystemSortOrders]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[GameSystemSortOrders];
 GO
 IF OBJECT_ID(N'[dbo].[InfoSourceRssUrls]', 'U') IS NOT NULL
     DROP TABLE [dbo].[InfoSourceRssUrls];
 GO
+IF OBJECT_ID(N'[dbo].[InfoSources]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[InfoSources];
+GO
 IF OBJECT_ID(N'[dbo].[InfoSourceSortOrders]', 'U') IS NOT NULL
     DROP TABLE [dbo].[InfoSourceSortOrders];
+GO
+IF OBJECT_ID(N'[dbo].[InfoTypes]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[InfoTypes];
 GO
 IF OBJECT_ID(N'[dbo].[InfoTypeSortOrders]', 'U') IS NOT NULL
     DROP TABLE [dbo].[InfoTypeSortOrders];
 GO
-IF OBJECT_ID(N'[dbo].[Polls]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[Polls];
+IF OBJECT_ID(N'[dbo].[Memberships]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[Memberships];
 GO
 IF OBJECT_ID(N'[dbo].[PollAnswers]', 'U') IS NOT NULL
     DROP TABLE [dbo].[PollAnswers];
 GO
-IF OBJECT_ID(N'[dbo].[TrendingGames]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[TrendingGames];
+IF OBJECT_ID(N'[dbo].[Polls]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[Polls];
 GO
 IF OBJECT_ID(N'[dbo].[PopularGames]', 'U') IS NOT NULL
     DROP TABLE [dbo].[PopularGames];
 GO
-IF OBJECT_ID(N'[dbo].[Errors]', 'U') IS NOT NULL
-    DROP TABLE [dbo].[Errors];
+IF OBJECT_ID(N'[dbo].[Roles]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[Roles];
+GO
+IF OBJECT_ID(N'[dbo].[TrendingGames]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[TrendingGames];
+GO
+IF OBJECT_ID(N'[dbo].[UserProfiles]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[UserProfiles];
+GO
+IF OBJECT_ID(N'[dbo].[UsersInRoles]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[UsersInRoles];
 GO
 
 -- --------------------------------------------------

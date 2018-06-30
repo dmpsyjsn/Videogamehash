@@ -4,463 +4,463 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-    <Schema Namespace="VGHDatabase.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
-  <EntityContainer Name="VGHDatabaseStoreContainer">
-    <EntitySet Name="Memberships" EntityType="VGHDatabase.Store.Memberships" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="Roles" EntityType="VGHDatabase.Store.Roles" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="UsersInRoles" EntityType="VGHDatabase.Store.UsersInRoles" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="GameSystems" EntityType="VGHDatabase.Store.GameSystems" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="Games" EntityType="VGHDatabase.Store.Games" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="GameSystemSortOrders" EntityType="VGHDatabase.Store.GameSystemSortOrders" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="UserProfiles" EntityType="VGHDatabase.Store.UserProfiles" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="GameIgnores" EntityType="VGHDatabase.Store.GameIgnores" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="GameInfoes" EntityType="VGHDatabase.Store.GameInfoes" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="InfoTypes" EntityType="VGHDatabase.Store.InfoTypes" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="InfoSources" EntityType="VGHDatabase.Store.InfoSources" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="Articles" EntityType="VGHDatabase.Store.Articles" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="InfoSourceRssUrls" EntityType="VGHDatabase.Store.InfoSourceRssUrls" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="InfoSourceSortOrders" EntityType="VGHDatabase.Store.InfoSourceSortOrders" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="InfoTypeSortOrders" EntityType="VGHDatabase.Store.InfoTypeSortOrders" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="Polls" EntityType="VGHDatabase.Store.Polls" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="PollAnswers" EntityType="VGHDatabase.Store.PollAnswers" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="TrendingGames" EntityType="VGHDatabase.Store.TrendingGames" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="PopularGames" EntityType="VGHDatabase.Store.PopularGames" store:Type="Tables" Schema="dbo" />
-    <EntitySet Name="Errors" EntityType="VGHDatabase.Store.Errors" store:Type="Tables" Schema="dbo" />
-    <AssociationSet Name="RolesUsersInRoles" Association="VGHDatabase.Store.RolesUsersInRoles">
-      <End Role="Roles" EntitySet="Roles" />
-      <End Role="UsersInRoles" EntitySet="UsersInRoles" />
-    </AssociationSet>
-    <AssociationSet Name="GameSystemGameSystemSortOrder" Association="VGHDatabase.Store.GameSystemGameSystemSortOrder">
-      <End Role="GameSystem" EntitySet="GameSystems" />
-      <End Role="GameSystemSortOrder" EntitySet="GameSystemSortOrders" />
-    </AssociationSet>
-    <AssociationSet Name="GameSystemGameInfo" Association="VGHDatabase.Store.GameSystemGameInfo">
-      <End Role="GameSystem" EntitySet="GameSystems" />
-      <End Role="GameInfo" EntitySet="GameInfoes" />
-    </AssociationSet>
-    <AssociationSet Name="GamesGameInfo" Association="VGHDatabase.Store.GamesGameInfo">
-      <End Role="Games" EntitySet="Games" />
-      <End Role="GameInfo" EntitySet="GameInfoes" />
-    </AssociationSet>
-    <AssociationSet Name="UserProfileUsersInRoles" Association="VGHDatabase.Store.UserProfileUsersInRoles">
-      <End Role="UserProfile" EntitySet="UserProfiles" />
-      <End Role="UsersInRoles" EntitySet="UsersInRoles" />
-    </AssociationSet>
-    <AssociationSet Name="InfoTypeArticles" Association="VGHDatabase.Store.InfoTypeArticles">
-      <End Role="InfoType" EntitySet="InfoTypes" />
-      <End Role="Articles" EntitySet="Articles" />
-    </AssociationSet>
-    <AssociationSet Name="InfoSourceArticles" Association="VGHDatabase.Store.InfoSourceArticles">
-      <End Role="InfoSource" EntitySet="InfoSources" />
-      <End Role="Articles" EntitySet="Articles" />
-    </AssociationSet>
-    <AssociationSet Name="InfoSourceInfoSourceRssUrls" Association="VGHDatabase.Store.InfoSourceInfoSourceRssUrls">
-      <End Role="InfoSource" EntitySet="InfoSources" />
-      <End Role="InfoSourceRssUrls" EntitySet="InfoSourceRssUrls" />
-    </AssociationSet>
-    <AssociationSet Name="GameSystemInfoSourceRssUrls" Association="VGHDatabase.Store.GameSystemInfoSourceRssUrls">
-      <End Role="GameSystem" EntitySet="GameSystems" />
-      <End Role="InfoSourceRssUrls" EntitySet="InfoSourceRssUrls" />
-    </AssociationSet>
-    <AssociationSet Name="GameSystemArticles" Association="VGHDatabase.Store.GameSystemArticles">
-      <End Role="GameSystem" EntitySet="GameSystems" />
-      <End Role="Articles" EntitySet="Articles" />
-    </AssociationSet>
-    <AssociationSet Name="InfoTypeInfoSourceRssUrls" Association="VGHDatabase.Store.InfoTypeInfoSourceRssUrls">
-      <End Role="InfoType" EntitySet="InfoTypes" />
-      <End Role="InfoSourceRssUrls" EntitySet="InfoSourceRssUrls" />
-    </AssociationSet>
-    <AssociationSet Name="InfoTypeInfoTypeSortOrder" Association="VGHDatabase.Store.InfoTypeInfoTypeSortOrder">
-      <End Role="InfoType" EntitySet="InfoTypes" />
-      <End Role="InfoTypeSortOrder" EntitySet="InfoTypeSortOrders" />
-    </AssociationSet>
-    <AssociationSet Name="InfoSourceInfoSourceSortOrder" Association="VGHDatabase.Store.InfoSourceInfoSourceSortOrder">
-      <End Role="InfoSource" EntitySet="InfoSources" />
-      <End Role="InfoSourceSortOrder" EntitySet="InfoSourceSortOrders" />
-    </AssociationSet>
-    <AssociationSet Name="PollPollAnswers" Association="VGHDatabase.Store.PollPollAnswers">
-      <End Role="Poll" EntitySet="Polls" />
-      <End Role="PollAnswers" EntitySet="PollAnswers" />
-    </AssociationSet>
-    <AssociationSet Name="GamesTrendingGames" Association="VGHDatabase.Store.GamesTrendingGames">
-      <End Role="Games" EntitySet="Games" />
-      <End Role="TrendingGames" EntitySet="TrendingGames" />
-    </AssociationSet>
-    <AssociationSet Name="GamesPopularGames" Association="VGHDatabase.Store.GamesPopularGames">
-      <End Role="Games" EntitySet="Games" />
-      <End Role="PopularGames" EntitySet="PopularGames" />
-    </AssociationSet>
-  </EntityContainer>
-  <EntityType Name="Memberships">
-    <Key>
-      <PropertyRef Name="UserId" />
-    </Key>
-    <Property Name="UserId" Type="int" Nullable="false" />
-    <Property Name="CreateDate" Type="datetime" Nullable="false" />
-    <Property Name="ConfirmationToken" Type="nvarchar(max)" Nullable="true" />
-    <Property Name="IsConfirmed" Type="bit" Nullable="false" />
-    <Property Name="LastPasswordFailureDate" Type="datetime" Nullable="true" />
-    <Property Name="PasswordFailuresSinceLastSuccess" Type="int" Nullable="true" />
-    <Property Name="Password" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="PasswordChangeDate" Type="datetime" Nullable="true" />
-    <Property Name="PasswordSalt" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="PasswordVerificationToken" Type="nvarchar(max)" Nullable="true" />
-    <Property Name="PasswordVerificationTokenExpirationDate" Type="datetime" Nullable="true" />
-    <Property Name="Email" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="SecurityQuestion" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="SecurityAnswer" Type="nvarchar(max)" Nullable="false" />
-  </EntityType>
-  <EntityType Name="Roles">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="RoleName" Type="nvarchar(max)" Nullable="false" />
-  </EntityType>
-  <EntityType Name="UsersInRoles">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="RolesId" Type="int" Nullable="false" />
-    <Property Name="UserProfileId" Type="int" Nullable="false" />
-  </EntityType>
-  <EntityType Name="GameSystems">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="GameSystemName" Type="nvarchar(max)" Nullable="false" />
-  </EntityType>
-  <EntityType Name="Games">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="GameTitle" Type="nvarchar(max)" Nullable="false" />
-  </EntityType>
-  <EntityType Name="GameSystemSortOrders">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="SortOrder" Type="int" Nullable="false" />
-    <Property Name="Id" Type="int" Nullable="false" />
-    <Property Name="GameSystem_Id" Type="int" Nullable="false" />
-  </EntityType>
-  <EntityType Name="UserProfiles">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="UserName" Type="nvarchar(max)" Nullable="false" />
-  </EntityType>
-  <EntityType Name="GameIgnores">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="GameTitle" Type="nvarchar(max)" Nullable="false" />
-  </EntityType>
-  <EntityType Name="GameInfoes">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="USReleaseDate" Type="datetime" Nullable="false" />
-    <Property Name="GameImage" Type="nvarchar(max)" Nullable="true" />
-    <Property Name="Publisher" Type="nvarchar(max)" Nullable="true" />
-    <Property Name="Developer" Type="nvarchar(max)" Nullable="true" />
-    <Property Name="Overview" Type="nvarchar(max)" Nullable="true" />
-    <Property Name="GamesDbNetId" Type="int" Nullable="false" />
-    <Property Name="GameSystemId" Type="int" Nullable="false" />
-    <Property Name="GamesId" Type="int" Nullable="false" />
-  </EntityType>
-  <EntityType Name="InfoTypes">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="InfoTypeName" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="UseGameSystem" Type="bit" Nullable="false" />
-  </EntityType>
-  <EntityType Name="InfoSources">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="InfoSourceName" Type="nvarchar(max)" Nullable="false" />
-  </EntityType>
-  <EntityType Name="Articles">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="InfoTypeId" Type="int" Nullable="false" />
-    <Property Name="InfoSourceId" Type="int" Nullable="false" />
-    <Property Name="GameSystemId" Type="int" Nullable="false" />
-    <Property Name="Title" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="Link" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="DatePublished" Type="datetime" Nullable="false" />
-  </EntityType>
-  <EntityType Name="InfoSourceRssUrls">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="InfoSourceId" Type="int" Nullable="false" />
-    <Property Name="GameSystemId" Type="int" Nullable="false" />
-    <Property Name="InfoTypeId" Type="int" Nullable="false" />
-    <Property Name="URL" Type="nvarchar(max)" Nullable="false" />
-  </EntityType>
-  <EntityType Name="InfoSourceSortOrders">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="SortOrder" Type="int" Nullable="false" />
-    <Property Name="InfoSource_Id" Type="int" Nullable="false" />
-  </EntityType>
-  <EntityType Name="InfoTypeSortOrders">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="SortOrder" Type="int" Nullable="false" />
-    <Property Name="InfoType_Id" Type="int" Nullable="false" />
-  </EntityType>
-  <EntityType Name="Polls">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="Title" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="DateCreated" Type="datetime" Nullable="false" />
-  </EntityType>
-  <EntityType Name="PollAnswers">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="PollId" Type="int" Nullable="false" />
-    <Property Name="Answer" Type="nvarchar(max)" Nullable="false" />
-    <Property Name="NumVotes" Type="int" Nullable="false" />
-  </EntityType>
-  <EntityType Name="TrendingGames">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="ArticleHits" Type="int" Nullable="false" />
-    <Property Name="GamesId" Type="int" Nullable="false" />
-  </EntityType>
-  <EntityType Name="PopularGames">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="ArticleHits" Type="int" Nullable="false" />
-    <Property Name="GamesId" Type="int" Nullable="false" />
-  </EntityType>
-  <EntityType Name="Errors">
-    <Key>
-      <PropertyRef Name="Id" />
-    </Key>
-    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-    <Property Name="ErrorMessage" Type="nvarchar(max)" Nullable="false" />
-  </EntityType>
-  <Association Name="RolesUsersInRoles">
-    <End Role="Roles" Type="VGHDatabase.Store.Roles" Multiplicity="1" />
-    <End Role="UsersInRoles" Type="VGHDatabase.Store.UsersInRoles" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Roles">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="UsersInRoles">
-        <PropertyRef Name="RolesId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="GameSystemGameSystemSortOrder">
-    <End Role="GameSystem" Type="VGHDatabase.Store.GameSystems" Multiplicity="1" />
-    <End Role="GameSystemSortOrder" Type="VGHDatabase.Store.GameSystemSortOrders" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="GameSystem">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="GameSystemSortOrder">
-        <PropertyRef Name="GameSystem_Id" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="GameSystemGameInfo">
-    <End Role="GameSystem" Type="VGHDatabase.Store.GameSystems" Multiplicity="1" />
-    <End Role="GameInfo" Type="VGHDatabase.Store.GameInfoes" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="GameSystem">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="GameInfo">
-        <PropertyRef Name="GameSystemId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="GamesGameInfo">
-    <End Role="Games" Type="VGHDatabase.Store.Games" Multiplicity="1" />
-    <End Role="GameInfo" Type="VGHDatabase.Store.GameInfoes" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Games">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="GameInfo">
-        <PropertyRef Name="GamesId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="UserProfileUsersInRoles">
-    <End Role="UserProfile" Type="VGHDatabase.Store.UserProfiles" Multiplicity="1" />
-    <End Role="UsersInRoles" Type="VGHDatabase.Store.UsersInRoles" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="UserProfile">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="UsersInRoles">
-        <PropertyRef Name="UserProfileId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="InfoTypeArticles">
-    <End Role="InfoType" Type="VGHDatabase.Store.InfoTypes" Multiplicity="1" />
-    <End Role="Articles" Type="VGHDatabase.Store.Articles" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="InfoType">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Articles">
-        <PropertyRef Name="InfoTypeId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="InfoSourceArticles">
-    <End Role="InfoSource" Type="VGHDatabase.Store.InfoSources" Multiplicity="1" />
-    <End Role="Articles" Type="VGHDatabase.Store.Articles" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="InfoSource">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Articles">
-        <PropertyRef Name="InfoSourceId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="InfoSourceInfoSourceRssUrls">
-    <End Role="InfoSource" Type="VGHDatabase.Store.InfoSources" Multiplicity="1" />
-    <End Role="InfoSourceRssUrls" Type="VGHDatabase.Store.InfoSourceRssUrls" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="InfoSource">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="InfoSourceRssUrls">
-        <PropertyRef Name="InfoSourceId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="GameSystemInfoSourceRssUrls">
-    <End Role="GameSystem" Type="VGHDatabase.Store.GameSystems" Multiplicity="1" />
-    <End Role="InfoSourceRssUrls" Type="VGHDatabase.Store.InfoSourceRssUrls" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="GameSystem">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="InfoSourceRssUrls">
-        <PropertyRef Name="GameSystemId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="GameSystemArticles">
-    <End Role="GameSystem" Type="VGHDatabase.Store.GameSystems" Multiplicity="1" />
-    <End Role="Articles" Type="VGHDatabase.Store.Articles" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="GameSystem">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="Articles">
-        <PropertyRef Name="GameSystemId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="InfoTypeInfoSourceRssUrls">
-    <End Role="InfoType" Type="VGHDatabase.Store.InfoTypes" Multiplicity="1" />
-    <End Role="InfoSourceRssUrls" Type="VGHDatabase.Store.InfoSourceRssUrls" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="InfoType">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="InfoSourceRssUrls">
-        <PropertyRef Name="InfoTypeId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="InfoTypeInfoTypeSortOrder">
-    <End Role="InfoType" Type="VGHDatabase.Store.InfoTypes" Multiplicity="1" />
-    <End Role="InfoTypeSortOrder" Type="VGHDatabase.Store.InfoTypeSortOrders" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="InfoType">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="InfoTypeSortOrder">
-        <PropertyRef Name="InfoType_Id" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="InfoSourceInfoSourceSortOrder">
-    <End Role="InfoSource" Type="VGHDatabase.Store.InfoSources" Multiplicity="1" />
-    <End Role="InfoSourceSortOrder" Type="VGHDatabase.Store.InfoSourceSortOrders" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="InfoSource">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="InfoSourceSortOrder">
-        <PropertyRef Name="InfoSource_Id" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="PollPollAnswers">
-    <End Role="Poll" Type="VGHDatabase.Store.Polls" Multiplicity="1" />
-    <End Role="PollAnswers" Type="VGHDatabase.Store.PollAnswers" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Poll">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="PollAnswers">
-        <PropertyRef Name="PollId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="GamesTrendingGames">
-    <End Role="Games" Type="VGHDatabase.Store.Games" Multiplicity="1" />
-    <End Role="TrendingGames" Type="VGHDatabase.Store.TrendingGames" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Games">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="TrendingGames">
-        <PropertyRef Name="GamesId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-  <Association Name="GamesPopularGames">
-    <End Role="Games" Type="VGHDatabase.Store.Games" Multiplicity="1" />
-    <End Role="PopularGames" Type="VGHDatabase.Store.PopularGames" Multiplicity="*" />
-    <ReferentialConstraint>
-      <Principal Role="Games">
-        <PropertyRef Name="Id" />
-      </Principal>
-      <Dependent Role="PopularGames">
-        <PropertyRef Name="GamesId" />
-      </Dependent>
-    </ReferentialConstraint>
-  </Association>
-</Schema></edmx:StorageModels>
+    <Schema Namespace="VGHDatabase.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Articles">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InfoTypeId" Type="int" Nullable="false" />
+          <Property Name="InfoSourceId" Type="int" Nullable="false" />
+          <Property Name="GameSystemId" Type="int" Nullable="false" />
+          <Property Name="Title" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Link" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="DatePublished" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Errors">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ErrorMessage" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="GameIgnores">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GameTitle" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="GameInfoes">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="USReleaseDate" Type="datetime" Nullable="false" />
+          <Property Name="GameImage" Type="nvarchar(max)" />
+          <Property Name="Publisher" Type="nvarchar(max)" />
+          <Property Name="Developer" Type="nvarchar(max)" />
+          <Property Name="Overview" Type="nvarchar(max)" />
+          <Property Name="GamesDbNetId" Type="int" Nullable="false" />
+          <Property Name="GameSystemId" Type="int" Nullable="false" />
+          <Property Name="GamesId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Games">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GameTitle" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="GameSystems">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GameSystemName" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="GameSystemSortOrders">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="GameSystem_Id" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="InfoSourceRssUrls">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InfoSourceId" Type="int" Nullable="false" />
+          <Property Name="GameSystemId" Type="int" Nullable="false" />
+          <Property Name="InfoTypeId" Type="int" Nullable="false" />
+          <Property Name="URL" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="InfoSources">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InfoSourceName" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="InfoSourceSortOrders">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="InfoSource_Id" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="InfoTypes">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="InfoTypeName" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="UseGameSystem" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="InfoTypeSortOrders">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="SortOrder" Type="int" Nullable="false" />
+          <Property Name="InfoType_Id" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Memberships">
+          <Key>
+            <PropertyRef Name="UserId" />
+          </Key>
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="CreateDate" Type="datetime" Nullable="false" />
+          <Property Name="ConfirmationToken" Type="nvarchar(max)" />
+          <Property Name="IsConfirmed" Type="bit" Nullable="false" />
+          <Property Name="LastPasswordFailureDate" Type="datetime" />
+          <Property Name="PasswordFailuresSinceLastSuccess" Type="int" />
+          <Property Name="Password" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="PasswordChangeDate" Type="datetime" />
+          <Property Name="PasswordSalt" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="PasswordVerificationToken" Type="nvarchar(max)" />
+          <Property Name="PasswordVerificationTokenExpirationDate" Type="datetime" />
+          <Property Name="Email" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="SecurityQuestion" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="SecurityAnswer" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PollAnswers">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="PollId" Type="int" Nullable="false" />
+          <Property Name="Answer" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="NumVotes" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Polls">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Title" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="DateCreated" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PopularGames">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ArticleHits" Type="int" Nullable="false" />
+          <Property Name="GamesId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Roles">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RoleName" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TrendingGames">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ArticleHits" Type="int" Nullable="false" />
+          <Property Name="GamesId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="UserProfiles">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="UserName" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="UsersInRoles">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RolesId" Type="int" Nullable="false" />
+          <Property Name="UserProfileId" Type="int" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_GamesGameInfo">
+          <End Role="Games" Type="Self.Games" Multiplicity="1" />
+          <End Role="GameInfoes" Type="Self.GameInfoes" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Games">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="GameInfoes">
+              <PropertyRef Name="GamesId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_GamesPopularGames">
+          <End Role="Games" Type="Self.Games" Multiplicity="1" />
+          <End Role="PopularGames" Type="Self.PopularGames" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Games">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PopularGames">
+              <PropertyRef Name="GamesId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_GamesTrendingGames">
+          <End Role="Games" Type="Self.Games" Multiplicity="1" />
+          <End Role="TrendingGames" Type="Self.TrendingGames" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Games">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TrendingGames">
+              <PropertyRef Name="GamesId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_GameSystemArticles">
+          <End Role="GameSystems" Type="Self.GameSystems" Multiplicity="1" />
+          <End Role="Articles" Type="Self.Articles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GameSystems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Articles">
+              <PropertyRef Name="GameSystemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_GameSystemGameInfo">
+          <End Role="GameSystems" Type="Self.GameSystems" Multiplicity="1" />
+          <End Role="GameInfoes" Type="Self.GameInfoes" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GameSystems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="GameInfoes">
+              <PropertyRef Name="GameSystemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_GameSystemGameSystemSortOrder">
+          <End Role="GameSystems" Type="Self.GameSystems" Multiplicity="1" />
+          <End Role="GameSystemSortOrders" Type="Self.GameSystemSortOrders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GameSystems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="GameSystemSortOrders">
+              <PropertyRef Name="GameSystem_Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_GameSystemInfoSourceRssUrls">
+          <End Role="GameSystems" Type="Self.GameSystems" Multiplicity="1" />
+          <End Role="InfoSourceRssUrls" Type="Self.InfoSourceRssUrls" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GameSystems">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="InfoSourceRssUrls">
+              <PropertyRef Name="GameSystemId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_InfoSourceArticles">
+          <End Role="InfoSources" Type="Self.InfoSources" Multiplicity="1" />
+          <End Role="Articles" Type="Self.Articles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="InfoSources">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Articles">
+              <PropertyRef Name="InfoSourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_InfoSourceInfoSourceRssUrls">
+          <End Role="InfoSources" Type="Self.InfoSources" Multiplicity="1" />
+          <End Role="InfoSourceRssUrls" Type="Self.InfoSourceRssUrls" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="InfoSources">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="InfoSourceRssUrls">
+              <PropertyRef Name="InfoSourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_InfoSourceInfoSourceSortOrder">
+          <End Role="InfoSources" Type="Self.InfoSources" Multiplicity="1" />
+          <End Role="InfoSourceSortOrders" Type="Self.InfoSourceSortOrders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="InfoSources">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="InfoSourceSortOrders">
+              <PropertyRef Name="InfoSource_Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_InfoTypeArticles">
+          <End Role="InfoTypes" Type="Self.InfoTypes" Multiplicity="1" />
+          <End Role="Articles" Type="Self.Articles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="InfoTypes">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Articles">
+              <PropertyRef Name="InfoTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_InfoTypeInfoSourceRssUrls">
+          <End Role="InfoTypes" Type="Self.InfoTypes" Multiplicity="1" />
+          <End Role="InfoSourceRssUrls" Type="Self.InfoSourceRssUrls" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="InfoTypes">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="InfoSourceRssUrls">
+              <PropertyRef Name="InfoTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_InfoTypeInfoTypeSortOrder">
+          <End Role="InfoTypes" Type="Self.InfoTypes" Multiplicity="1" />
+          <End Role="InfoTypeSortOrders" Type="Self.InfoTypeSortOrders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="InfoTypes">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="InfoTypeSortOrders">
+              <PropertyRef Name="InfoType_Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PollPollAnswers">
+          <End Role="Polls" Type="Self.Polls" Multiplicity="1" />
+          <End Role="PollAnswers" Type="Self.PollAnswers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Polls">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PollAnswers">
+              <PropertyRef Name="PollId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RolesUsersInRoles">
+          <End Role="Roles" Type="Self.Roles" Multiplicity="1" />
+          <End Role="UsersInRoles" Type="Self.UsersInRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Roles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UsersInRoles">
+              <PropertyRef Name="RolesId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserProfileUsersInRoles">
+          <End Role="UserProfiles" Type="Self.UserProfiles" Multiplicity="1" />
+          <End Role="UsersInRoles" Type="Self.UsersInRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="UserProfiles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="UsersInRoles">
+              <PropertyRef Name="UserProfileId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="VGHDatabaseStoreContainer">
+          <EntitySet Name="Articles" EntityType="Self.Articles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Errors" EntityType="Self.Errors" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="GameIgnores" EntityType="Self.GameIgnores" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="GameInfoes" EntityType="Self.GameInfoes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Games" EntityType="Self.Games" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="GameSystems" EntityType="Self.GameSystems" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="GameSystemSortOrders" EntityType="Self.GameSystemSortOrders" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="InfoSourceRssUrls" EntityType="Self.InfoSourceRssUrls" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="InfoSources" EntityType="Self.InfoSources" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="InfoSourceSortOrders" EntityType="Self.InfoSourceSortOrders" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="InfoTypes" EntityType="Self.InfoTypes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="InfoTypeSortOrders" EntityType="Self.InfoTypeSortOrders" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Memberships" EntityType="Self.Memberships" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PollAnswers" EntityType="Self.PollAnswers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Polls" EntityType="Self.Polls" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PopularGames" EntityType="Self.PopularGames" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Roles" EntityType="Self.Roles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="TrendingGames" EntityType="Self.TrendingGames" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserProfiles" EntityType="Self.UserProfiles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UsersInRoles" EntityType="Self.UsersInRoles" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_GamesGameInfo" Association="Self.FK_GamesGameInfo">
+            <End Role="Games" EntitySet="Games" />
+            <End Role="GameInfoes" EntitySet="GameInfoes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_GamesPopularGames" Association="Self.FK_GamesPopularGames">
+            <End Role="Games" EntitySet="Games" />
+            <End Role="PopularGames" EntitySet="PopularGames" />
+          </AssociationSet>
+          <AssociationSet Name="FK_GamesTrendingGames" Association="Self.FK_GamesTrendingGames">
+            <End Role="Games" EntitySet="Games" />
+            <End Role="TrendingGames" EntitySet="TrendingGames" />
+          </AssociationSet>
+          <AssociationSet Name="FK_GameSystemArticles" Association="Self.FK_GameSystemArticles">
+            <End Role="GameSystems" EntitySet="GameSystems" />
+            <End Role="Articles" EntitySet="Articles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_GameSystemGameInfo" Association="Self.FK_GameSystemGameInfo">
+            <End Role="GameSystems" EntitySet="GameSystems" />
+            <End Role="GameInfoes" EntitySet="GameInfoes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_GameSystemGameSystemSortOrder" Association="Self.FK_GameSystemGameSystemSortOrder">
+            <End Role="GameSystems" EntitySet="GameSystems" />
+            <End Role="GameSystemSortOrders" EntitySet="GameSystemSortOrders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_GameSystemInfoSourceRssUrls" Association="Self.FK_GameSystemInfoSourceRssUrls">
+            <End Role="GameSystems" EntitySet="GameSystems" />
+            <End Role="InfoSourceRssUrls" EntitySet="InfoSourceRssUrls" />
+          </AssociationSet>
+          <AssociationSet Name="FK_InfoSourceArticles" Association="Self.FK_InfoSourceArticles">
+            <End Role="InfoSources" EntitySet="InfoSources" />
+            <End Role="Articles" EntitySet="Articles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_InfoSourceInfoSourceRssUrls" Association="Self.FK_InfoSourceInfoSourceRssUrls">
+            <End Role="InfoSources" EntitySet="InfoSources" />
+            <End Role="InfoSourceRssUrls" EntitySet="InfoSourceRssUrls" />
+          </AssociationSet>
+          <AssociationSet Name="FK_InfoSourceInfoSourceSortOrder" Association="Self.FK_InfoSourceInfoSourceSortOrder">
+            <End Role="InfoSources" EntitySet="InfoSources" />
+            <End Role="InfoSourceSortOrders" EntitySet="InfoSourceSortOrders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_InfoTypeArticles" Association="Self.FK_InfoTypeArticles">
+            <End Role="InfoTypes" EntitySet="InfoTypes" />
+            <End Role="Articles" EntitySet="Articles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_InfoTypeInfoSourceRssUrls" Association="Self.FK_InfoTypeInfoSourceRssUrls">
+            <End Role="InfoTypes" EntitySet="InfoTypes" />
+            <End Role="InfoSourceRssUrls" EntitySet="InfoSourceRssUrls" />
+          </AssociationSet>
+          <AssociationSet Name="FK_InfoTypeInfoTypeSortOrder" Association="Self.FK_InfoTypeInfoTypeSortOrder">
+            <End Role="InfoTypes" EntitySet="InfoTypes" />
+            <End Role="InfoTypeSortOrders" EntitySet="InfoTypeSortOrders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PollPollAnswers" Association="Self.FK_PollPollAnswers">
+            <End Role="Polls" EntitySet="Polls" />
+            <End Role="PollAnswers" EntitySet="PollAnswers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RolesUsersInRoles" Association="Self.FK_RolesUsersInRoles">
+            <End Role="Roles" EntitySet="Roles" />
+            <End Role="UsersInRoles" EntitySet="UsersInRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserProfileUsersInRoles" Association="Self.FK_UserProfileUsersInRoles">
+            <End Role="UserProfiles" EntitySet="UserProfiles" />
+            <End Role="UsersInRoles" EntitySet="UsersInRoles" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="VGHDatabase" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2009/11/edm" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
@@ -555,26 +555,26 @@
             <PropertyRef Name="UserId" />
           </Key>
           <Property Type="Int32" Name="UserId" Nullable="false" annotation:StoreGeneratedPattern="None" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="DateTime" Name="CreateDate" Nullable="false" />
-          <Property Type="String" Name="ConfirmationToken" Nullable="true" />
+          <Property Type="DateTime" Name="CreateDate" Nullable="false" Precision="3" />
+          <Property Type="String" Name="ConfirmationToken" Nullable="true" MaxLength="Max" Unicode="true" FixedLength="false" />
           <Property Type="Boolean" Name="IsConfirmed" Nullable="false" />
-          <Property Type="DateTime" Name="LastPasswordFailureDate" Nullable="true" />
+          <Property Type="DateTime" Name="LastPasswordFailureDate" Nullable="true" Precision="3" />
           <Property Type="Int32" Name="PasswordFailuresSinceLastSuccess" Nullable="true" />
-          <Property Type="String" Name="Password" Nullable="false" />
-          <Property Type="DateTime" Name="PasswordChangeDate" Nullable="true" />
-          <Property Type="String" Name="PasswordSalt" Nullable="false" />
-          <Property Type="String" Name="PasswordVerificationToken" Nullable="true" />
-          <Property Type="DateTime" Name="PasswordVerificationTokenExpirationDate" Nullable="true" />
-          <Property Type="String" Name="Email" Nullable="false" />
-          <Property Type="String" Name="SecurityQuestion" Nullable="false" />
-          <Property Type="String" Name="SecurityAnswer" Nullable="false" />
+          <Property Type="String" Name="Password" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="DateTime" Name="PasswordChangeDate" Nullable="true" Precision="3" />
+          <Property Type="String" Name="PasswordSalt" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="String" Name="PasswordVerificationToken" Nullable="true" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="DateTime" Name="PasswordVerificationTokenExpirationDate" Nullable="true" Precision="3" />
+          <Property Type="String" Name="Email" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="String" Name="SecurityQuestion" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="String" Name="SecurityAnswer" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
         </EntityType>
         <EntityType Name="Roles">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="String" Name="RoleName" Nullable="false" />
+          <Property Type="String" Name="RoleName" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="UsersInRoles" Relationship="VGHDatabase.RolesUsersInRoles" FromRole="Roles" ToRole="UsersInRoles" />
         </EntityType>
         <EntityType Name="UsersInRoles">
@@ -604,7 +604,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="String" Name="GameSystemName" Nullable="false" />
+          <Property Type="String" Name="GameSystemName" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="GameSystemSortOrder" Relationship="VGHDatabase.GameSystemGameSystemSortOrder" FromRole="GameSystem" ToRole="GameSystemSortOrder" />
           <NavigationProperty Name="GameInfoes" Relationship="VGHDatabase.GameSystemGameInfo" FromRole="GameSystem" ToRole="GameInfo" />
           <NavigationProperty Name="InfoSourceRssUrls" Relationship="VGHDatabase.GameSystemInfoSourceRssUrls" FromRole="GameSystem" ToRole="InfoSourceRssUrls" />
@@ -615,7 +615,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="String" Name="GameTitle" Nullable="false" />
+          <Property Type="String" Name="GameTitle" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="GameInfoes" Relationship="VGHDatabase.GamesGameInfo" FromRole="Games" ToRole="GameInfo" />
           <NavigationProperty Name="TrendingGames" Relationship="VGHDatabase.GamesTrendingGames" FromRole="Games" ToRole="TrendingGames" />
           <NavigationProperty Name="PopularGames" Relationship="VGHDatabase.GamesPopularGames" FromRole="Games" ToRole="PopularGames" />
@@ -637,7 +637,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="String" Name="UserName" Nullable="false" />
+          <Property Type="String" Name="UserName" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="UsersInRoles" Relationship="VGHDatabase.UserProfileUsersInRoles" FromRole="UserProfile" ToRole="UsersInRoles" />
         </EntityType>
         <EntityType Name="GameIgnore">
@@ -645,18 +645,18 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="String" Name="GameTitle" Nullable="false" />
+          <Property Type="String" Name="GameTitle" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
         </EntityType>
         <EntityType Name="GameInfo">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="DateTime" Name="USReleaseDate" Nullable="false" />
-          <Property Type="String" Name="GameImage" Nullable="true" />
-          <Property Type="String" Name="Publisher" Nullable="true" />
-          <Property Type="String" Name="Developer" Nullable="true" />
-          <Property Type="String" Name="Overview" Nullable="true" />
+          <Property Type="DateTime" Name="USReleaseDate" Nullable="false" Precision="3" />
+          <Property Type="String" Name="GameImage" Nullable="true" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="String" Name="Publisher" Nullable="true" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="String" Name="Developer" Nullable="true" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="String" Name="Overview" Nullable="true" MaxLength="Max" Unicode="true" FixedLength="false" />
           <Property Type="Int32" Name="GamesDbNetId" Nullable="false" />
           <NavigationProperty Name="GameSystem" Relationship="VGHDatabase.GameSystemGameInfo" FromRole="GameInfo" ToRole="GameSystem" />
           <Property Type="Int32" Name="GameSystemId" Nullable="false" />
@@ -704,7 +704,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="String" Name="InfoTypeName" Nullable="false" />
+          <Property Type="String" Name="InfoTypeName" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="Articles" Relationship="VGHDatabase.InfoTypeArticles" FromRole="InfoType" ToRole="Articles" />
           <NavigationProperty Name="InfoSourceRssUrls" Relationship="VGHDatabase.InfoTypeInfoSourceRssUrls" FromRole="InfoType" ToRole="InfoSourceRssUrls" />
           <NavigationProperty Name="InfoTypeSortOrder" Relationship="VGHDatabase.InfoTypeInfoTypeSortOrder" FromRole="InfoType" ToRole="InfoTypeSortOrder" />
@@ -715,7 +715,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="String" Name="InfoSourceName" Nullable="false" />
+          <Property Type="String" Name="InfoSourceName" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="Articles" Relationship="VGHDatabase.InfoSourceArticles" FromRole="InfoSource" ToRole="Articles" />
           <NavigationProperty Name="InfoSourceRssUrls" Relationship="VGHDatabase.InfoSourceInfoSourceRssUrls" FromRole="InfoSource" ToRole="InfoSourceRssUrls" />
           <NavigationProperty Name="InfoSourceSortOrder" Relationship="VGHDatabase.InfoSourceInfoSourceSortOrder" FromRole="InfoSource" ToRole="InfoSourceSortOrder" />
@@ -731,9 +731,9 @@
           <Property Type="Int32" Name="InfoSourceId" Nullable="false" />
           <NavigationProperty Name="GameSystem" Relationship="VGHDatabase.GameSystemArticles" FromRole="Articles" ToRole="GameSystem" />
           <Property Type="Int32" Name="GameSystemId" Nullable="false" />
-          <Property Type="String" Name="Title" Nullable="false" />
-          <Property Type="String" Name="Link" Nullable="false" />
-          <Property Type="DateTime" Name="DatePublished" Nullable="false" />
+          <Property Type="String" Name="Title" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="String" Name="Link" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Type="DateTime" Name="DatePublished" Nullable="false" Precision="3" />
         </EntityType>
         <Association Name="InfoTypeArticles">
           <End Type="VGHDatabase.InfoType" Role="InfoType" Multiplicity="1" />
@@ -770,7 +770,7 @@
           <Property Type="Int32" Name="GameSystemId" Nullable="false" />
           <NavigationProperty Name="InfoType" Relationship="VGHDatabase.InfoTypeInfoSourceRssUrls" FromRole="InfoSourceRssUrls" ToRole="InfoType" />
           <Property Type="Int32" Name="InfoTypeId" Nullable="false" />
-          <Property Type="String" Name="URL" Nullable="false" />
+          <Property Type="String" Name="URL" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
         </EntityType>
         <Association Name="InfoSourceInfoSourceRssUrls">
           <End Type="VGHDatabase.InfoSource" Role="InfoSource" Multiplicity="1" />
@@ -849,9 +849,9 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
-          <Property Type="String" Name="Title" Nullable="false" />
+          <Property Type="String" Name="Title" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="PollAnswers" Relationship="VGHDatabase.PollPollAnswers" FromRole="Poll" ToRole="PollAnswers" />
-          <Property Name="DateCreated" Type="DateTime" Nullable="false" />
+          <Property Name="DateCreated" Type="DateTime" Nullable="false" Precision="3" />
         </EntityType>
         <EntityType Name="PollAnswers">
           <Key>
@@ -860,7 +860,7 @@
           <Property Type="Int32" Name="Id" Nullable="false" annotation:StoreGeneratedPattern="Identity" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" />
           <NavigationProperty Name="Poll" Relationship="VGHDatabase.PollPollAnswers" FromRole="PollAnswers" ToRole="Poll" />
           <Property Type="Int32" Name="PollId" Nullable="false" />
-          <Property Type="String" Name="Answer" Nullable="false" />
+          <Property Type="String" Name="Answer" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
           <Property Type="Int32" Name="NumVotes" Nullable="false" />
         </EntityType>
         <Association Name="PollPollAnswers">
@@ -922,7 +922,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="ErrorMessage" Type="String" Nullable="false" />
+          <Property Name="ErrorMessage" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -1163,6 +1163,7 @@
         <edmx:DesignerProperty Name="ValidateOnBuild" Value="true" />
         <edmx:DesignerProperty Name="EnablePluralization" Value="True" />
         <edmx:DesignerProperty Name="UseLegacyProvider" Value="True" />
+        <edmx:DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
       </edmx:DesignerInfoPropertySet>
     </edmx:Options>
     <!-- Diagram content (shape and connector positions) -->
