@@ -105,7 +105,7 @@ namespace VideoGameHash.Repositories
 
                     if (!IsDuplicateGame(gameDb))
                     {
-                        _db.Games.AddObject(gameDb);
+                        _db.Games.Add(gameDb);
                         _db.SaveChanges();
                     }
                     else
@@ -124,7 +124,7 @@ namespace VideoGameHash.Repositories
 
                     if (IsDuplicateGameInfo(gameInfo)) continue;
 
-                    _db.GameInfoes.AddObject(gameInfo);
+                    _db.GameInfoes.Add(gameInfo);
                     _db.SaveChanges();
                 }
             }
@@ -135,14 +135,14 @@ namespace VideoGameHash.Repositories
             IEnumerable<GameInfo> infos = _db.GameInfoes.Where(u => u.GamesId == gameId);
 
             foreach (var info in infos)
-                _db.GameInfoes.DeleteObject(info);
+                _db.GameInfoes.Remove(info);
 
             _db.SaveChanges();
 
             var game = GetGame(gameId);
 
             if (game != null)
-                _db.Games.DeleteObject(game);
+                _db.Games.Remove(game);
         }
 
         private void ProcessAdditionalDetailsFromWebService(string gameSystem)
@@ -242,7 +242,7 @@ namespace VideoGameHash.Repositories
                 };
 
                 if (!IsDuplicateIgnoredGame(game))
-                    _db.GameIgnores.AddObject(gameIgnore);
+                    _db.GameIgnores.Add(gameIgnore);
 
                 // Delete from GameInfo first
                 DeleteGameInfo(game.Id);
@@ -250,14 +250,14 @@ namespace VideoGameHash.Repositories
                 // Delete from Trending Games
                 var trendingGame = _db.TrendingGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
                 if (trendingGame != null)
-                    _db.TrendingGames.DeleteObject(trendingGame);
+                    _db.TrendingGames.Remove(trendingGame);
 
                 // Delete from all time games list
                 var allTimeGame = _db.PopularGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
                 if (allTimeGame != null)
-                    _db.PopularGames.DeleteObject(allTimeGame);
+                    _db.PopularGames.Remove(allTimeGame);
 
-                _db.Games.DeleteObject(game);
+                _db.Games.Remove(game);
                 _db.SaveChanges();
             }
         }
@@ -271,7 +271,7 @@ namespace VideoGameHash.Repositories
         {
             var gameInfos = _db.GameInfoes.Where(u => u.GamesId == id);
             foreach (var gameInfo in gameInfos)
-                _db.GameInfoes.DeleteObject(gameInfo);
+                _db.GameInfoes.Remove(gameInfo);
             _db.SaveChanges();
         }
 

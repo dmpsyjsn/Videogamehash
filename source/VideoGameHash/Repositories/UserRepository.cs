@@ -27,7 +27,7 @@ namespace VideoGameHash.Repositories
                     UserName = userName
                 };
 
-                _db.UserProfiles.AddObject(user);
+                _db.UserProfiles.Add(user);
                 _db.SaveChanges();
 
                 user = GetUserByUserName(userName);
@@ -187,7 +187,7 @@ namespace VideoGameHash.Repositories
             membership.Email = member.Email;
             membership.SecurityQuestion = member.SecurityQuestion;
             membership.SecurityAnswer = member.SecurityAnswer;
-            _db.Memberships.AddObject(membership);
+            _db.Memberships.Add(membership);
             _db.SaveChanges();
         }
 
@@ -265,7 +265,7 @@ namespace VideoGameHash.Repositories
                 RolesId = roleId
             };
 
-            _db.UsersInRoles.AddObject(usersInRoles);
+            _db.UsersInRoles.Add(usersInRoles);
             _db.SaveChanges();
         }
     }

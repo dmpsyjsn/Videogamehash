@@ -20,7 +20,7 @@ namespace VideoGameHash.Repositories
                 ErrorMessage = errorMessage
             };
 
-            _db.Errors.AddObject(error);
+            _db.Errors.Add(error);
             _db.SaveChanges();
         }
 
@@ -34,7 +34,7 @@ namespace VideoGameHash.Repositories
             if (!_db.Errors.Any()) return;
 
             foreach (var error in _db.Errors)
-                _db.DeleteObject(error);
+                _db.Errors.Remove(error);
 
             _db.SaveChanges();
         }

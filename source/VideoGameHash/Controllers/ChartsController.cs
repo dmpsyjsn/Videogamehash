@@ -10,10 +10,10 @@ namespace VideoGameHash.Controllers
 {
     public class ChartsController : Controller
     {
-        private readonly InfoRepository _infoRepository;
+        private readonly IInfoRepository _infoRepository;
         private readonly GamesRepository _gamesRepository;
 
-        public ChartsController(InfoRepository infoRepository, GamesRepository gamesRepository)
+        public ChartsController(IInfoRepository infoRepository, GamesRepository gamesRepository)
         {
             _infoRepository = infoRepository;
             _gamesRepository = gamesRepository;

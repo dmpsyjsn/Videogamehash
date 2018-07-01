@@ -11,11 +11,11 @@ namespace VideoGameHash.Controllers
 {
     public class InfoController : Controller
     {
-        private readonly InfoRepository _infoRepository;
+        private readonly IInfoRepository _infoRepository;
         private readonly GameSystemsRepository _gameSystemsRepository;
         private readonly ErrorRepository _errorRepository;
 
-        public InfoController(InfoRepository infoRepository, GameSystemsRepository gameSystemsRepository, ErrorRepository errorRepository)
+        public InfoController(IInfoRepository infoRepository, GameSystemsRepository gameSystemsRepository, ErrorRepository errorRepository)
         {
             _infoRepository = infoRepository;
             _gameSystemsRepository = gameSystemsRepository;

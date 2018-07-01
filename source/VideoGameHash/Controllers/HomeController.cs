@@ -9,9 +9,9 @@ namespace VideoGameHash.Controllers
     public class HomeController : Controller
     {
         private readonly GamesRepository _gamesRepository;
-        private readonly InfoRepository _infoRepository;
+        private readonly IInfoRepository _infoRepository;
 
-        public HomeController(InfoRepository infoRepository,
+        public HomeController(IInfoRepository infoRepository,
             GamesRepository gamesRepository)
         {
             _infoRepository = infoRepository;

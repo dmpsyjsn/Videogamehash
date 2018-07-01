@@ -29,7 +29,7 @@ namespace VideoGameHash
 
             // Register Repositories
             container.Register<UserRepository>(Lifestyle.Scoped);
-            container.Register<InfoRepository>(Lifestyle.Scoped);
+            container.Register<IInfoRepository, InfoRepository>(Lifestyle.Scoped);
             container.Register<GameSystemsRepository>(Lifestyle.Scoped);
             container.Register<GamesRepository>(Lifestyle.Scoped);
             container.Register<ErrorRepository>(Lifestyle.Scoped);

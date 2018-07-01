@@ -25,7 +25,7 @@ namespace VideoGameHash.Repositories
                 {
                     GameSystemName = gameSystemName
                 };
-                _db.GameSystems.AddObject(gameSystem);
+                _db.GameSystems.Add(gameSystem);
                 _db.SaveChanges();
 
                 int? maxValue = _db.GameSystemSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
@@ -35,7 +35,7 @@ namespace VideoGameHash.Repositories
                 order.GameSystem = gameSystem;
                 order.SortOrder = maxValue + 1 ?? 1;
 
-                _db.GameSystemSortOrders.AddObject(order);
+                _db.GameSystemSortOrders.Add(order);
                 _db.SaveChanges();
 
                 return gameSystem.Id;
@@ -68,30 +68,30 @@ namespace VideoGameHash.Repositories
                 {
                     foreach (var article in GetArticlesByGameSystemId(id))
                     {
-                        _db.Articles.DeleteObject(article);
+                        _db.Articles.Remove(article);
                     }
                     _db.SaveChanges();
 
                     foreach (var url in GetUrlsByGameSystemId(id))
                     {
-                        _db.InfoSourceRssUrls.DeleteObject(url);
+                        _db.InfoSourceRssUrls.Remove(url);
                     }
                     _db.SaveChanges();
 
                     foreach (var gameInfo in GetGameInfoByGameSystemId(id))
                     {
-                        _db.GameInfoes.DeleteObject(gameInfo);
+                        _db.GameInfoes.Remove(gameInfo);
                     }
                     _db.SaveChanges();
 
                     var sortOrder = _db.GameSystemSortOrders.SingleOrDefault(u => u.GameSystem.Id == id);
                     if (sortOrder != null)
                     {
-                        _db.GameSystemSortOrders.DeleteObject(sortOrder);
+                        _db.GameSystemSortOrders.Remove(sortOrder);
                         _db.SaveChanges();
                     }
 
-                    _db.GameSystems.DeleteObject(gameSystem);
+                    _db.GameSystems.Remove(gameSystem);
                     _db.SaveChanges();
                 }
             }

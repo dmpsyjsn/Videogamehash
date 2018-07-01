@@ -224,21 +224,84 @@
     <Compile Include="Helpers\LatestInfoHelper.cs" />
     <Compile Include="Helpers\RegexUtilities.cs" />
     <Compile Include="Models\AccountModels.cs" />
+    <Compile Include="Models\Articles.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\ErrorModel.cs" />
+    <Compile Include="Models\Errors.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\GameIgnore.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\GameInfo.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Games.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\GameSystem.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\GameSystemSortOrder.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\HighchartModels\LineChartModel.cs" />
     <Compile Include="Models\HighchartModels\PieChartModel.cs" />
     <Compile Include="Models\ImportModel.cs" />
     <Compile Include="Models\InfoModels.cs" />
+    <Compile Include="Models\InfoSource.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\InfoSourceRssUrls.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\InfoSourceSortOrder.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\InfoType.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\InfoTypeSortOrder.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Membership.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Poll.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PollAnswers.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\PopularGames.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Roles.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\TrendingGames.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\UserProfile.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\UsersInRoles.cs">
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Videogamehash.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Videogamehash.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Videogamehash.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Videogamehash.tt</DependentUpon>
+    </Compile>
     <Compile Include="Repositories\ErrorRepository.cs" />
     <Compile Include="Repositories\InfoRepository.cs" />
     <Compile Include="Models\TheGamesDB\PlatformGames.cs" />
-    <Compile Include="Models\VGHDatabase.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>VGHDatabase.edmx</DependentUpon>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-    <Compile Include="Models\VGHDatabaseRepository.cs" />
     <Compile Include="Models\CustomMembershipProvider.cs" />
     <Compile Include="Models\GameSerializer.cs" />
     <Compile Include="Repositories\GamesRepository.cs" />
@@ -330,6 +393,16 @@
     <Content Include="Images\bg-scrollbar-trackend-y.png" />
     <Content Include="Images\bird_blue_16.png" />
     <Content Include="Models\VGHDatabase.edmx.sql" />
+    <Content Include="Models\Videogamehash.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Videogamehash.Context.cs</LastGenOutput>
+      <DependentUpon>VGHDatabase.edmx</DependentUpon>
+    </Content>
+    <Content Include="Models\Videogamehash.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Videogamehash.cs</LastGenOutput>
+      <DependentUpon>VGHDatabase.edmx</DependentUpon>
+    </Content>
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.woff" />
@@ -446,6 +519,9 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

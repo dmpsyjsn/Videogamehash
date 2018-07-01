@@ -9,7 +9,55 @@ using VideoGameHash.Models;
 
 namespace VideoGameHash.Repositories
 {
-    public class InfoRepository
+    public interface IInfoRepository
+    {
+        IEnumerable<InfoType> GetInfoTypes();
+        InfoType GetInfoType(int id);
+        InfoType GetInfoType(string name);
+        IEnumerable<InfoSource> GetSources();
+        InfoSource GetInfoSource(int id);
+        InfoSource GetInfoSource(string name);
+        IEnumerable<InfoSourceRssUrls> GetRssUrls();
+        InfoSourceRssUrls GetRssUrl(int id);
+        int AddInfoType(string name);
+        int AddInfoSource(string name);
+        void AddUrl(AddUrlModel model);
+        void AddUrl(int typeId, int sourceId, int gameSystemId, string url);
+        void EditInfo(string section, EditModel model);
+        void EditSectionInfo(EditSectionModel model);
+        int GetInfoTypeId(string infoType);
+        int GetInfoSourceId(string source);
+        int GetGameSystemId(string gameSystem);
+        IQueryable<Articles> GetArticles(int section);
+        IEnumerable<Articles> GetGameArticles(Games game, string source, string system);
+        IEnumerable<InfoTypeSortOrder> GetInfoTypeSortOrder();
+        IEnumerable<InfoSourceSortOrder> GetInfoSourceSortOrder();
+        void UpdateOrder(InfoTypeSortOrder order);
+        void UpdateOrder(InfoSourceSortOrder order);
+        Task<int> AddRssFeed(InfoSourceRssUrls model);
+        Task<int> AddFeedItems();
+
+        bool IsDuplicateArticle(Articles article);
+
+        void DeleteOldArticles();
+        void MakeTrending();
+        void MakePopular();
+        void DeleteInfoType(int id);
+        IEnumerable<InfoSourceRssUrls> GetUrlsByInfoType(int infoTypeId);
+        void DeleteInfoSource(int id);
+        IEnumerable<InfoSourceRssUrls> GetUrlsBySourceId(int sourceId);
+        IEnumerable<Articles> GetArticlesBySourceId(int id);
+        void AddPoll(AddPollModel model);
+        void EditPoll(EditPollModel model);
+        List<Poll> GetPolls();
+        Poll GetPoll(int id);
+        void DeletePollAnswerByPollId(int pollId);
+        void UpdatePoll(int pollId, int pollValue);
+        void DeleteUrl(int id);
+        void ReplaceGameSystemAll();
+    }
+
+    public class InfoRepository : IInfoRepository
     {
         private readonly VGHDatabaseContainer _db;
 
@@ -30,7 +78,7 @@ namespace VideoGameHash.Repositories
 
         public InfoType GetInfoType(string name)
         {
-            return _db.InfoTypes.SingleOrDefault(u => u.InfoTypeName == name);
+            return _db.InfoTypes?.SingleOrDefault(u => u.InfoTypeName == name);
         }
 
         public IEnumerable<InfoSource> GetSources()
@@ -70,7 +118,7 @@ namespace VideoGameHash.Repositories
                     InfoTypeName = name,
                     UseGameSystem = true
                 };
-                _db.InfoTypes.AddObject(infoType);
+                _db.InfoTypes.Add(infoType);
                 _db.SaveChanges();
 
                 int? maxValue = _db.InfoTypeSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
@@ -80,17 +128,15 @@ namespace VideoGameHash.Repositories
                 order.InfoType = infoType;
                 order.SortOrder = (int) (maxValue + 1);
 
-                _db.InfoTypeSortOrders.AddObject(order);
+                _db.InfoTypeSortOrders.Add(order);
                 _db.SaveChanges();
 
                 return infoType.Id;
             }
-            catch
+            catch (Exception ex)
             {
-                // Do nothing
+                throw ex;
             }
-
-            return -1;
         }
 
         public int AddInfoSource(string name)
@@ -104,7 +150,7 @@ namespace VideoGameHash.Repositories
                 {
                     InfoSourceName = name
                 };
-                _db.InfoSources.AddObject(infoSource);
+                _db.InfoSources.Add(infoSource);
                 _db.SaveChanges();
 
                 int? maxValue = _db.InfoSourceSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
@@ -114,7 +160,7 @@ namespace VideoGameHash.Repositories
                 order.InfoSource = infoSource;
                 order.SortOrder = (int) (maxValue + 1);
 
-                _db.InfoSourceSortOrders.AddObject(order);
+                _db.InfoSourceSortOrders.Add(order);
                 _db.SaveChanges();
 
                 return infoSource.Id;
@@ -139,7 +185,7 @@ namespace VideoGameHash.Repositories
                     URL = model.Url
                 };
 
-                _db.InfoSourceRssUrls.AddObject(url);
+                _db.InfoSourceRssUrls.Add(url);
                 _db.SaveChanges();
             }
             catch
@@ -165,7 +211,7 @@ namespace VideoGameHash.Repositories
                     URL = url
                 };
 
-                _db.InfoSourceRssUrls.AddObject(infoSourceRssUrl);
+                _db.InfoSourceRssUrls.Add(infoSourceRssUrl);
                 _db.SaveChanges();
             }
             catch
@@ -341,7 +387,7 @@ namespace VideoGameHash.Repositories
 
                                 if (!IsDuplicateArticle(article))
                                 {
-                                    _db.Articles.AddObject(article);
+                                    _db.Articles.Add(article);
                                     _db.SaveChanges();
                                     i++;
                                 }
@@ -380,7 +426,7 @@ namespace VideoGameHash.Repositories
 
                                     if (!IsDuplicateArticle(article))
                                     {
-                                        _db.Articles.AddObject(article);
+                                        _db.Articles.Add(article);
                                         _db.SaveChanges();
                                         i++;
                                     }
@@ -444,7 +490,7 @@ namespace VideoGameHash.Repositories
 
                 foreach (var article in articlesToDelete)
                 {
-                    _db.Articles.DeleteObject(article);
+                    _db.Articles.Remove(article);
                 }
 
                 _db.SaveChanges();
@@ -459,11 +505,11 @@ namespace VideoGameHash.Repositories
 
                         foreach (var gameInfo in gameInfoes.ToList())
                         {
-                            _db.GameInfoes.DeleteObject(gameInfo);
+                            _db.GameInfoes.Remove(gameInfo);
                         }
                         _db.SaveChanges();
 
-                        _db.Games.DeleteObject(game);
+                        _db.Games.Remove(game);
                     }
                 }
 
@@ -479,7 +525,7 @@ namespace VideoGameHash.Repositories
         {
             foreach (var game in _db.TrendingGames)
             {
-                _db.DeleteObject(game);
+                _db.TrendingGames.Remove(game);
             }
 
             _db.SaveChanges();
@@ -502,7 +548,7 @@ namespace VideoGameHash.Repositories
                     ArticleHits = matchingArticles.Count
                 };
 
-                _db.TrendingGames.AddObject(trendingGame);
+                _db.TrendingGames.Add(trendingGame);
             }
 
             _db.SaveChanges();
@@ -512,7 +558,7 @@ namespace VideoGameHash.Repositories
         {
             foreach (var game in _db.PopularGames)
             {
-                _db.DeleteObject(game);
+                _db.PopularGames.Remove(game);
             }
 
             _db.SaveChanges();
@@ -535,88 +581,88 @@ namespace VideoGameHash.Repositories
                     ArticleHits = matchingArticles.Count
                 };
 
-                _db.PopularGames.AddObject(popularGame);
+                _db.PopularGames.Add(popularGame);
             }
 
             _db.SaveChanges();
         }
 
-        internal void DeleteInfoType(int id)
+        public void DeleteInfoType(int id)
         {
             var infoType = GetInfoType(id);
 
             foreach (var article in GetArticles(id))
             {
-                _db.Articles.DeleteObject(article);
+                _db.Articles.Remove(article);
             }
             _db.SaveChanges();
 
             foreach (var url in GetUrlsByInfoType(id))
             {
-                _db.InfoSourceRssUrls.DeleteObject(url);
+                _db.InfoSourceRssUrls.Remove(url);
             }
             _db.SaveChanges();
 
             var sortOrder = _db.InfoTypeSortOrders.SingleOrDefault(u => u.InfoType.Id == id);
             if (sortOrder != null)
             {
-                _db.InfoTypeSortOrders.DeleteObject(sortOrder);
+                _db.InfoTypeSortOrders.Remove(sortOrder);
                 _db.SaveChanges();
             }
             
-            _db.InfoTypes.DeleteObject(infoType);
+            _db.InfoTypes.Remove(infoType);
             _db.SaveChanges();
         }
 
-        private IEnumerable<InfoSourceRssUrls> GetUrlsByInfoType(int infoTypeId)
+        public IEnumerable<InfoSourceRssUrls> GetUrlsByInfoType(int infoTypeId)
         {
             return _db.InfoSourceRssUrls.Where(u => u.InfoTypeId == infoTypeId);
         }
 
-        internal void DeleteInfoSource(int id)
+        public void DeleteInfoSource(int id)
         {
             var infoSource = GetInfoSource(id);
 
             foreach (var article in GetArticlesBySourceId(id))
             {
-                _db.Articles.DeleteObject(article);
+                _db.Articles.Remove(article);
             }
 
             foreach (var url in GetUrlsBySourceId(id))
             {
-                _db.InfoSourceRssUrls.DeleteObject(url);
+                _db.InfoSourceRssUrls.Remove(url);
             }
             _db.SaveChanges();
 
             var sortOrder = _db.InfoSourceSortOrders.SingleOrDefault(u => u.InfoSource.Id == id);
             if (sortOrder != null)
             {
-                _db.InfoSourceSortOrders.DeleteObject(sortOrder);
+                _db.InfoSourceSortOrders.Remove(sortOrder);
                 _db.SaveChanges();
             }
 
-            _db.InfoSources.DeleteObject(infoSource);
+            _db.InfoSources.Remove(infoSource);
             _db.SaveChanges();
         }
 
-        private IEnumerable<InfoSourceRssUrls> GetUrlsBySourceId(int sourceId)
+        public IEnumerable<InfoSourceRssUrls> GetUrlsBySourceId(int sourceId)
         {
             return _db.InfoSourceRssUrls.Where(u => u.InfoSourceId == sourceId);
         }
 
-        private IEnumerable<Articles> GetArticlesBySourceId(int id)
+        public IEnumerable<Articles> GetArticlesBySourceId(int id)
         {
             return _db.Articles.Where(u => u.InfoSourceId == id);
         }
 
-        internal void AddPoll(AddPollModel model)
+        public void AddPoll(AddPollModel model)
         {
             var poll = new Poll
             {
                 Title = model.Title,
                 DateCreated = DateTime.Now
             };
-            _db.Polls.AddObject(poll);
+            _db.Polls.Add(poll);
 
             _db.SaveChanges();
 
@@ -633,13 +679,13 @@ namespace VideoGameHash.Repositories
                     NumVotes = randomNumber.Next(0, 1000)
                 };
 
-                _db.PollAnswers.AddObject(answers);
+                _db.PollAnswers.Add(answers);
             }
 
             _db.SaveChanges();
         }
 
-        internal void EditPoll(EditPollModel model)
+        public void EditPoll(EditPollModel model)
         {
             var poll = GetPoll(model.Id);
 
@@ -662,14 +708,14 @@ namespace VideoGameHash.Repositories
                         NumVotes = randomNumber.Next(0, 1000)
                     };
 
-                    _db.PollAnswers.AddObject(answers);
+                    _db.PollAnswers.Add(answers);
                 }
 
                 _db.SaveChanges();
             }
         }
 
-        internal List<Poll> GetPolls()
+        public List<Poll> GetPolls()
         {
             return _db.Polls.OrderByDescending(x => x.DateCreated).Take(3).ToList();
         }
@@ -685,13 +731,13 @@ namespace VideoGameHash.Repositories
 
             foreach (var answer in answers)
             {
-                _db.PollAnswers.DeleteObject(answer);
+                _db.PollAnswers.Remove(answer);
             }
 
             _db.SaveChanges();
         }
 
-        internal void UpdatePoll(int pollId, int pollValue)
+        public void UpdatePoll(int pollId, int pollValue)
         {
             var poll = GetPoll(pollId);
 
@@ -706,11 +752,11 @@ namespace VideoGameHash.Repositories
             _db.SaveChanges();
         }
 
-        internal void DeleteUrl(int id)
+        public void DeleteUrl(int id)
         {
             var url = GetRssUrl(id);
 
-            _db.InfoSourceRssUrls.DeleteObject(url);
+            _db.InfoSourceRssUrls.Remove(url);
             _db.SaveChanges();
         }
 
@@ -761,7 +807,7 @@ namespace VideoGameHash.Repositories
             // re-add articles (now by an actual gamesystem)
             foreach (var article in articlesToReAdd)
             {
-                _db.Articles.AddObject(article);
+                _db.Articles.Add(article);
             }
 
             _db.SaveChanges();
@@ -771,7 +817,7 @@ namespace VideoGameHash.Repositories
 
             foreach (var article in articlesToDelete)
             {
-                _db.Articles.DeleteObject(article);
+                _db.Articles.Remove(article);
             }
 
             _db.SaveChanges();
