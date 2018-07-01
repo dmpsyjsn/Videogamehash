@@ -533,12 +533,14 @@ namespace VideoGameHash.Repositories
             // Get games
             var games = _db.Games.ToList();
 
+            var articles = _db.Articles.ToList();
+
             // See if any articles contain game title
             foreach (var game in games)
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var matchingArticles = _db.Articles.AsEnumerable().Where(d => d.DatePublished >= DateTime.Now.AddDays(-7) && searchTerm.IsMatch(d.Title)).ToList();
+                var matchingArticles = articles.Where(d => d.DatePublished >= DateTime.Now.AddDays(-7) && searchTerm.IsMatch(d.Title)).ToList();
 
                 if (!matchingArticles.Any()) continue;
 
@@ -565,13 +567,15 @@ namespace VideoGameHash.Repositories
 
             // Get games
             var games = _db.Games.ToList();
+            
+            var articles = _db.Articles.ToList();
 
             // See if any articles contain game title
             foreach (var game in games)
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var matchingArticles = _db.Articles.AsEnumerable().Where(d => searchTerm.IsMatch(d.Title)).ToList();
+                var matchingArticles = articles.Where(d => searchTerm.IsMatch(d.Title)).ToList();
 
                 if (!matchingArticles.Any()) continue;
 
