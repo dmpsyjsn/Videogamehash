@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Web.Mvc;
 using VideoGameHash.Repositories;
 
@@ -39,28 +40,16 @@ namespace VideoGameHash.Models
         public string ActionName { get; set; }
         public SelectList GameSystems { get; private set; }
 
-        public GameFormViewModel()
+        public GameFormViewModel(IEnumerable<string> gameSystemNames)
         {
-            var gameSystemList = new List<string>();
-            var gsr = new GameSystemsRepository();
-            foreach (var gs in gsr.GetGameSystems())
-            {
-                if (gs.GameSystemName != "All")
-                    gameSystemList.Add(gs.GameSystemName);
-            }
+            var gameSystemList = gameSystemNames.Where(gs => gs != "All").ToList();
 
             GameSystems = new SelectList(gameSystemList);
         }
 
-        public GameFormViewModel(string sourceType)
+        public GameFormViewModel(string sourceType, IEnumerable<string> gameSystemNames)
         {
-            var gameSystemList = new List<string>();
-            var gsr = new GameSystemsRepository();
-            foreach (var gs in gsr.GetGameSystems())
-            {
-                if (gs.GameSystemName != "All" && !(sourceType == "Wikipedia" && gs.GameSystemName == "PC"))
-                    gameSystemList.Add(gs.GameSystemName);
-            }
+            var gameSystemList = gameSystemNames.Where(gs => gs != "All" && !(sourceType == "Wikipedia" && gs == "PC")).ToList();
 
             GameSystems = new SelectList(gameSystemList);
         }

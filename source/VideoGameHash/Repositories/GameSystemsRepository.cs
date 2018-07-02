@@ -4,9 +4,24 @@ using VideoGameHash.Models;
 
 namespace VideoGameHash.Repositories
 {
-    public class GameSystemsRepository
+    public interface IGameSystemsRepository
     {
-        private readonly VGHDatabaseContainer _db = new VGHDatabaseContainer();
+        IEnumerable<GameSystem> GetGameSystems();
+        int AddGameSystem(string gameSystemName);
+        GameSystem GetGameSystemById(int id);
+        void DeleteGameSystem(int id);
+        IEnumerable<GameSystemSortOrder> GetGameSystemSortOrder();
+        void UpdateOrder(GameSystemSortOrder order);
+    }
+
+    public class GameSystemsRepository : IGameSystemsRepository
+    {
+        private readonly VGHDatabaseContainer _db;
+
+        public GameSystemsRepository(VGHDatabaseContainer db)
+        {
+            _db = db;
+        }
 
         public IEnumerable<GameSystem> GetGameSystems()
         {
@@ -53,11 +68,6 @@ namespace VideoGameHash.Repositories
             return _db.GameSystems.SingleOrDefault(u => u.Id == id);
         }
 
-        public GameSystem GetGameSystemByGameSystemName(string gameSystemName)
-        {
-            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystemName);
-        }
-
         public void DeleteGameSystem(int id)
         {
             try
@@ -101,17 +111,12 @@ namespace VideoGameHash.Repositories
             }
         }
 
-        private IEnumerable<GameInfo> GetGameInfoByGameSystemId(int gameSystemId)
-        {
-            return _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
-        }
-
         public IEnumerable<GameSystemSortOrder> GetGameSystemSortOrder()
         {
             return _db.GameSystemSortOrders;
         }
 
-        internal void UpdateOrder(GameSystemSortOrder order)
+        public void UpdateOrder(GameSystemSortOrder order)
         {
             var dbOrder = (from t in _db.GameSystemSortOrders
                                            where t.Id == order.Id
@@ -120,6 +125,13 @@ namespace VideoGameHash.Repositories
             dbOrder.SortOrder = order.SortOrder;
 
             _db.SaveChanges();
+        }
+
+        #region Private methods
+
+        private GameSystem GetGameSystemByGameSystemName(string gameSystemName)
+        {
+            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystemName);
         }
 
         private IEnumerable<Articles> GetArticlesByGameSystemId(int gameSystemId)
@@ -131,5 +143,12 @@ namespace VideoGameHash.Repositories
         {
             return _db.InfoSourceRssUrls.Where(u => u.GameSystemId == gameSystemId);
         }
+
+        private IEnumerable<GameInfo> GetGameInfoByGameSystemId(int gameSystemId)
+        {
+            return _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
+        }
+
+        #endregion
     }
 }

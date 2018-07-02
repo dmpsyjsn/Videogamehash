@@ -28,11 +28,11 @@ namespace VideoGameHash
             container.Register<VGHDatabaseContainer>(Lifestyle.Scoped);
 
             // Register Repositories
-            container.Register<UserRepository>(Lifestyle.Scoped);
+            container.Register<IUserRepository, UserRepository>(Lifestyle.Scoped);
             container.Register<IInfoRepository, InfoRepository>(Lifestyle.Scoped);
-            container.Register<GameSystemsRepository>(Lifestyle.Scoped);
-            container.Register<GamesRepository>(Lifestyle.Scoped);
-            container.Register<ErrorRepository>(Lifestyle.Scoped);
+            container.Register<IGameSystemsRepository, GameSystemsRepository>(Lifestyle.Scoped);
+            container.Register<IGamesRepository, GamesRepository>(Lifestyle.Scoped);
+            container.Register<IErrorRepository, ErrorRepository>(Lifestyle.Scoped);
 
             container.RegisterMvcControllers(Assembly.GetExecutingAssembly());
 
@@ -73,17 +73,17 @@ namespace VideoGameHash
             var ex = Server.GetLastError();
 
             var container = new Container();
-            var repository = container.GetInstance<ErrorRepository>();
+            var repository = container.GetInstance<IErrorRepository>();
 
             repository.AddError($"{ex.Message} - {ex.StackTrace}");
 
             var controller = new ErrorController();
             var routeData = new RouteData();
-            var action = "Index";
+            const string action = "Index";
  
             httpContext.ClearError();
             httpContext.Response.Clear();
-            httpContext.Response.StatusCode = ex is HttpException ? ((HttpException)ex).GetHttpCode() : 500;
+            httpContext.Response.StatusCode = ex is HttpException exception ? exception.GetHttpCode() : 500;
             httpContext.Response.TrySkipIisCustomErrors = true;
      
             routeData.Values["controller"] = "Error";

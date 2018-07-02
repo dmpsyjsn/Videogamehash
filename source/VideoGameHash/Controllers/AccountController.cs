@@ -11,9 +11,9 @@ namespace VideoGameHash.Controllers
     [Authorize]
     public class AccountController : Controller
     {
-        private readonly UserRepository _repository;
+        private readonly IUserRepository _repository;
 
-        public AccountController(UserRepository repository)
+        public AccountController(IUserRepository repository)
         {
             _repository = repository;
         }

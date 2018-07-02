@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System.Linq;
+using System.Web.Mvc;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -7,15 +8,14 @@ namespace VideoGameHash.Controllers
     public class GamesController : Controller
     {
 
-        private readonly GamesRepository _repository;
+        private readonly IGamesRepository _repository;
+        private readonly IGameSystemsRepository _gameSystemsRepository;
 
-        public GamesController(GamesRepository repository)
+        public GamesController(IGamesRepository repository, IGameSystemsRepository gameSystemsRepository)
         {
             _repository = repository;
+            _gameSystemsRepository = gameSystemsRepository;
         }
-
-        //
-        // GET: /Games/
 
         public ActionResult Index()
         {
@@ -25,7 +25,8 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public ActionResult AddGames()
         {
-            var model = new GameFormViewModel
+            var gameSytems = _gameSystemsRepository.GetGameSystems().Select(x => x.GameSystemName).ToArray();
+            var model = new GameFormViewModel(gameSytems)
             {
                 ActionName = "AddGames"
             };
@@ -44,7 +45,8 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public ActionResult AddGamesWikipedia()
         {
-            var model = new GameFormViewModel("Wikipedia")
+            var gameSytems = _gameSystemsRepository.GetGameSystems().Select(x => x.GameSystemName).ToArray();
+            var model = new GameFormViewModel("Wikipedia", gameSytems)
             {
                 ActionName = "AddGamesWikipedia"
             };

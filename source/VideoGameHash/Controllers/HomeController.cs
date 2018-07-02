@@ -8,11 +8,11 @@ namespace VideoGameHash.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly GamesRepository _gamesRepository;
+        private readonly IGamesRepository _gamesRepository;
         private readonly IInfoRepository _infoRepository;
 
         public HomeController(IInfoRepository infoRepository,
-            GamesRepository gamesRepository)
+            IGamesRepository gamesRepository)
         {
             _infoRepository = infoRepository;
             _gamesRepository = gamesRepository;
@@ -48,27 +48,12 @@ namespace VideoGameHash.Controllers
             if (id < 0)
                 return RedirectToAction("Index");
 
-            var game = _gamesRepository.GetGame(id);
+            var model = _gamesRepository.GetGameDetailsViewModel(id, useInfometrics: true);
 
-            if (game == null)
+            if (model == null)
                 return RedirectToAction("Index");
-
-            var model = new GameDetailsModel
-            {
-                Game = game,
-                AvailableGameSystems = _gamesRepository.GetGameSystemsForThisGame(game)
-            };
-
-            var currentGameSystem = model.AvailableGameSystems[0];
-
-            model.UseInfoMetrics = true;
-            model.ImageLinks = _gamesRepository.GetImages(game.Id, model.AvailableGameSystems);
-            model.Publisher = _gamesRepository.GetPublisher(game.Id, currentGameSystem);
-            model.Developer = _gamesRepository.GetDeveloper(game.Id, currentGameSystem);
-            model.UsReleaseDate = _gamesRepository.GetReleaseDate(game.Id, currentGameSystem);
-            model.Overview = _gamesRepository.GetOverview(game.Id, currentGameSystem);
-            model.GamesDbNetId = _gamesRepository.GetGamesDbNetId(game.Id, currentGameSystem);
-            ViewBag.GameSystem = currentGameSystem;
+            
+            ViewBag.GameSystem = model.AvailableGameSystems[0];
 
             return View("GameDetails", model);
         }

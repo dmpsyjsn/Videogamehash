@@ -13,10 +13,8 @@ namespace VideoGameHash.Repositories
     {
         IEnumerable<InfoType> GetInfoTypes();
         InfoType GetInfoType(int id);
-        InfoType GetInfoType(string name);
         IEnumerable<InfoSource> GetSources();
         InfoSource GetInfoSource(int id);
-        InfoSource GetInfoSource(string name);
         IEnumerable<InfoSourceRssUrls> GetRssUrls();
         InfoSourceRssUrls GetRssUrl(int id);
         int AddInfoType(string name);
@@ -25,33 +23,22 @@ namespace VideoGameHash.Repositories
         void AddUrl(int typeId, int sourceId, int gameSystemId, string url);
         void EditInfo(string section, EditModel model);
         void EditSectionInfo(EditSectionModel model);
-        int GetInfoTypeId(string infoType);
-        int GetInfoSourceId(string source);
-        int GetGameSystemId(string gameSystem);
-        IQueryable<Articles> GetArticles(int section);
         IEnumerable<Articles> GetGameArticles(Games game, string source, string system);
         IEnumerable<InfoTypeSortOrder> GetInfoTypeSortOrder();
         IEnumerable<InfoSourceSortOrder> GetInfoSourceSortOrder();
         void UpdateOrder(InfoTypeSortOrder order);
         void UpdateOrder(InfoSourceSortOrder order);
-        Task<int> AddRssFeed(InfoSourceRssUrls model);
         Task<int> AddFeedItems();
-
-        bool IsDuplicateArticle(Articles article);
 
         void DeleteOldArticles();
         void MakeTrending();
         void MakePopular();
         void DeleteInfoType(int id);
-        IEnumerable<InfoSourceRssUrls> GetUrlsByInfoType(int infoTypeId);
         void DeleteInfoSource(int id);
-        IEnumerable<InfoSourceRssUrls> GetUrlsBySourceId(int sourceId);
-        IEnumerable<Articles> GetArticlesBySourceId(int id);
         void AddPoll(AddPollModel model);
         void EditPoll(EditPollModel model);
         List<Poll> GetPolls();
         Poll GetPoll(int id);
-        void DeletePollAnswerByPollId(int pollId);
         void UpdatePoll(int pollId, int pollValue);
         void DeleteUrl(int id);
         void ReplaceGameSystemAll();
@@ -76,11 +63,6 @@ namespace VideoGameHash.Repositories
             return _db.InfoTypes.SingleOrDefault(u => u.Id == id);
         }
 
-        public InfoType GetInfoType(string name)
-        {
-            return _db.InfoTypes?.SingleOrDefault(u => u.InfoTypeName == name);
-        }
-
         public IEnumerable<InfoSource> GetSources()
         {
             return _db.InfoSources.OrderBy(x => x.InfoSourceSortOrder.SortOrder);
@@ -89,11 +71,6 @@ namespace VideoGameHash.Repositories
         public InfoSource GetInfoSource(int id)
         {
             return _db.InfoSources.SingleOrDefault(u => u.Id == id);
-        }
-
-        public InfoSource GetInfoSource(string name)
-        {
-            return _db.InfoSources.SingleOrDefault(u => u.InfoSourceName == name);
         }
 
         public IEnumerable<InfoSourceRssUrls> GetRssUrls()
@@ -258,26 +235,6 @@ namespace VideoGameHash.Repositories
             }
         }
 
-        public int GetInfoTypeId(string infoType)
-        {
-            return _db.InfoTypes.Single(u => u.InfoTypeName == infoType).Id;
-        }
-
-        public int GetInfoSourceId(string source)
-        {
-            return _db.InfoSources.Single(u => u.InfoSourceName == source).Id;
-        }
-
-        public int GetGameSystemId(string gameSystem)
-        {
-            return _db.GameSystems.Single(u => u.GameSystemName == gameSystem).Id;
-        }
-
-        public IQueryable<Articles> GetArticles(int section)
-        {
-            return _db.Articles.Where(u => u.InfoTypeId == section);
-        }
-
         public IEnumerable<Articles> GetGameArticles(Games game, string source, string system)
         {
             try
@@ -352,101 +309,6 @@ namespace VideoGameHash.Repositories
             _db.SaveChanges();
         }
 
-        public async Task<int> AddRssFeed(InfoSourceRssUrls model)
-        {
-            var rssUrl = GetRssUrl(model.Id);
-            var i = 0;
-
-            if (rssUrl != null)
-            {
-                try
-                {
-                    var feedUri = new Uri(rssUrl.URL);
-                    IFeedFactory feedFactory = new HttpFeedFactory();
-                    var feed = feedFactory.CreateFeed(feedUri);
-
-                    if (feed.Items.Count > 0)
-                    {
-                        var gameSystems = rssUrl.GameSystem.GameSystemName.Equals("All")
-                            ? _db.GameSystems.Where(x => !x.GameSystemName.Equals("All")).Select(x => x.Id).ToList()
-                            : new List<int> {rssUrl.GameSystemId};
-
-                        foreach (var system in gameSystems)
-                        {
-                            foreach (var item in feed.Items)
-                            {
-                                var article = new Articles
-                                {
-                                    InfoTypeId = rssUrl.InfoTypeId,
-                                    InfoSourceId = rssUrl.InfoSourceId,
-                                    GameSystemId = system,
-                                    DatePublished = item.DatePublished,
-                                    Link = item.Link,
-                                    Title = item.Title
-                                };
-
-                                if (!IsDuplicateArticle(article))
-                                {
-                                    _db.Articles.Add(article);
-                                    _db.SaveChanges();
-                                    i++;
-                                }
-                                else
-                                    break;
-                            }
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    try
-                    {
-                        // Try secondary feed reader
-                        var feed = await FeedReader.ReadAsync(rssUrl.URL);
-
-                        if (feed.Items.Count > 0)
-                        {
-                            var gameSystems = rssUrl.GameSystem.GameSystemName.Equals("All")
-                                ? _db.GameSystems.Where(x => !x.GameSystemName.Equals("All")).Select(x => x.Id).ToList()
-                                : new List<int> {rssUrl.GameSystemId};
-
-                            foreach (var system in gameSystems)
-                            {
-                                foreach (var item in feed.Items)
-                                {
-                                    var article = new Articles
-                                    {
-                                        InfoTypeId = rssUrl.InfoTypeId,
-                                        InfoSourceId = rssUrl.InfoSourceId,
-                                        GameSystemId = system,
-                                        DatePublished = item.PublishingDate ?? DateTime.Today,
-                                        Link = item.Link,
-                                        Title = item.Title
-                                    };
-
-                                    if (!IsDuplicateArticle(article))
-                                    {
-                                        _db.Articles.Add(article);
-                                        _db.SaveChanges();
-                                        i++;
-                                    }
-                                    else
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        i = 0;
-                    }
-
-                }
-            }
-
-            return i;
-        }
-
         public async Task<int> AddFeedItems()
         {
             var i = 0;
@@ -458,26 +320,6 @@ namespace VideoGameHash.Repositories
             }
 
             return i;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="article"></param>
-        /// <returns></returns>
-        public bool IsDuplicateArticle(Articles article)
-        {
-            try
-            {
-                return _db.Articles.Any(u => article.InfoSourceId == u.InfoSourceId &&
-                                             article.GameSystemId == u.GameSystemId &&
-                                             article.Title == u.Title &&
-                                             article.Link == u.Link);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
         }
 
         public void DeleteOldArticles()
@@ -618,11 +460,6 @@ namespace VideoGameHash.Repositories
             _db.SaveChanges();
         }
 
-        public IEnumerable<InfoSourceRssUrls> GetUrlsByInfoType(int infoTypeId)
-        {
-            return _db.InfoSourceRssUrls.Where(u => u.InfoTypeId == infoTypeId);
-        }
-
         public void DeleteInfoSource(int id)
         {
             var infoSource = GetInfoSource(id);
@@ -647,16 +484,6 @@ namespace VideoGameHash.Repositories
 
             _db.InfoSources.Remove(infoSource);
             _db.SaveChanges();
-        }
-
-        public IEnumerable<InfoSourceRssUrls> GetUrlsBySourceId(int sourceId)
-        {
-            return _db.InfoSourceRssUrls.Where(u => u.InfoSourceId == sourceId);
-        }
-
-        public IEnumerable<Articles> GetArticlesBySourceId(int id)
-        {
-            return _db.Articles.Where(u => u.InfoSourceId == id);
         }
 
         public void AddPoll(AddPollModel model)
@@ -727,18 +554,6 @@ namespace VideoGameHash.Repositories
         public Poll GetPoll(int id)
         {
             return _db.Polls.SingleOrDefault(u => u.Id == id);
-        }
-
-        public void DeletePollAnswerByPollId(int pollId)
-        {
-            var answers = _db.PollAnswers.Where(x => x.PollId == pollId).ToList();
-
-            foreach (var answer in answers)
-            {
-                _db.PollAnswers.Remove(answer);
-            }
-
-            _db.SaveChanges();
         }
 
         public void UpdatePoll(int pollId, int pollValue)
@@ -826,5 +641,176 @@ namespace VideoGameHash.Repositories
 
             _db.SaveChanges();
         }
+
+        #region Private Methods
+
+        private int GetInfoTypeId(string infoType)
+        {
+            return _db.InfoTypes.Single(u => u.InfoTypeName == infoType).Id;
+        }
+
+        private InfoType GetInfoType(string name)
+        {
+            return _db.InfoTypes?.SingleOrDefault(u => u.InfoTypeName == name);
+        }
+
+        private InfoSource GetInfoSource(string name)
+        {
+            return _db.InfoSources.SingleOrDefault(u => u.InfoSourceName == name);
+        }
+
+        private int GetInfoSourceId(string source)
+        {
+            return _db.InfoSources.Single(u => u.InfoSourceName == source).Id;
+        }
+
+        private int GetGameSystemId(string gameSystem)
+        {
+            return _db.GameSystems.Single(u => u.GameSystemName == gameSystem).Id;
+        }
+
+        private IQueryable<Articles> GetArticles(int section)
+        {
+            return _db.Articles.Where(u => u.InfoTypeId == section);
+        }
+
+        private async Task<int> AddRssFeed(InfoSourceRssUrls model)
+        {
+            var rssUrl = GetRssUrl(model.Id);
+            var i = 0;
+
+            if (rssUrl != null)
+            {
+                try
+                {
+                    var feedUri = new Uri(rssUrl.URL);
+                    IFeedFactory feedFactory = new HttpFeedFactory();
+                    var feed = feedFactory.CreateFeed(feedUri);
+
+                    if (feed.Items.Count > 0)
+                    {
+                        var gameSystems = rssUrl.GameSystem.GameSystemName.Equals("All")
+                            ? _db.GameSystems.Where(x => !x.GameSystemName.Equals("All")).Select(x => x.Id).ToList()
+                            : new List<int> {rssUrl.GameSystemId};
+
+                        foreach (var system in gameSystems)
+                        {
+                            foreach (var item in feed.Items)
+                            {
+                                var article = new Articles
+                                {
+                                    InfoTypeId = rssUrl.InfoTypeId,
+                                    InfoSourceId = rssUrl.InfoSourceId,
+                                    GameSystemId = system,
+                                    DatePublished = item.DatePublished,
+                                    Link = item.Link,
+                                    Title = item.Title
+                                };
+
+                                if (!IsDuplicateArticle(article))
+                                {
+                                    _db.Articles.Add(article);
+                                    _db.SaveChanges();
+                                    i++;
+                                }
+                                else
+                                    break;
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    try
+                    {
+                        // Try secondary feed reader
+                        var feed = await FeedReader.ReadAsync(rssUrl.URL);
+
+                        if (feed.Items.Count > 0)
+                        {
+                            var gameSystems = rssUrl.GameSystem.GameSystemName.Equals("All")
+                                ? _db.GameSystems.Where(x => !x.GameSystemName.Equals("All")).Select(x => x.Id).ToList()
+                                : new List<int> {rssUrl.GameSystemId};
+
+                            foreach (var system in gameSystems)
+                            {
+                                foreach (var item in feed.Items)
+                                {
+                                    var article = new Articles
+                                    {
+                                        InfoTypeId = rssUrl.InfoTypeId,
+                                        InfoSourceId = rssUrl.InfoSourceId,
+                                        GameSystemId = system,
+                                        DatePublished = item.PublishingDate ?? DateTime.Today,
+                                        Link = item.Link,
+                                        Title = item.Title
+                                    };
+
+                                    if (!IsDuplicateArticle(article))
+                                    {
+                                        _db.Articles.Add(article);
+                                        _db.SaveChanges();
+                                        i++;
+                                    }
+                                    else
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        i = 0;
+                    }
+
+                }
+            }
+
+            return i;
+        }
+
+        private bool IsDuplicateArticle(Articles article)
+        {
+            try
+            {
+                return _db.Articles.Any(u => article.InfoSourceId == u.InfoSourceId &&
+                                             article.GameSystemId == u.GameSystemId &&
+                                             article.Title == u.Title &&
+                                             article.Link == u.Link);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private IEnumerable<InfoSourceRssUrls> GetUrlsByInfoType(int infoTypeId)
+        {
+            return _db.InfoSourceRssUrls.Where(u => u.InfoTypeId == infoTypeId);
+        }
+
+        private IEnumerable<InfoSourceRssUrls> GetUrlsBySourceId(int sourceId)
+        {
+            return _db.InfoSourceRssUrls.Where(u => u.InfoSourceId == sourceId);
+        }
+
+        private IEnumerable<Articles> GetArticlesBySourceId(int id)
+        {
+            return _db.Articles.Where(u => u.InfoSourceId == id);
+        }
+
+        private void DeletePollAnswerByPollId(int pollId)
+        {
+            var answers = _db.PollAnswers.Where(x => x.PollId == pollId).ToList();
+
+            foreach (var answer in answers)
+            {
+                _db.PollAnswers.Remove(answer);
+            }
+
+            _db.SaveChanges();
+        }
+
+        #endregion
     }
 }

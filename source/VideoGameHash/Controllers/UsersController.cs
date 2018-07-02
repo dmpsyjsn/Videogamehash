@@ -1,9 +1,6 @@
 ﻿//using System.Transactions;
 using System.Collections.Generic;
-using System.Web;
 using System.Web.Mvc;
-using System.Web.Security;
-using WebMatrix.WebData;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -13,9 +10,9 @@ namespace VideoGameHash.Controllers
     public class UsersController : Controller
     {
 
-        private readonly UserRepository _repository;
+        private readonly IUserRepository _repository;
 
-        public UsersController(UserRepository repository)
+        public UsersController(IUserRepository repository)
         {
             _repository = repository;
         }

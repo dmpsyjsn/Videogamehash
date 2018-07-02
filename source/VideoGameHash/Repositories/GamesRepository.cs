@@ -13,7 +13,19 @@ using VideoGameHash.Models.TheGamesDB;
 
 namespace VideoGameHash.Repositories
 {
-    public class GamesRepository
+    public interface IGamesRepository
+    {
+        IEnumerable<Games> GetGames();
+        IEnumerable<string> SearchGameTitles(string search);
+        void AddGame(string gameSystem);
+        Games GetGame(string gameTitle);
+        List<KeyValuePair<int, string>> GetTrendingGames(int count);
+        List<KeyValuePair<int, string>> GetPopularGames(int count);
+        void DeleteGame(int id);
+        GameDetailsModel GetGameDetailsViewModel(int id, bool useInfometrics);
+    }
+
+    public class GamesRepository : IGamesRepository
     {
         private readonly VGHDatabaseContainer _db;
 
@@ -47,22 +59,104 @@ namespace VideoGameHash.Repositories
             ProcessAdditionalDetailsFromWebService(gameSystem);
         }
 
-        public Games GetGame(int id)
-        {
-            return _db.Games.SingleOrDefault(u => u.Id == id);
-        }
-
         public Games GetGame(string gameTitle)
         {
             return _db.Games.SingleOrDefault(u => u.GameTitle == gameTitle);
         }
 
-        public int GetGameSystemId(string gameSystem)
+        public List<KeyValuePair<int, string>> GetTrendingGames(int count)
+        {
+            return _db.TrendingGames.OrderByDescending(x => x.ArticleHits).Take(10).AsEnumerable().Select(x => new KeyValuePair<int, string>(x.Game.Id, x.Game.GameTitle)).ToList();
+        }
+
+        public List<KeyValuePair<int, string>> GetPopularGames(int count)
+        {
+            return _db.PopularGames.OrderByDescending(x => x.ArticleHits).Take(10).AsEnumerable().Select(x => new KeyValuePair<int, string>(x.Game.Id, x.Game.GameTitle)).ToList();
+        }
+
+        public void DeleteGame(int id)
+        {
+            var game = GetGame(id);
+
+            if (game != null)
+            {
+                var gameIgnore = new GameIgnore
+                {
+                    GameTitle = game.GameTitle
+                };
+
+                if (!IsDuplicateIgnoredGame(game))
+                    _db.GameIgnores.Add(gameIgnore);
+
+                // Delete from GameInfo first
+                DeleteGameInfo(game.Id);
+
+                // Delete from Trending Games
+                var trendingGame = _db.TrendingGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
+                if (trendingGame != null)
+                    _db.TrendingGames.Remove(trendingGame);
+
+                // Delete from all time games list
+                var allTimeGame = _db.PopularGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
+                if (allTimeGame != null)
+                    _db.PopularGames.Remove(allTimeGame);
+
+                _db.Games.Remove(game);
+                _db.SaveChanges();
+            }
+        }
+
+        public GameDetailsModel GetGameDetailsViewModel(int id, bool useInfometrics)
+        {
+            var game = GetGame(id);
+
+            if (game == null) return null;
+
+            var model = new GameDetailsModel
+            {
+                Game = game,
+                UseInfoMetrics = useInfometrics,
+                AvailableGameSystems = GetGameSystemsForThisGame(game)
+            };
+            
+            // Image Links
+            var links = new Dictionary<string, string>();
+            foreach (var system in model.AvailableGameSystems)
+            {
+                var systemId = GetGameSystemId(system);
+
+                var link = _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == systemId);
+
+                links[system] = link?.GameImage ?? string.Empty;
+            }
+
+            model.ImageLinks = links;
+            var currentGameSystem = model.AvailableGameSystems[0];;
+            var gameSystemId = GetGameSystemId(currentGameSystem);
+            var gameInfo = _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId);
+            
+            model.Publisher = gameInfo?.Publisher ?? string.Empty;
+            model.Developer = gameInfo?.Developer ?? string.Empty;
+            model.Overview = gameInfo?.Overview ?? string.Empty;
+            model.GamesDbNetId = gameInfo?.GamesDbNetId ?? -1;
+            model.UsReleaseDate = gameInfo?.USReleaseDate ?? DateTime.MinValue;
+
+            return model;
+        }
+
+        #region Private methods
+        
+        private Games GetGame(int id)
+        {
+            return _db.Games.SingleOrDefault(u => u.Id == id);
+        }
+
+        private int GetGameSystemId(string gameSystem)
         {
             return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem)?.Id ?? -1;
         }
 
-        public string GetPlatform(string gameSystem)
+        private static string GetPlatform(string gameSystem)
         {
             if (gameSystem == "Xbox 360")
                 gameSystem = "Microsoft+Xbox+360";
@@ -80,7 +174,7 @@ namespace VideoGameHash.Repositories
             return gameSystem;
         }
 
-        public void ProcessGamesFromWebService(string url, string gameSystem)
+        private void ProcessGamesFromWebService(string url, string gameSystem)
         {
             var request = WebRequest.Create(url);
             using (var response = (HttpWebResponse) request.GetResponse())
@@ -130,19 +224,20 @@ namespace VideoGameHash.Repositories
             }
         }
 
-        private void DeleteGameFromGameInfoes(int gameId)
+        private bool IgnoreThisGame(Games game)
         {
-            IEnumerable<GameInfo> infos = _db.GameInfoes.Where(u => u.GamesId == gameId);
+            return _db.GameIgnores.Any(x => x.GameTitle.Equals(game.GameTitle, StringComparison.OrdinalIgnoreCase));
+        }
 
-            foreach (var info in infos)
-                _db.GameInfoes.Remove(info);
+        private bool IsDuplicateGame(Games game)
+        {
+            return _db.Games.Any(x => x.GameTitle.Equals(game.GameTitle));
+        }
 
-            _db.SaveChanges();
-
-            var game = GetGame(gameId);
-
-            if (game != null)
-                _db.Games.Remove(game);
+        private bool IsDuplicateGameInfo(GameInfo gameInfo)
+        {
+            return _db.GameInfoes.Any(x =>
+                x.GamesId.Equals(gameInfo.GamesId) && x.GameSystemId.Equals(gameInfo.GameSystemId));
         }
 
         private void ProcessAdditionalDetailsFromWebService(string gameSystem)
@@ -192,74 +287,19 @@ namespace VideoGameHash.Repositories
             return _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
         }
 
-        private bool IsDuplicateGameInfo(GameInfo gameInfo)
+        private void DeleteGameFromGameInfoes(int gameId)
         {
-            var temp = from tempDb in _db.GameInfoes
-                where tempDb.GamesId == gameInfo.GamesId && tempDb.GameSystemId == gameInfo.GameSystemId
-                select tempDb;
+            IEnumerable<GameInfo> infos = _db.GameInfoes.Where(u => u.GamesId == gameId);
 
-            return temp.Any();
-        }
+            foreach (var info in infos)
+                _db.GameInfoes.Remove(info);
 
-        public bool IgnoreThisGame(Games game)
-        {
-            return _db.GameIgnores.Any(x => x.GameTitle.Equals(game.GameTitle, StringComparison.OrdinalIgnoreCase));
-        }
+            _db.SaveChanges();
 
-        public IQueryable<Games> GetGamesQuery()
-        {
-            return _db.Games;
-        }
-
-        public List<KeyValuePair<int, string>> GetTrendingGames(int count)
-        {
-            return _db.TrendingGames.OrderByDescending(x => x.ArticleHits).Take(10).AsEnumerable().Select(x => new KeyValuePair<int, string>(x.Game.Id, x.Game.GameTitle)).ToList();
-        }
-
-        public List<KeyValuePair<int, string>> GetPopularGames(int count)
-        {
-            return _db.PopularGames.OrderByDescending(x => x.ArticleHits).Take(10).AsEnumerable().Select(x => new KeyValuePair<int, string>(x.Game.Id, x.Game.GameTitle)).ToList();
-        }
-
-        public bool IsDuplicateGame(Games game)
-        {
-            var isDuplicate = from tempGameItem in GetGamesQuery()
-                where game.GameTitle == tempGameItem.GameTitle
-                select tempGameItem;
-
-            return isDuplicate.Any();
-        }
-
-        public void DeleteGame(int id)
-        {
-            var game = GetGame(id);
+            var game = GetGame(gameId);
 
             if (game != null)
-            {
-                var gameIgnore = new GameIgnore
-                {
-                    GameTitle = game.GameTitle
-                };
-
-                if (!IsDuplicateIgnoredGame(game))
-                    _db.GameIgnores.Add(gameIgnore);
-
-                // Delete from GameInfo first
-                DeleteGameInfo(game.Id);
-
-                // Delete from Trending Games
-                var trendingGame = _db.TrendingGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
-                if (trendingGame != null)
-                    _db.TrendingGames.Remove(trendingGame);
-
-                // Delete from all time games list
-                var allTimeGame = _db.PopularGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
-                if (allTimeGame != null)
-                    _db.PopularGames.Remove(allTimeGame);
-
                 _db.Games.Remove(game);
-                _db.SaveChanges();
-            }
         }
 
         private bool IsDuplicateIgnoredGame(Games game)
@@ -275,96 +315,7 @@ namespace VideoGameHash.Repositories
             _db.SaveChanges();
         }
 
-        internal Dictionary<string, string> GetImages(int id, List<string> gameSystems)
-        {
-            try
-            {
-                var links = new Dictionary<string, string>();
-                foreach (var system in gameSystems)
-                {
-                    var gameSystemId = GetGameSystemId(system);
-
-                    var link = _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId);
-
-                    links[system] = link?.GameImage ?? string.Empty;
-                }
-                
-                return links;
-            }
-            catch
-            {
-                return new Dictionary<string, string>();
-            }
-        }
-
-        internal string GetPublisher(int id, string gameSystem)
-        {
-            try
-            {
-                var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId).Publisher;
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
-
-        internal string GetDeveloper(int id, string gameSystem)
-        {
-            try
-            {
-                var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId).Developer;
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
-
-        internal string GetOverview(int id, string gameSystem)
-        {
-            try
-            {
-                var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId).Overview;
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
-
-        internal int GetGamesDbNetId(int id, string gameSystem)
-        {
-            try
-            {
-                var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId)
-                    .GamesDbNetId;
-            }
-            catch
-            {
-                return -1;
-            }
-        }
-
-        internal DateTime GetReleaseDate(int id, string gameSystem)
-        {
-            try
-            {
-                var gameSystemId = GetGameSystemId(gameSystem);
-                return _db.GameInfoes.Single(u => u.GamesId == id && u.GameSystemId == gameSystemId)
-                    .USReleaseDate;
-            }
-            catch
-            {
-                return DateTime.MinValue;
-            }
-        }
-
-        internal List<string> GetGameSystemsForThisGame(Games game)
+        private List<string> GetGameSystemsForThisGame(Games game)
         {
             var gameSystem = new List<string>();
             var gameSystemList = _db.GameSystems
@@ -380,9 +331,12 @@ namespace VideoGameHash.Repositories
 
             return gameSystem;
         }
+
+        #endregion
     }
 
 
+    #region code generated from schema
     // 
     // This source code was auto-generated by xsd, Version=2.0.50727.3038.
     // 
@@ -1235,4 +1189,6 @@ namespace VideoGameHash.Repositories
             set => _valueField = value;
         }
     }
+
+    #endregion
 }

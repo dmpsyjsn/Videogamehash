@@ -6,9 +6,9 @@ namespace VideoGameHash.Controllers
 {
     public class GameSystemsController : Controller
     {
-        private readonly GameSystemsRepository _gameSystemsRepository;
+        private readonly IGameSystemsRepository _gameSystemsRepository;
 
-        public GameSystemsController(GameSystemsRepository gameSystemsRepository)
+        public GameSystemsController(IGameSystemsRepository gameSystemsRepository)
         {
             _gameSystemsRepository = gameSystemsRepository;
         }

@@ -7,7 +7,32 @@ using VideoGameHash.Models;
 
 namespace VideoGameHash.Repositories
 {
-    public class UserRepository
+    public interface IUserRepository
+    {
+        int CreateUserProfile(string userName);
+        UserProfile GetUserByUserId(int userId);
+        UserProfile GetUserByUserName(string userName);
+        string GetUserNameByUserId(int userId);
+        int GetUserIdByEmail(string email);
+        void UpdatePassword(string userName, string oldPassword, string newPassword);
+        void ResetPassword(string userName, string newPassword);
+        Membership GetMembershipByUsername(string userName);
+        Membership GetMembershipByEmail(string email);
+        Membership GetMembershipByUserId(int userId);
+        IEnumerable<UserProfile> GetAllUserProfile();
+        List<string> GetUserRolesByUserName(string userName);
+        List<string> GetAllRoles();
+        string GetRole(int roleId);
+        void RegisterUser(Member member);
+        string GetPassword(string userName);
+        string GetPasswordSalt(string userName);
+        bool VerifyUser(string userName, string password);
+        bool IsInRole(string userName, string role);
+        int GetRoleIdByRoleName(string roleName);
+        void AddRole(int userId, string role);
+    }
+
+    public class UserRepository : IUserRepository
     {
         private readonly VGHDatabaseContainer _db;
 
@@ -59,12 +84,7 @@ namespace VideoGameHash.Repositories
 
         public string GetUserNameByUserId(int userId)
         {
-            return _db.UserProfiles.SingleOrDefault(u => u.Id == userId).UserName;
-        }
-
-        public string GetPasswordByUserId(int userId)
-        {
-            return _db.Memberships.SingleOrDefault(u => u.UserId == userId).Password;
+            return _db.UserProfiles.SingleOrDefault(u => u.Id == userId)?.UserName;
         }
 
         public int GetUserIdByEmail(string email)
@@ -142,12 +162,11 @@ namespace VideoGameHash.Repositories
         public List<string> GetUserRolesByUserName(string userName)
         {
             var user = GetUserByUserName(userName);
-            var userRoles = new List<UsersInRoles>();
-            userRoles = _db.UsersInRoles.Where(d => d.UserProfileId == user.Id).ToList();
+            var userRoles = _db.UsersInRoles.Where(d => d.UserProfileId == user.Id).ToList();
             var roles = new List<string>();
-            for (var i = 0; i < userRoles.Count; i++)
+            foreach (var t in userRoles)
             {
-                roles.Add(GetRole(userRoles[i].RolesId));
+                roles.Add(GetRole(t.RolesId));
             }
 
             return roles;
@@ -168,15 +187,14 @@ namespace VideoGameHash.Repositories
 
         public string GetRole(int roleId)
         {
-            return _db.Roles.SingleOrDefault(u => u.Id == roleId).RoleName;
+            return _db.Roles.SingleOrDefault(u => u.Id == roleId)?.RoleName;
         }
 
         public void RegisterUser(Member member)
         {
             var membership = new Membership();
             var saltedHash = new SaltedHash();
-            String salt, hash;
-            saltedHash.GetHashAndSaltString(member.Password, out hash, out salt);
+            saltedHash.GetHashAndSaltString(member.Password, out var hash, out var salt);
 
             membership.CreateDate = DateTime.Now;
             membership.IsConfirmed = true;
@@ -196,7 +214,7 @@ namespace VideoGameHash.Repositories
             var user = GetUserByUserName(userName);
             if (user != null)
             {
-                var password = _db.Memberships.SingleOrDefault(u => u.UserId == user.Id).Password;
+                var password = _db.Memberships.SingleOrDefault(u => u.UserId == user.Id)?.Password;
                 return password;
             }
             else
@@ -209,7 +227,7 @@ namespace VideoGameHash.Repositories
             if (user != null)
             {
                 var userId = user.Id;
-                return _db.Memberships.SingleOrDefault(u => u.UserId == userId).PasswordSalt;
+                return _db.Memberships.SingleOrDefault(u => u.UserId == userId)?.PasswordSalt;
             }
             else
                 return string.Empty;
@@ -252,7 +270,7 @@ namespace VideoGameHash.Repositories
 
         public int GetRoleIdByRoleName(string roleName)
         {
-            return _db.Roles.SingleOrDefault(u => u.RoleName == roleName).Id;
+            return _db.Roles.SingleOrDefault(u => u.RoleName == roleName)?.Id ?? -1;
         }
 
         public void AddRole(int userId, string role)

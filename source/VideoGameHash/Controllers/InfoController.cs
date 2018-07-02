@@ -9,13 +9,14 @@ using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Controllers
 {
+    [Authorize]
     public class InfoController : Controller
     {
         private readonly IInfoRepository _infoRepository;
-        private readonly GameSystemsRepository _gameSystemsRepository;
-        private readonly ErrorRepository _errorRepository;
+        private readonly IGameSystemsRepository _gameSystemsRepository;
+        private readonly IErrorRepository _errorRepository;
 
-        public InfoController(IInfoRepository infoRepository, GameSystemsRepository gameSystemsRepository, ErrorRepository errorRepository)
+        public InfoController(IInfoRepository infoRepository, IGameSystemsRepository gameSystemsRepository, IErrorRepository errorRepository)
         {
             _infoRepository = infoRepository;
             _gameSystemsRepository = gameSystemsRepository;

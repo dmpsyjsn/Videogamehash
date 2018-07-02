@@ -4,7 +4,14 @@ using VideoGameHash.Models;
 
 namespace VideoGameHash.Repositories
 {
-    public class ErrorRepository
+    public interface IErrorRepository
+    {
+        void AddError(string errorMessage);
+        IEnumerable<string> GetErrorMessages();
+        void DeleteAllErrors();
+    }
+
+    public class ErrorRepository : IErrorRepository
     {
         private readonly VGHDatabaseContainer _db;
 

@@ -10,14 +10,14 @@ namespace VideoGameHash.Models
 {
     public class CustomMembershipProvider : ExtendedMembershipProvider
     {
-        private UserRepository _repository;
+        private readonly IUserRepository _repository;
 
         public CustomMembershipProvider()
         {
 
         }
 
-        public CustomMembershipProvider(UserRepository repository)
+        public CustomMembershipProvider(IUserRepository repository)
         {
             _repository = repository;
         }
@@ -311,12 +311,6 @@ namespace VideoGameHash.Models
 
         public override bool ValidateUser(string username, string password)
         {
-            if (_repository == null)
-            {
-                var db = new VGHDatabaseContainer();
-                _repository = new UserRepository(db);
-            }
-
             return _repository.VerifyUser(username, password);
         }
     }
