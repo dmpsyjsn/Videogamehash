@@ -49,12 +49,15 @@
 </ul>
 
 <div class="row" style="margin-top: 5px"></div>
+<div id="articleloading"><img src="~/content/images/ajax-loader1.gif" alt="" class="center"/></div>
 <div id="articlesContentContainer"></div>
 <div class="row"></div>
 
 
 <script type="text/javascript">
     $(function() {
+        $("#articleloading").hide();
+
         $.get('/Home/GetGameArticles',
             {
                 GameTitle: "@Model.GameTitle",
@@ -67,6 +70,9 @@
         });
 
         var reloadArticles = function(page) {
+            
+            $("#articlesContentContainer").hide();
+            $("#articleloading").show();
 
             var source = $(".infoselector").closest(".active").data("sourceval");
             var system = $(".systemselector").closest(".active").text();
@@ -79,8 +85,11 @@
                     System: system,
                     View: view,
                     Page: parseInt(page)
-                }).done(function(data) {
-                $("#articlesContentContainer").html(data);
+                })
+                .done(function(data) {
+                    $("#articlesContentContainer").html(data);
+                    $("#articlesContentContainer").show();
+                    $("#articleloading").hide();
             });
         };
 
