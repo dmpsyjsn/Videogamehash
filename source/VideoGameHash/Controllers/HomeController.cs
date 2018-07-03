@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
@@ -18,13 +19,13 @@ namespace VideoGameHash.Controllers
             _gamesRepository = gamesRepository;
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             ViewBag.Message = "Welcome to VideoGameHash!";
 
             var model = new HomePageModel
             {
-                Polls = _infoRepository.GetPolls(),
+                Polls = await _infoRepository.GetPolls(),
                 TrendingGames = _gamesRepository.GetTrendingGames(10),
                 PopularGames = _gamesRepository.GetPopularGames(10)
             };
@@ -65,31 +66,26 @@ namespace VideoGameHash.Controllers
             return Json(new {data = list}, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult SubmitPollVote(int pollId, int pollVal)
+        public async Task<ActionResult> SubmitPollVote(int pollId, int pollVal)
         {
-            _infoRepository.UpdatePoll(pollId, pollVal);
-            var poll = _infoRepository.GetPoll(pollId);
-            var pollVotes = new List<PollGraphModel>();
-
-            foreach (var answers in poll.PollAnswers)
-            {
-                var model = new PollGraphModel
-                {
-                    Id = answers.Id.ToString(),
-                    Title = answers.Answer,
-                    NumVotes = answers.NumVotes
-                };
-                pollVotes.Add(model);
-            }
+            await _infoRepository.UpdatePoll(pollId, pollVal);
+            var poll = await _infoRepository.GetPoll(pollId);
+            var pollVotes = poll.PollAnswers.Select(answers => 
+                    new PollGraphModel
+                    {
+                        Id = answers.Id.ToString(),
+                        Title = answers.Answer,
+                        NumVotes = answers.NumVotes
+                    }).ToList();
 
             return Json(pollVotes, JsonRequestBehavior.AllowGet);
         }
 
         [HttpGet]
-        public ActionResult GetGameArticleContainer(GetGameContainerQuery query)
+        public async Task<ActionResult> GetGameArticleContainer(GetGameContainerQuery query)
         {
             var game = _gamesRepository.GetGame(query.GameTitle);
-            var articles = _infoRepository.GetGameArticles(game, "All", "All").ToList();
+            var articles = await _infoRepository.GetGameArticles(game, "All", "All");
 
             var model = new GameArticlesHeaderModel
             {
@@ -103,10 +99,10 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpGet]
-        public ActionResult GetGameArticles(GetGameArticlesQuery query)
+        public async Task<ActionResult> GetGameArticles(GetGameArticlesQuery query)
         {
             var game = _gamesRepository.GetGame(query.GameTitle);
-            var articles = _infoRepository.GetGameArticles(game, query.Source, query.System).ToList();
+            var articles = await _infoRepository.GetGameArticles(game, query.Source, query.System);
             var multiplier = query.View.Equals("List") ? 10 : 12;
 
             var model = new GameArticlesViewModel

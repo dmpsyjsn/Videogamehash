@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,37 +12,37 @@ namespace VideoGameHash.Repositories
 {
     public interface IInfoRepository
     {
-        IEnumerable<InfoType> GetInfoTypes();
-        InfoType GetInfoType(int id);
-        IEnumerable<InfoSource> GetSources();
-        InfoSource GetInfoSource(int id);
-        IEnumerable<InfoSourceRssUrls> GetRssUrls();
-        InfoSourceRssUrls GetRssUrl(int id);
-        int AddInfoType(string name);
-        int AddInfoSource(string name);
-        void AddUrl(AddUrlModel model);
-        void AddUrl(int typeId, int sourceId, int gameSystemId, string url);
-        void EditInfo(string section, EditModel model);
-        void EditSectionInfo(EditSectionModel model);
-        IEnumerable<Articles> GetGameArticles(Games game, string source, string system);
-        IEnumerable<InfoTypeSortOrder> GetInfoTypeSortOrder();
-        IEnumerable<InfoSourceSortOrder> GetInfoSourceSortOrder();
-        void UpdateOrder(InfoTypeSortOrder order);
-        void UpdateOrder(InfoSourceSortOrder order);
+        Task<IEnumerable<InfoType>> GetInfoTypes();
+        Task<InfoType> GetInfoType(int id);
+        Task<IEnumerable<InfoSource>> GetSources();
+        Task<InfoSource> GetInfoSource(int id);
+        Task<IEnumerable<InfoSourceRssUrls>> GetRssUrls();
+        Task<InfoSourceRssUrls> GetRssUrl(int id);
+        Task<int> AddInfoType(string name);
+        Task<int> AddInfoSource(string name);
+        Task AddUrl(AddUrlModel model);
+        Task AddUrl(int typeId, int sourceId, int gameSystemId, string url);
+        Task EditInfo(string section, EditModel model);
+        Task EditSectionInfo(EditSectionModel model);
+        Task<IEnumerable<Articles>> GetGameArticles(Games game, string source, string system);
+        Task<IEnumerable<InfoTypeSortOrder>> GetInfoTypeSortOrder();
+        Task<IEnumerable<InfoSourceSortOrder>> GetInfoSourceSortOrder();
+        Task UpdateOrder(InfoTypeSortOrder order);
+        Task UpdateOrder(InfoSourceSortOrder order);
         Task<int> AddFeedItems();
 
-        void DeleteOldArticles();
-        void MakeTrending();
-        void MakePopular();
-        void DeleteInfoType(int id);
-        void DeleteInfoSource(int id);
-        void AddPoll(AddPollModel model);
-        void EditPoll(EditPollModel model);
-        List<Poll> GetPolls();
-        Poll GetPoll(int id);
-        void UpdatePoll(int pollId, int pollValue);
-        void DeleteUrl(int id);
-        void ReplaceGameSystemAll();
+        Task DeleteOldArticles();
+        Task MakeTrending();
+        Task MakePopular();
+        Task DeleteInfoType(int id);
+        Task DeleteInfoSource(int id);
+        Task AddPoll(AddPollModel model);
+        Task EditPoll(EditPollModel model);
+        Task<List<Poll>> GetPolls();
+        Task<Poll> GetPoll(int id);
+        Task UpdatePoll(int pollId, int pollValue);
+        Task DeleteUrl(int id);
+        Task ReplaceGameSystemAll();
     }
 
     public class InfoRepository : IInfoRepository
@@ -53,268 +54,214 @@ namespace VideoGameHash.Repositories
             _db = db;
         }
 
-        public IEnumerable<InfoType> GetInfoTypes()
+        public async Task<IEnumerable<InfoType>> GetInfoTypes()
         {
-            return _db.InfoTypes;
+            return await _db.InfoTypes.ToListAsync();
         }
 
-        public InfoType GetInfoType(int id)
+        public async Task<InfoType> GetInfoType(int id)
         {
-            return _db.InfoTypes.SingleOrDefault(u => u.Id == id);
+            return await _db.InfoTypes.SingleOrDefaultAsync(u => u.Id == id);
         }
 
-        public IEnumerable<InfoSource> GetSources()
+        public async Task<IEnumerable<InfoSource>> GetSources()
         {
-            return _db.InfoSources.OrderBy(x => x.InfoSourceSortOrder.SortOrder);
+            return await _db.InfoSources.OrderBy(x => x.InfoSourceSortOrder.SortOrder).ToListAsync();
         }
 
-        public InfoSource GetInfoSource(int id)
+        public async Task<InfoSource> GetInfoSource(int id)
         {
-            return _db.InfoSources.SingleOrDefault(u => u.Id == id);
+            return await _db.InfoSources.SingleOrDefaultAsync(u => u.Id == id);
         }
 
-        public IEnumerable<InfoSourceRssUrls> GetRssUrls()
+        public async Task<IEnumerable<InfoSourceRssUrls>> GetRssUrls()
         {
-            return _db.InfoSourceRssUrls;
+            return await _db.InfoSourceRssUrls.ToListAsync();
         }
 
-        public InfoSourceRssUrls GetRssUrl(int id)
+        public async Task<InfoSourceRssUrls> GetRssUrl(int id)
         {
-            return _db.InfoSourceRssUrls.SingleOrDefault(u => u.Id == id);
+            return await _db.InfoSourceRssUrls.SingleOrDefaultAsync(u => u.Id == id);
         }
 
-        public int AddInfoType(string name)
+        public async Task<int> AddInfoType(string name)
         {
-            try
+            var type = await GetInfoType(name);
+            if (type != null) return type.Id;
+
+            var infoType = new InfoType
             {
-                var type = GetInfoType(name);
-                if (type != null) return type.Id;
+                InfoTypeName = name,
+                UseGameSystem = true
+            };
+            _db.InfoTypes.Add(infoType);
+            await _db.SaveChangesAsync();
 
-                var infoType = new InfoType
-                {
-                    InfoTypeName = name,
-                    UseGameSystem = true
-                };
-                _db.InfoTypes.Add(infoType);
-                _db.SaveChanges();
+            int? maxValue = _db.InfoTypeSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
+            var order = new InfoTypeSortOrder();
+            infoType = await GetInfoType(name);
+            order.Id = infoType.Id;
+            order.InfoType = infoType;
+            order.SortOrder = (int) (maxValue + 1);
 
-                int? maxValue = _db.InfoTypeSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
-                var order = new InfoTypeSortOrder();
-                infoType = GetInfoType(name);
-                order.Id = infoType.Id;
-                order.InfoType = infoType;
-                order.SortOrder = (int) (maxValue + 1);
+            _db.InfoTypeSortOrders.Add(order);
+            await _db.SaveChangesAsync();
 
-                _db.InfoTypeSortOrders.Add(order);
-                _db.SaveChanges();
+            return infoType.Id;
+        }
 
-                return infoType.Id;
+        public async Task<int> AddInfoSource(string name)
+        {
+            var source = await GetInfoSource(name);
+            if (source != null) return source.Id;
+
+            var infoSource = new InfoSource
+            {
+                InfoSourceName = name
+            };
+            _db.InfoSources.Add(infoSource);
+            await _db.SaveChangesAsync();
+
+            int? maxValue = _db.InfoSourceSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
+            var order = new InfoSourceSortOrder();
+            infoSource = await GetInfoSource(name);
+            order.Id = infoSource.Id;
+            order.InfoSource = infoSource;
+            order.SortOrder = (int) (maxValue + 1);
+
+            _db.InfoSourceSortOrders.Add(order);
+            await _db.SaveChangesAsync();
+
+            return infoSource.Id;
+        }
+
+        public async Task AddUrl(AddUrlModel model)
+        {
+            var url = new InfoSourceRssUrls
+            {
+                InfoTypeId = await GetInfoTypeId(model.Section),
+                InfoSourceId = await GetInfoSourceId(model.Source),
+                GameSystemId = await GetGameSystemId(model.GameSystem),
+                URL = model.Url
+            };
+
+            _db.InfoSourceRssUrls.Add(url);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task AddUrl(int typeId, int sourceId, int gameSystemId, string url)
+        {
+            var entryExists = _db.InfoSourceRssUrls.SingleOrDefault(x =>
+                x.URL.Equals(url, StringComparison.OrdinalIgnoreCase)) != null;
+
+            if (entryExists) return;
+            
+            var infoSourceRssUrl = new InfoSourceRssUrls
+            {
+                InfoTypeId = typeId,
+                InfoSourceId = sourceId,
+                GameSystemId = gameSystemId,
+                URL = url
+            };
+
+            _db.InfoSourceRssUrls.Add(infoSourceRssUrl);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task EditInfo(string section, EditModel model)
+        {
+            if (section == "Source")
+            {
+                var infoSource = await GetInfoSource(model.Id);
+                infoSource.InfoSourceName = model.Name;
             }
-            catch (Exception ex)
+            else // section == "Url"
             {
-                throw ex;
+                var url = await GetRssUrl(model.Id);
+                url.URL = model.Name;
             }
+
+            await _db.SaveChangesAsync();
         }
 
-        public int AddInfoSource(string name)
+        public async Task EditSectionInfo(EditSectionModel model)
         {
-            try
-            {
-                var source = GetInfoSource(name);
-                if (source != null) return source.Id;
-
-                var infoSource = new InfoSource
-                {
-                    InfoSourceName = name
-                };
-                _db.InfoSources.Add(infoSource);
-                _db.SaveChanges();
-
-                int? maxValue = _db.InfoSourceSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
-                var order = new InfoSourceSortOrder();
-                infoSource = GetInfoSource(name);
-                order.Id = infoSource.Id;
-                order.InfoSource = infoSource;
-                order.SortOrder = (int) (maxValue + 1);
-
-                _db.InfoSourceSortOrders.Add(order);
-                _db.SaveChanges();
-
-                return infoSource.Id;
-            }
-            catch
-            {
-                // Do nothing
-            }
-
-            return -1;
+            var infoType = await GetInfoType(model.Id);
+            infoType.InfoTypeName = model.Name;
+            infoType.UseGameSystem = model.UseGameSystem;
+            await _db.SaveChangesAsync();
         }
 
-        public void AddUrl(AddUrlModel model)
+        public async Task<IEnumerable<Articles>> GetGameArticles(Games game, string source, string system)
         {
-            try
-            {
-                var url = new InfoSourceRssUrls
-                {
-                    InfoTypeId = GetInfoTypeId(model.Section),
-                    InfoSourceId = GetInfoSourceId(model.Source),
-                    GameSystemId = GetGameSystemId(model.GameSystem),
-                    URL = model.Url
-                };
+            var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
 
-                _db.InfoSourceRssUrls.Add(url);
-                _db.SaveChanges();
-            }
-            catch
+            var articles = await _db.Articles.ToListAsync();
+            if (source.Equals("All") && system.Equals("All"))
             {
-                // Do Nothing
-            }
-        }
-
-        public void AddUrl(int typeId, int sourceId, int gameSystemId, string url)
-        {
-            try
-            {
-                var entryExists = _db.InfoSourceRssUrls.SingleOrDefault(x =>
-                    x.URL.Equals(url, StringComparison.OrdinalIgnoreCase)) != null;
-
-                if (entryExists) return;
                 
-                var infoSourceRssUrl = new InfoSourceRssUrls
-                {
-                    InfoTypeId = typeId,
-                    InfoSourceId = sourceId,
-                    GameSystemId = gameSystemId,
-                    URL = url
-                };
-
-                _db.InfoSourceRssUrls.Add(infoSourceRssUrl);
-                _db.SaveChanges();
+                return articles.Where(u => searchTerm.IsMatch(u.Title) &&
+                                           game.GameInfoes.Select(x => x.GameSystem.GameSystemName)
+                                               .Contains(u.GameSystem.GameSystemName))
+                    .OrderByDescending(u => u.DatePublished).ToList();
             }
-            catch
+
+            if (source.Equals("All"))
             {
-                // Do Nothing
-            }
-        }
-
-        public void EditInfo(string section, EditModel model)
-        {
-            try
-            {
-                if (section == "Source")
-                {
-                    var infoSource = GetInfoSource(model.Id);
-                    infoSource.InfoSourceName = model.Name;
-                }
-                else // section == "Url"
-                {
-                    var url = GetRssUrl(model.Id);
-                    url.URL = model.Name;
-                }
-
-                _db.SaveChanges();
-            }
-            catch
-            {
-                // Do nothing
-            }
-        }
-
-        public void EditSectionInfo(EditSectionModel model)
-        {
-            try
-            {
-                var infoType = GetInfoType(model.Id);
-                infoType.InfoTypeName = model.Name;
-                infoType.UseGameSystem = model.UseGameSystem;
-                _db.SaveChanges();
-            }
-            catch
-            {
-                // Do nothing
-            }
-        }
-
-        public IEnumerable<Articles> GetGameArticles(Games game, string source, string system)
-        {
-            try
-            {
-                var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
-
-                if (source.Equals("All") && system.Equals("All"))
-                {
-                    return _db.Articles.AsEnumerable()
-                        .Where(u => searchTerm.IsMatch(u.Title) && 
-                                    game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Contains(u.GameSystem.GameSystemName))
-                        .OrderByDescending(u => u.DatePublished);
-                }
-
-                if (source.Equals("All"))
-                {
-                    return _db.Articles.AsEnumerable()
-                        .Where(u => searchTerm.IsMatch(u.Title) &&
-                                    u.GameSystem.GameSystemName.Equals(system))
-                        .OrderByDescending(u => u.DatePublished);
-                }
-                
-                if (system.Equals("All"))
-                {
-                    return _db.Articles.AsEnumerable()
-                        .Where(u => searchTerm.IsMatch(u.Title) &&
-                                    u.InfoSource.InfoSourceName.Equals(source) && game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Contains(u.GameSystem.GameSystemName))
-                        .OrderByDescending(u => u.DatePublished);
-                }
-
-                return _db.Articles.AsEnumerable()
+                return articles
                     .Where(u => searchTerm.IsMatch(u.Title) &&
-                                u.InfoSource.InfoSourceName.Equals(source) &&
                                 u.GameSystem.GameSystemName.Equals(system))
-                    .OrderByDescending(u => u.DatePublished); 
+                    .OrderByDescending(u => u.DatePublished).ToList();
             }
-            catch
+            
+            if (system.Equals("All"))
             {
-                return null;
+                return articles
+                    .Where(u => searchTerm.IsMatch(u.Title) &&
+                                u.InfoSource.InfoSourceName.Equals(source) && game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Contains(u.GameSystem.GameSystemName))
+                    .OrderByDescending(u => u.DatePublished).ToList();
             }
+
+            return articles
+                .Where(u => searchTerm.IsMatch(u.Title) &&
+                            u.InfoSource.InfoSourceName.Equals(source) &&
+                            u.GameSystem.GameSystemName.Equals(system))
+                .OrderByDescending(u => u.DatePublished).ToList(); 
         }
 
-        public IEnumerable<InfoTypeSortOrder> GetInfoTypeSortOrder()
+        public async Task<IEnumerable<InfoTypeSortOrder>> GetInfoTypeSortOrder()
         {
-            return _db.InfoTypeSortOrders;
+            return await _db.InfoTypeSortOrders.ToListAsync();
         }
 
-        public IEnumerable<InfoSourceSortOrder> GetInfoSourceSortOrder()
+        public async Task<IEnumerable<InfoSourceSortOrder>> GetInfoSourceSortOrder()
         {
-            return _db.InfoSourceSortOrders;
+            return await _db.InfoSourceSortOrders.ToListAsync();
         }
 
-        public void UpdateOrder(InfoTypeSortOrder order)
+        public async Task UpdateOrder(InfoTypeSortOrder order)
         {
-            var dbOrder = (from t in _db.InfoTypeSortOrders
-                                       where t.Id == order.Id
-                                       select t).SingleOrDefault();
+            var dbOrder = await _db.InfoTypeSortOrders.SingleOrDefaultAsync(t => t.Id == order.Id);
 
             if (dbOrder != null) dbOrder.SortOrder = order.SortOrder;
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void UpdateOrder(InfoSourceSortOrder order)
+        public async Task UpdateOrder(InfoSourceSortOrder order)
         {
-            var dbOrder = (from t in _db.InfoSourceSortOrders
-                                         where t.Id == order.Id
-                                         select t).SingleOrDefault();
+            var dbOrder = await _db.InfoSourceSortOrders.SingleOrDefaultAsync(t => t.Id == order.Id);
 
             if (dbOrder != null) dbOrder.SortOrder = order.SortOrder;
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
         public async Task<int> AddFeedItems()
         {
             var i = 0;
 
-            IList<InfoSourceRssUrls> rssList = GetRssUrls().ToList();
-            foreach (var model in rssList)
+            foreach (var model in await GetRssUrls())
             {
                 i += await AddRssFeed(model);
             }
@@ -322,60 +269,53 @@ namespace VideoGameHash.Repositories
             return i;
         }
 
-        public void DeleteOldArticles()
+        public async Task DeleteOldArticles()
         {
-            try
+            var cutoff = DateTime.Now.AddDays(-180);
+
+            foreach (var article in await _db.Articles.Where(u => u.DatePublished < cutoff).ToListAsync())
             {
-                var cutoff = DateTime.Now.AddDays(-180);
+                _db.Articles.Remove(article);
+            }
 
-                var articlesToDelete = _db.Articles.Where(u => u.DatePublished < cutoff).ToList();
+            await _db.SaveChangesAsync();
 
-                foreach (var article in articlesToDelete)
+            var gameList = await _db.Games.ToListAsync();
+            foreach (var game in gameList)
+            {
+                var gameArticles = await _db.Articles.Where(u => u.Title.ToUpper().Contains(game.GameTitle.ToUpper())).ToListAsync();
+
+                if (!gameArticles.Any())
                 {
-                    _db.Articles.Remove(article);
-                }
+                    var gameInfoes = await _db.GameInfoes.Where(u => u.GamesId == game.Id).ToListAsync();
 
-                _db.SaveChanges();
-
-                foreach (var game in _db.Games.ToList())
-                {
-                    var gameArticles = _db.Articles.Where(u => u.Title.ToUpper().Contains(game.GameTitle.ToUpper())).ToList();
-
-                    if (!gameArticles.Any())
+                    foreach (var gameInfo in gameInfoes)
                     {
-                        IEnumerable<GameInfo> gameInfoes = _db.GameInfoes.Where(u => u.GamesId == game.Id);
-
-                        foreach (var gameInfo in gameInfoes.ToList())
-                        {
-                            _db.GameInfoes.Remove(gameInfo);
-                        }
-                        _db.SaveChanges();
-
-                        _db.Games.Remove(game);
+                        _db.GameInfoes.Remove(gameInfo);
                     }
-                }
+                    await _db.SaveChangesAsync();
 
-                _db.SaveChanges();
+                    _db.Games.Remove(game);
+                }
             }
-            catch
-            {
-                // Do Nothing
-            }
+
+            await _db.SaveChangesAsync();
         }
 
-        public void MakeTrending()
+        public async Task MakeTrending()
         {
-            foreach (var game in _db.TrendingGames)
+            var trendingGames = await _db.TrendingGames.ToListAsync();
+            foreach (var game in trendingGames)
             {
                 _db.TrendingGames.Remove(game);
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             // Get games
-            var games = _db.Games.ToList();
+            var games = await _db.Games.ToListAsync();
 
-            var articles = _db.Articles.ToList();
+            var articles = await _db.Articles.ToListAsync();
 
             // See if any articles contain game title
             foreach (var game in games)
@@ -395,12 +335,12 @@ namespace VideoGameHash.Repositories
                 _db.TrendingGames.Add(trendingGame);
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void MakePopular()
+        public async Task MakePopular()
         {
-            foreach (var game in _db.PopularGames)
+            foreach (var game in await _db.PopularGames.ToListAsync())
             {
                 _db.PopularGames.Remove(game);
             }
@@ -408,9 +348,9 @@ namespace VideoGameHash.Repositories
             _db.SaveChanges();
 
             // Get games
-            var games = _db.Games.ToList();
+            var games = await _db.Games.ToListAsync();
             
-            var articles = _db.Articles.ToList();
+            var articles = await _db.Articles.ToListAsync();
 
             // See if any articles contain game title
             foreach (var game in games)
@@ -430,63 +370,63 @@ namespace VideoGameHash.Repositories
                 _db.PopularGames.Add(popularGame);
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void DeleteInfoType(int id)
+        public async Task DeleteInfoType(int id)
         {
-            var infoType = GetInfoType(id);
+            var infoType = await GetInfoType(id);
 
-            foreach (var article in GetArticles(id))
+            foreach (var article in await GetArticles(id))
             {
                 _db.Articles.Remove(article);
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            foreach (var url in GetUrlsByInfoType(id))
+            foreach (var url in await GetUrlsByInfoType(id))
             {
                 _db.InfoSourceRssUrls.Remove(url);
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var sortOrder = _db.InfoTypeSortOrders.SingleOrDefault(u => u.InfoType.Id == id);
+            var sortOrder = await _db.InfoTypeSortOrders.SingleOrDefaultAsync(u => u.InfoType.Id == id);
             if (sortOrder != null)
             {
                 _db.InfoTypeSortOrders.Remove(sortOrder);
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
             
             _db.InfoTypes.Remove(infoType);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void DeleteInfoSource(int id)
+        public async Task DeleteInfoSource(int id)
         {
-            var infoSource = GetInfoSource(id);
+            var infoSource = await GetInfoSource(id);
 
-            foreach (var article in GetArticlesBySourceId(id))
+            foreach (var article in await GetArticlesBySourceId(id))
             {
                 _db.Articles.Remove(article);
             }
 
-            foreach (var url in GetUrlsBySourceId(id))
+            foreach (var url in await GetUrlsBySourceId(id))
             {
                 _db.InfoSourceRssUrls.Remove(url);
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var sortOrder = _db.InfoSourceSortOrders.SingleOrDefault(u => u.InfoSource.Id == id);
+            var sortOrder = await _db.InfoSourceSortOrders.SingleOrDefaultAsync(u => u.InfoSource.Id == id);
             if (sortOrder != null)
             {
                 _db.InfoSourceSortOrders.Remove(sortOrder);
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
 
             _db.InfoSources.Remove(infoSource);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void AddPoll(AddPollModel model)
+        public async Task AddPoll(AddPollModel model)
         {
             var poll = new Poll
             {
@@ -495,7 +435,7 @@ namespace VideoGameHash.Repositories
             };
             _db.Polls.Add(poll);
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             var items = model.Answers.Split('\n');
             var randomNumber = new Random(DateTime.Now.Millisecond);
@@ -513,12 +453,12 @@ namespace VideoGameHash.Repositories
                 _db.PollAnswers.Add(answers);
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void EditPoll(EditPollModel model)
+        public async Task EditPoll(EditPollModel model)
         {
-            var poll = GetPoll(model.Id);
+            var poll = await GetPoll(model.Id);
 
             if (poll != null)
             {
@@ -528,7 +468,7 @@ namespace VideoGameHash.Repositories
                 var items = model.Answers.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 var randomNumber = new Random(DateTime.Now.Millisecond);
 
-                DeletePollAnswerByPollId(poll.Id);
+                await DeletePollAnswerByPollId(poll.Id);
 
                 foreach (var item in items)
                 {
@@ -542,23 +482,23 @@ namespace VideoGameHash.Repositories
                     _db.PollAnswers.Add(answers);
                 }
 
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
         }
 
-        public List<Poll> GetPolls()
+        public async Task<List<Poll>> GetPolls()
         {
-            return _db.Polls.OrderByDescending(x => x.DateCreated).Take(3).ToList();
+            return await _db.Polls.OrderByDescending(x => x.DateCreated).Take(6).ToListAsync();
         }
 
-        public Poll GetPoll(int id)
+        public async Task<Poll> GetPoll(int id)
         {
-            return _db.Polls.SingleOrDefault(u => u.Id == id);
+            return await _db.Polls.SingleOrDefaultAsync(u => u.Id == id);
         }
 
-        public void UpdatePoll(int pollId, int pollValue)
+        public async Task UpdatePoll(int pollId, int pollValue)
         {
-            var poll = GetPoll(pollId);
+            var poll = await GetPoll(pollId);
 
             foreach (var answer in poll.PollAnswers)
             {
@@ -568,30 +508,32 @@ namespace VideoGameHash.Repositories
                 }
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void DeleteUrl(int id)
+        public async Task DeleteUrl(int id)
         {
-            var url = GetRssUrl(id);
+            var url = await GetRssUrl(id);
 
             _db.InfoSourceRssUrls.Remove(url);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void ReplaceGameSystemAll()
+        public async Task ReplaceGameSystemAll()
         {
-            var games = _db.Games.ToList();
+            var games = await _db.Games.ToListAsync();
 
             var articlesToReAdd = new List<Articles>();
+
+            var articles = await _db.Articles.ToListAsync();
 
             foreach (var game in games)
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var articles = _db.Articles.AsEnumerable().Where(x => searchTerm.IsMatch(x.Title) && x.GameSystem.GameSystemName.Equals("All")).ToList();
+                var matchingArticles = articles.Where(x => searchTerm.IsMatch(x.Title) && x.GameSystem.GameSystemName.Equals("All")).ToList();
 
-                foreach (var article in articles)
+                foreach (var article in matchingArticles)
                 {
                     var gameSystems = game.GameInfoes.Select(x => x.GameSystem).Where(x => !x.GameSystemName.Equals("All")).Distinct().ToList();
                     
@@ -621,7 +563,7 @@ namespace VideoGameHash.Repositories
                 }
             }
             
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             // re-add articles (now by an actual gamesystem)
             foreach (var article in articlesToReAdd)
@@ -629,54 +571,54 @@ namespace VideoGameHash.Repositories
                 _db.Articles.Add(article);
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             // Now delete all articles with All as the gamesystem
-            var articlesToDelete = _db.Articles.Where(x => x.GameSystem.GameSystemName.Equals("All")).ToList();
+            var articlesToDelete = await _db.Articles.Where(x => x.GameSystem.GameSystemName.Equals("All")).ToListAsync();
 
             foreach (var article in articlesToDelete)
             {
                 _db.Articles.Remove(article);
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
         #region Private Methods
 
-        private int GetInfoTypeId(string infoType)
+        private async Task<int> GetInfoTypeId(string infoType)
         {
-            return _db.InfoTypes.Single(u => u.InfoTypeName == infoType).Id;
+            return (await _db.InfoTypes.SingleAsync(u => u.InfoTypeName == infoType)).Id;
         }
 
-        private InfoType GetInfoType(string name)
-        {
-            return _db.InfoTypes?.SingleOrDefault(u => u.InfoTypeName == name);
+        private async Task<InfoType> GetInfoType(string name)
+        {          
+            return await _db.InfoTypes.SingleOrDefaultAsync(u => u.InfoTypeName == name);
         }
 
-        private InfoSource GetInfoSource(string name)
+        private async Task<InfoSource> GetInfoSource(string name)
         {
-            return _db.InfoSources.SingleOrDefault(u => u.InfoSourceName == name);
+            return await _db.InfoSources.SingleOrDefaultAsync(u => u.InfoSourceName == name);
         }
 
-        private int GetInfoSourceId(string source)
+        private async Task<int> GetInfoSourceId(string source)
         {
-            return _db.InfoSources.Single(u => u.InfoSourceName == source).Id;
+            return (await _db.InfoSources.SingleAsync(u => u.InfoSourceName == source)).Id;
         }
 
-        private int GetGameSystemId(string gameSystem)
+        private async Task<int> GetGameSystemId(string gameSystem)
         {
-            return _db.GameSystems.Single(u => u.GameSystemName == gameSystem).Id;
+            return (await _db.GameSystems.SingleAsync(u => u.GameSystemName == gameSystem)).Id;
         }
 
-        private IQueryable<Articles> GetArticles(int section)
+        private async Task<IEnumerable<Articles>> GetArticles(int section)
         {
-            return _db.Articles.Where(u => u.InfoTypeId == section);
+            return await _db.Articles.Where(u => u.InfoTypeId == section).ToListAsync();
         }
 
         private async Task<int> AddRssFeed(InfoSourceRssUrls model)
         {
-            var rssUrl = GetRssUrl(model.Id);
+            var rssUrl = await GetRssUrl(model.Id);
             var i = 0;
 
             if (rssUrl != null)
@@ -690,7 +632,7 @@ namespace VideoGameHash.Repositories
                     if (feed.Items.Count > 0)
                     {
                         var gameSystems = rssUrl.GameSystem.GameSystemName.Equals("All")
-                            ? _db.GameSystems.Where(x => !x.GameSystemName.Equals("All")).Select(x => x.Id).ToList()
+                            ? await _db.GameSystems.Where(x => !x.GameSystemName.Equals("All")).Select(x => x.Id).ToListAsync()
                             : new List<int> {rssUrl.GameSystemId};
 
                         foreach (var system in gameSystems)
@@ -710,7 +652,7 @@ namespace VideoGameHash.Repositories
                                 if (!IsDuplicateArticle(article))
                                 {
                                     _db.Articles.Add(article);
-                                    _db.SaveChanges();
+                                    await _db.SaveChangesAsync();
                                     i++;
                                 }
                                 else
@@ -729,7 +671,7 @@ namespace VideoGameHash.Repositories
                         if (feed.Items.Count > 0)
                         {
                             var gameSystems = rssUrl.GameSystem.GameSystemName.Equals("All")
-                                ? _db.GameSystems.Where(x => !x.GameSystemName.Equals("All")).Select(x => x.Id).ToList()
+                                ? await _db.GameSystems.Where(x => !x.GameSystemName.Equals("All")).Select(x => x.Id).ToListAsync()
                                 : new List<int> {rssUrl.GameSystemId};
 
                             foreach (var system in gameSystems)
@@ -749,7 +691,7 @@ namespace VideoGameHash.Repositories
                                     if (!IsDuplicateArticle(article))
                                     {
                                         _db.Articles.Add(article);
-                                        _db.SaveChanges();
+                                        await _db.SaveChangesAsync();
                                         i++;
                                     }
                                     else
@@ -784,31 +726,31 @@ namespace VideoGameHash.Repositories
             }
         }
 
-        private IEnumerable<InfoSourceRssUrls> GetUrlsByInfoType(int infoTypeId)
+        private async Task<IEnumerable<InfoSourceRssUrls>> GetUrlsByInfoType(int infoTypeId)
         {
-            return _db.InfoSourceRssUrls.Where(u => u.InfoTypeId == infoTypeId);
+            return await _db.InfoSourceRssUrls.Where(u => u.InfoTypeId == infoTypeId).ToListAsync();
         }
 
-        private IEnumerable<InfoSourceRssUrls> GetUrlsBySourceId(int sourceId)
+        private async Task<IEnumerable<InfoSourceRssUrls>> GetUrlsBySourceId(int sourceId)
         {
-            return _db.InfoSourceRssUrls.Where(u => u.InfoSourceId == sourceId);
+            return await _db.InfoSourceRssUrls.Where(u => u.InfoSourceId == sourceId).ToListAsync();
         }
 
-        private IEnumerable<Articles> GetArticlesBySourceId(int id)
+        private async Task<IEnumerable<Articles>> GetArticlesBySourceId(int id)
         {
-            return _db.Articles.Where(u => u.InfoSourceId == id);
+            return await _db.Articles.Where(u => u.InfoSourceId == id).ToListAsync();
         }
 
-        private void DeletePollAnswerByPollId(int pollId)
+        private async Task DeletePollAnswerByPollId(int pollId)
         {
-            var answers = _db.PollAnswers.Where(x => x.PollId == pollId).ToList();
+            var answers = await _db.PollAnswers.Where(x => x.PollId == pollId).ToListAsync();
 
             foreach (var answer in answers)
             {
                 _db.PollAnswers.Remove(answer);
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
         #endregion

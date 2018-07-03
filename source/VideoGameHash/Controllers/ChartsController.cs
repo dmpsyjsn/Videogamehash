@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Highsoft.Web.Mvc.Charts;
 using VideoGameHash.Models.HighchartModels;
@@ -21,13 +22,13 @@ namespace VideoGameHash.Controllers
 
         #region controller methods
 
-        public ActionResult GetLineChart(string gameTitle, LineChartTimeRange range = LineChartTimeRange.Last3Months, LineChartTickRate tick = LineChartTickRate.Daily)
+        public async Task<ActionResult> GetLineChart(string gameTitle, LineChartTimeRange range = LineChartTimeRange.Last3Months, LineChartTickRate tick = LineChartTickRate.Daily)
         {
             var game = _gamesRepository.GetGame(gameTitle);
             var model = new LineChartModel();
             
             // Retrieve the relevant articles
-            var gameArticles = _infoRepository.GetGameArticles(game, "All", "All").Where(x => InTimeRange(x.DatePublished, range)).OrderBy(x => x.DatePublished).ToList();
+            var gameArticles = (await _infoRepository.GetGameArticles(game, "All", "All")).Where(x => InTimeRange(x.DatePublished, range)).OrderBy(x => x.DatePublished).ToList();
 
             if (!gameArticles.Any()) return PartialView("LineChartView", model);
 
@@ -44,7 +45,6 @@ namespace VideoGameHash.Controllers
 
             model.Categories = gameArticlesBySource.Keys.ToList();
 
-            
             // Generate the data for all info sources
             var allSources = gameArticles.Select(x => x.InfoSource).Distinct().ToList();
             var sourcesByDayTotals = new Dictionary<string, List<int>>();
@@ -109,13 +109,13 @@ namespace VideoGameHash.Controllers
             return PartialView("LineChartView", model);
         }
 
-        public ActionResult GetPieChart(string gameTitle)
+        public async Task<ActionResult> GetPieChart(string gameTitle)
         {
             var game = _gamesRepository.GetGame(gameTitle);
             var model = new PieChartModel();
 
             // Retrieve the relevant articles
-            var gameArticles = _infoRepository.GetGameArticles(game, "All", "All").OrderBy(x => x.DatePublished).ToList();
+            var gameArticles = (await _infoRepository.GetGameArticles(game, "All", "All")).OrderBy(x => x.DatePublished).ToList();
 
             if (!gameArticles.Any()) return PartialView("PieChartView", model);
 

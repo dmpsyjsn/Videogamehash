@@ -23,14 +23,14 @@ namespace VideoGameHash.Controllers
             _errorRepository = errorRepository;
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
             var model = new InfoTypeViewModel
             {
-                InfoSources = _infoRepository.GetSources(),
-                InfoTypes = _infoRepository.GetInfoTypes(),
-                InfoSourceRssUrls = _infoRepository.GetRssUrls(),
-                Polls = _infoRepository.GetPolls()
+                InfoSources = await _infoRepository.GetSources(),
+                InfoTypes = await _infoRepository.GetInfoTypes(),
+                InfoSourceRssUrls = await _infoRepository.GetRssUrls(),
+                Polls = await _infoRepository.GetPolls()
             };
 
             return View(model);
@@ -48,9 +48,9 @@ namespace VideoGameHash.Controllers
 
         // POST: AddInfoType
         [HttpPost]
-        public ActionResult AddInfoType(AddInfoModel model)
+        public async Task<ActionResult> AddInfoType(AddInfoModel model)
         {
-            _infoRepository.AddInfoType(model.Name);
+            await _infoRepository.AddInfoType(model.Name);
             return RedirectToAction("Index");
         }
 
@@ -66,26 +66,26 @@ namespace VideoGameHash.Controllers
 
         // POST: AddInfoSource
         [HttpPost]
-        public ActionResult AddInfoSource(AddInfoModel model)
+        public async Task<ActionResult> AddInfoSource(AddInfoModel model)
         {
-            _infoRepository.AddInfoSource(model.Name);
-
+            await _infoRepository.AddInfoSource(model.Name);
+            
             return RedirectToAction("Index");
         }
 
         // GET: AddUrl
-        public ActionResult AddUrl()
+        public async Task<ActionResult> AddUrl()
         {
             var urlModel = new AddUrlModel();
             var model = new AddUrlViewModel(urlModel);
-            model.Section = new SelectList(_infoRepository.GetInfoTypes().Select(x => x.InfoTypeName).ToList(), model.Section);
-            model.Source = new SelectList(_infoRepository.GetSources().Select(x => x.InfoSourceName).ToList(), model.Source);
+            model.Section = new SelectList((await _infoRepository.GetInfoTypes()).Select(x => x.InfoTypeName).ToList(), model.Section);
+            model.Source = new SelectList((await _infoRepository.GetSources()).Select(x => x.InfoSourceName).ToList(), model.Source);
             model.GameSystem = new SelectList(_gameSystemsRepository.GetGameSystems().Select(x => x.GameSystemName).ToList(), model.GameSystem);
             return View(model);
         }
 
         [HttpPost]
-        public ActionResult AddUrl(FormCollection collection)
+        public async Task<ActionResult> AddUrl(FormCollection collection)
         {
             var model = new AddUrlModel
             {
@@ -94,15 +94,15 @@ namespace VideoGameHash.Controllers
                 GameSystem = collection["GameSystem"],
                 Url = collection["Url"]
             };
-            _infoRepository.AddUrl(model);
+            await _infoRepository.AddUrl(model);
 
             return RedirectToAction("Index");
         }
 
-        public ActionResult EditInfoType(int id)
+        public async Task<ActionResult> EditInfoType(int id)
         {
             var model = new EditSectionModel();
-            var infoType = _infoRepository.GetInfoType(id);
+            var infoType = await _infoRepository.GetInfoType(id);
 
             model.Id = infoType.Id;
             model.Name = infoType.InfoTypeName;
@@ -112,17 +112,17 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpPost]
-        public ActionResult EditInfoType(EditSectionModel model)
+        public async Task<ActionResult> EditInfoType(EditSectionModel model)
         {
-            _infoRepository.EditSectionInfo(model);
+            await _infoRepository.EditSectionInfo(model);
 
             return RedirectToAction("Index");
         }
 
-        public ActionResult EditInfoSource(int id)
+        public async Task<ActionResult> EditInfoSource(int id)
         {
             var model = new EditModel();
-            var infoSource = _infoRepository.GetInfoSource(id);
+            var infoSource = await _infoRepository.GetInfoSource(id);
 
             model.Id = infoSource.Id;
             model.Name = infoSource.InfoSourceName;
@@ -132,17 +132,17 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpPost]
-        public ActionResult EditInfoSource(EditModel model)
+        public async Task<ActionResult> EditInfoSource(EditModel model)
         {
-            _infoRepository.EditInfo("Source", model);
+            await _infoRepository.EditInfo("Source", model);
 
             return RedirectToAction("Index");
         }
 
-        public ActionResult EditUrl(int id)
+        public async Task<ActionResult> EditUrl(int id)
         {
             var model = new EditModel();
-            var url = _infoRepository.GetRssUrl(id);
+            var url = await _infoRepository.GetRssUrl(id);
 
             model.Id = url.Id;
             model.Name = url.URL;
@@ -152,19 +152,19 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpPost]
-        public ActionResult EditUrl(EditModel model)
+        public async Task<ActionResult> EditUrl(EditModel model)
         {
-            _infoRepository.EditInfo("URL", model);
+            await _infoRepository.EditInfo("URL", model);
 
             return RedirectToAction("Index");
         }
 
         // GET: /GameSystemList
-        public ActionResult InfoTypeList()
+        public async Task<ActionResult> InfoTypeList()
         {
             var order = new InfoTypeSortOrderEdit
             {
-                InfoTypeSortOrders = _infoRepository.GetInfoTypeSortOrder()
+                InfoTypeSortOrders = await _infoRepository.GetInfoTypeSortOrder()
             };
 
             return View(order);
@@ -172,13 +172,13 @@ namespace VideoGameHash.Controllers
 
         // POST: /GameSystemList
         [HttpPost]
-        public ActionResult InfoTypeList(InfoTypeSortOrderEdit model)
+        public async Task<ActionResult> InfoTypeList(InfoTypeSortOrderEdit model)
         {
             if (model.InfoTypeSortOrders != null)
             {
                 foreach (var order in model.InfoTypeSortOrders)
                 {
-                    _infoRepository.UpdateOrder(order);
+                    await _infoRepository.UpdateOrder(order);
                 }
             }
 
@@ -186,11 +186,11 @@ namespace VideoGameHash.Controllers
         }
 
         // GET: /GameSystemList
-        public ActionResult InfoSourceList()
+        public async Task<ActionResult> InfoSourceList()
         {
             var order = new InfoSourceSortOrderEdit
             {
-                InfoSourceSortOrders = _infoRepository.GetInfoSourceSortOrder()
+                InfoSourceSortOrders = await _infoRepository.GetInfoSourceSortOrder()
             };
 
             return View(order);
@@ -198,13 +198,13 @@ namespace VideoGameHash.Controllers
 
         // POST: /GameSystemList
         [HttpPost]
-        public ActionResult InfoSourceList(InfoSourceSortOrderEdit model)
+        public async Task<ActionResult> InfoSourceList(InfoSourceSortOrderEdit model)
         {
             if (model.InfoSourceSortOrders != null)
             {
                 foreach (var order in model.InfoSourceSortOrders)
                 {
-                    _infoRepository.UpdateOrder(order);
+                    await _infoRepository.UpdateOrder(order);
                 }
             }
 
@@ -217,34 +217,34 @@ namespace VideoGameHash.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult DeleteOldArticles()
+        public async Task<ActionResult> DeleteOldArticles()
         {
-            _infoRepository.DeleteOldArticles();
+            await _infoRepository.DeleteOldArticles();
             return RedirectToAction("Index");
         }
 
-        public ActionResult MakeTrending()
+        public async Task<ActionResult> MakeTrending()
         {
-            _infoRepository.MakeTrending();
+            await _infoRepository.MakeTrending();
             return RedirectToAction("Index");
         }
 
-        public ActionResult MakePopular()
+        public async Task<ActionResult> MakePopular()
         {
-            _infoRepository.MakePopular();
+            await _infoRepository.MakePopular();
             return RedirectToAction("Index");
         }
 
-        public ActionResult DeleteInfoType(int id)
+        public async Task<ActionResult> DeleteInfoType(int id)
         {
-            _infoRepository.DeleteInfoType(id);
+            await _infoRepository.DeleteInfoType(id);
 
             return RedirectToAction("Index");
         }
 
-        public ActionResult DeleteInfoSource(int id)
+        public async Task<ActionResult> DeleteInfoSource(int id)
         {
-            _infoRepository.DeleteInfoSource(id);
+            await _infoRepository.DeleteInfoSource(id);
 
             return RedirectToAction("Index");
         }
@@ -255,16 +255,16 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddPoll(AddPollModel model)
+        public async Task<ActionResult> AddPoll(AddPollModel model)
         {
-            _infoRepository.AddPoll(model);
+            await _infoRepository.AddPoll(model);
             return RedirectToAction("Index");
         }
 
         [HttpGet]
-        public ActionResult EditPoll(int id)
+        public async Task<ActionResult> EditPoll(int id)
         {
-            var poll = _infoRepository.GetPoll(id);
+            var poll = await _infoRepository.GetPoll(id);
 
             var model =  new EditPollModel
             {
@@ -277,21 +277,21 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpPost]
-        public ActionResult EditPoll(EditPollModel model)
+        public async Task<ActionResult> EditPoll(EditPollModel model)
         {
-            _infoRepository.EditPoll(model);
+            await _infoRepository.EditPoll(model);
             return RedirectToAction("Index");
         }
 
-        public ActionResult DeleteUrl(int id)
+        public async Task<ActionResult> DeleteUrl(int id)
         {
-            _infoRepository.DeleteUrl(id);
+            await _infoRepository.DeleteUrl(id);
             return RedirectToAction("Index");
         }
 
         // Http Post
         [HttpPost]
-        public ActionResult JsonImport()
+        public async Task<ActionResult> JsonImport()
         {
             if (Request.Files.Count > 0)
             {
@@ -308,16 +308,16 @@ namespace VideoGameHash.Controllers
                     foreach (var item in data.Data)
                     {
                         // Import Type of link (News, Reviews, etc)
-                        var infoTypeId = _infoRepository.AddInfoType(item.Type);
+                        var infoTypeId = await _infoRepository.AddInfoType(item.Type);
 
                         // Import News Source
-                        var sourceId = _infoRepository.AddInfoSource(item.Source);
+                        var sourceId = await _infoRepository.AddInfoSource(item.Source);
 
                         // Import Game System
                         var systemId = _gameSystemsRepository.AddGameSystem(item.System);
 
                         // Import Rss Url
-                        _infoRepository.AddUrl(infoTypeId, sourceId, systemId, item.Link);
+                        await _infoRepository.AddUrl(infoTypeId, sourceId, systemId, item.Link);
                     }
                 }
             }
@@ -338,9 +338,9 @@ namespace VideoGameHash.Controllers
             return RedirectToAction("Manage", "Account");
         }
 
-        public ActionResult ReplaceGameSystemNamedAll()
+        public async Task<ActionResult> ReplaceGameSystemNamedAll()
         {
-            _infoRepository.ReplaceGameSystemAll();
+            await _infoRepository.ReplaceGameSystemAll();
 
             return RedirectToAction("Index");
         }

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
