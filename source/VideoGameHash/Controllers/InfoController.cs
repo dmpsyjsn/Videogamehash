@@ -80,7 +80,7 @@ namespace VideoGameHash.Controllers
             var model = new AddUrlViewModel(urlModel);
             model.Section = new SelectList((await _infoRepository.GetInfoTypes()).Select(x => x.InfoTypeName).ToList(), model.Section);
             model.Source = new SelectList((await _infoRepository.GetSources()).Select(x => x.InfoSourceName).ToList(), model.Source);
-            model.GameSystem = new SelectList(_gameSystemsRepository.GetGameSystems().Select(x => x.GameSystemName).ToList(), model.GameSystem);
+            model.GameSystem = new SelectList((await _gameSystemsRepository.GetGameSystems()).Select(x => x.GameSystemName).ToList(), model.GameSystem);
             return View(model);
         }
 
@@ -314,7 +314,7 @@ namespace VideoGameHash.Controllers
                         var sourceId = await _infoRepository.AddInfoSource(item.Source);
 
                         // Import Game System
-                        var systemId = _gameSystemsRepository.AddGameSystem(item.System);
+                        var systemId = await _gameSystemsRepository.AddGameSystem(item.System);
 
                         // Import Rss Url
                         await _infoRepository.AddUrl(infoTypeId, sourceId, systemId, item.Link);

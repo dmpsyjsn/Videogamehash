@@ -461,7 +461,6 @@
   </ItemGroup>
   <ItemGroup>
     <EntityDeploy Include="Models\VGHDatabase.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>VGHDatabase.Designer.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EntityDeploy>

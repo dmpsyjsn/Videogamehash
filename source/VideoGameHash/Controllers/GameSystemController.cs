@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System.Threading.Tasks;
+using System.Web.Mvc;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -16,9 +17,9 @@ namespace VideoGameHash.Controllers
         //
         // GET: /GameSystem/
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            return View(_gameSystemsRepository.GetGameSystems());
+            return View(await _gameSystemsRepository.GetGameSystems());
         }
 
         // 
@@ -31,29 +32,28 @@ namespace VideoGameHash.Controllers
         // POST: /AddGameSystem
 
         [HttpPost]
-        public ActionResult AddGameSystem(GameSystemModel model)
+        public async Task<ActionResult> AddGameSystem(GameSystemModel model)
         {
-
-            _gameSystemsRepository.AddGameSystem(model.GameSystem);
+            await _gameSystemsRepository.AddGameSystem(model.GameSystem);
 
             return RedirectToAction("Index");
         }
 
         // 
         // GET: /DeleteGameSystem
-        public ActionResult DeleteGameSystem(int id)
+        public async Task<ActionResult> DeleteGameSystem(int id)
         {
-            _gameSystemsRepository.DeleteGameSystem(id);
+            await _gameSystemsRepository.DeleteGameSystem(id);
 
             return RedirectToAction("Index");
         }
 
         // GET: /GameSystemList
-        public ActionResult GameSystemList()
+        public async Task<ActionResult> GameSystemList()
         {
             var order = new GameSystemSortOrderEdit
             {
-                GameSystemSortOrders = _gameSystemsRepository.GetGameSystemSortOrder()
+                GameSystemSortOrders = await _gameSystemsRepository.GetGameSystemSortOrder()
             };
 
             return View(order);
@@ -61,26 +61,17 @@ namespace VideoGameHash.Controllers
 
         // POST: /GameSystemList
         [HttpPost]
-        public ActionResult GameSystemList(GameSystemSortOrderEdit model)
+        public async Task<ActionResult> GameSystemList(GameSystemSortOrderEdit model)
         {
             if (model.GameSystemSortOrders != null)
             {
                 foreach (var order in model.GameSystemSortOrders)
                 {
-                    _gameSystemsRepository.UpdateOrder(order);
+                    await _gameSystemsRepository.UpdateOrder(order);
                 }
             }
 
             return RedirectToAction("Index");
-        }
-
-        //
-        // GET: /Edit/1
-        public ActionResult Edit(int id)
-        {
-            var gameSystem = _gameSystemsRepository.GetGameSystemById(id);
-
-            return View(gameSystem);
         }
     }
 }

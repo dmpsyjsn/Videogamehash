@@ -24,9 +24,9 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpGet]
-        public ActionResult AddGames()
+        public async Task<ActionResult> AddGames()
         {
-            var gameSytems = _gameSystemsRepository.GetGameSystems().Select(x => x.GameSystemName).ToArray();
+            var gameSytems = (await _gameSystemsRepository.GetGameSystems()).Select(x => x.GameSystemName).ToArray();
             var model = new GameFormViewModel(gameSytems)
             {
                 ActionName = "AddGames"
@@ -41,17 +41,6 @@ namespace VideoGameHash.Controllers
             _repository.AddGame(gameSystem);
 
             return RedirectToAction("Index");
-        }
-
-        [HttpGet]
-        public ActionResult AddGamesWikipedia()
-        {
-            var gameSytems = _gameSystemsRepository.GetGameSystems().Select(x => x.GameSystemName).ToArray();
-            var model = new GameFormViewModel("Wikipedia", gameSytems)
-            {
-                ActionName = "AddGamesWikipedia"
-            };
-            return View("AddGames", model);
         }
 
         public ActionResult Delete(int id)

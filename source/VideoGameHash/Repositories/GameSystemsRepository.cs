@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using VideoGameHash.Models;
@@ -7,12 +8,12 @@ namespace VideoGameHash.Repositories
 {
     public interface IGameSystemsRepository
     {
-        IEnumerable<GameSystem> GetGameSystems();
-        int AddGameSystem(string gameSystemName);
-        GameSystem GetGameSystemById(int id);
-        void DeleteGameSystem(int id);
-        IEnumerable<GameSystemSortOrder> GetGameSystemSortOrder();
-        void UpdateOrder(GameSystemSortOrder order);
+        Task<IEnumerable<GameSystem>> GetGameSystems();
+        Task<int> AddGameSystem(string gameSystemName);
+        Task<GameSystem> GetGameSystemById(int id);
+        Task DeleteGameSystem(int id);
+        Task<IEnumerable<GameSystemSortOrder>> GetGameSystemSortOrder();
+        Task UpdateOrder(GameSystemSortOrder order);
     }
 
     public class GameSystemsRepository : IGameSystemsRepository
@@ -24,130 +25,111 @@ namespace VideoGameHash.Repositories
             _db = db;
         }
 
-        public IEnumerable<GameSystem> GetGameSystems()
+        public async Task<IEnumerable<GameSystem>> GetGameSystems()
         {
-            var systems = _db.GameSystems.OrderBy(u => u.GameSystemSortOrder.SortOrder);
-            return systems;
+            return await _db.GameSystems.OrderBy(u => u.GameSystemSortOrder.SortOrder).ToListAsync();
         }
 
-        public int AddGameSystem(string gameSystemName)
+        public async Task<int> AddGameSystem(string gameSystemName)
         {
-            try
+            var existingGameSystem = await GetGameSystemByGameSystemName(gameSystemName);
+            if (existingGameSystem != null) return existingGameSystem.Id;
+
+            var gameSystem = new GameSystem
             {
-                var existingGameSystem = GetGameSystemByGameSystemName(gameSystemName);
-                if (existingGameSystem != null) return existingGameSystem.Id;
-
-                var gameSystem = new GameSystem
-                {
-                    GameSystemName = gameSystemName
-                };
-                _db.GameSystems.Add(gameSystem);
-                _db.SaveChanges();
-
-                int? maxValue = _db.GameSystemSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
-                var order = new GameSystemSortOrder();
-                gameSystem = GetGameSystemByGameSystemName(gameSystemName);
-                order.Id = gameSystem.Id;
-                order.GameSystem = gameSystem;
-                order.SortOrder = maxValue + 1 ?? 1;
-
-                _db.GameSystemSortOrders.Add(order);
-                _db.SaveChanges();
-
-                return gameSystem.Id;
-            }
-            catch
-            {
-                // Do Nothing
-            }
-
-            return -1;
-        }
-
-        public GameSystem GetGameSystemById(int id)
-        {
-            return _db.GameSystems.SingleOrDefault(u => u.Id == id);
-        }
-
-        public void DeleteGameSystem(int id)
-        {
-            try
-            {
-                var gameSystem = GetGameSystemById(id);
-
-                if (gameSystem != null)
-                {
-                    foreach (var article in GetArticlesByGameSystemId(id))
-                    {
-                        _db.Articles.Remove(article);
-                    }
-                    _db.SaveChanges();
-
-                    foreach (var url in GetUrlsByGameSystemId(id))
-                    {
-                        _db.InfoSourceRssUrls.Remove(url);
-                    }
-                    _db.SaveChanges();
-
-                    foreach (var gameInfo in GetGameInfoByGameSystemId(id))
-                    {
-                        _db.GameInfoes.Remove(gameInfo);
-                    }
-                    _db.SaveChanges();
-
-                    var sortOrder = _db.GameSystemSortOrders.SingleOrDefault(u => u.GameSystem.Id == id);
-                    if (sortOrder != null)
-                    {
-                        _db.GameSystemSortOrders.Remove(sortOrder);
-                        _db.SaveChanges();
-                    }
-
-                    _db.GameSystems.Remove(gameSystem);
-                    _db.SaveChanges();
-                }
-            }
-            catch
-            {
-                // Do Nothing
-            }
-        }
-
-        public IEnumerable<GameSystemSortOrder> GetGameSystemSortOrder()
-        {
-            return _db.GameSystemSortOrders;
-        }
-
-        public void UpdateOrder(GameSystemSortOrder order)
-        {
-            var dbOrder = (from t in _db.GameSystemSortOrders
-                                           where t.Id == order.Id
-                                           select t).SingleOrDefault();
-
-            dbOrder.SortOrder = order.SortOrder;
-
+                GameSystemName = gameSystemName
+            };
+            _db.GameSystems.Add(gameSystem);
             _db.SaveChanges();
+
+            int? maxValue = _db.GameSystemSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
+            var order = new GameSystemSortOrder();
+            gameSystem = await GetGameSystemByGameSystemName(gameSystemName);
+            order.Id = gameSystem.Id;
+            order.GameSystem = gameSystem;
+            order.SortOrder = maxValue + 1 ?? 1;
+
+            _db.GameSystemSortOrders.Add(order);
+            await _db.SaveChangesAsync();
+
+            return gameSystem.Id;
+        }
+
+        public async Task<GameSystem> GetGameSystemById(int id)
+        {
+            return await _db.GameSystems.SingleOrDefaultAsync(u => u.Id == id);
+        }
+
+        public async Task DeleteGameSystem(int id)
+        {
+            var gameSystem = await GetGameSystemById(id);
+
+            if (gameSystem != null)
+            {
+                foreach (var article in await GetArticlesByGameSystemId(id))
+                {
+                    _db.Articles.Remove(article);
+                }
+                await _db.SaveChangesAsync();
+
+                foreach (var url in await GetUrlsByGameSystemId(id))
+                {
+                    _db.InfoSourceRssUrls.Remove(url);
+                }
+                await _db.SaveChangesAsync();
+
+                foreach (var gameInfo in await GetGameInfoByGameSystemId(id))
+                {
+                    _db.GameInfoes.Remove(gameInfo);
+                }
+                await _db.SaveChangesAsync();
+
+                var sortOrder = await _db.GameSystemSortOrders.SingleOrDefaultAsync(u => u.GameSystem.Id == id);
+                if (sortOrder != null)
+                {
+                    _db.GameSystemSortOrders.Remove(sortOrder);
+                    await _db.SaveChangesAsync();
+                }
+
+                _db.GameSystems.Remove(gameSystem);
+                await _db.SaveChangesAsync();
+            }
+        }
+
+        public async Task<IEnumerable<GameSystemSortOrder>> GetGameSystemSortOrder()
+        {
+            return await _db.GameSystemSortOrders.ToListAsync();
+        }
+
+        public async Task UpdateOrder(GameSystemSortOrder order)
+        {
+            var dbOrder = await _db.GameSystemSortOrders.SingleOrDefaultAsync(t => t.Id == order.Id);
+
+            if (dbOrder != null) dbOrder.SortOrder = order.SortOrder;
+
+            await _db.SaveChangesAsync();
         }
 
         #region Private methods
 
-        private GameSystem GetGameSystemByGameSystemName(string gameSystemName)
+        private async Task<GameSystem> GetGameSystemByGameSystemName(string gameSystemName)
         {
-            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystemName);
+            return await _db.GameSystems.SingleOrDefaultAsync(u => u.GameSystemName == gameSystemName);
         }
 
-        private IEnumerable<Articles> GetArticlesByGameSystemId(int gameSystemId)
+        private async Task<IEnumerable<Articles>> GetArticlesByGameSystemId(int gameSystemId)
         {
-            return _db.Articles.Where(u => u.GameSystemId == gameSystemId);
+            return await _db.Articles.Where(u => u.GameSystemId == gameSystemId).ToListAsync();
         }
 
-        private IEnumerable<InfoSourceRssUrls> GetUrlsByGameSystemId(int gameSystemId)
+        private async Task<IEnumerable<InfoSourceRssUrls>> GetUrlsByGameSystemId(int gameSystemId)
         {
-            return _db.InfoSourceRssUrls.Where(u => u.GameSystemId == gameSystemId);
+            return await _db.InfoSourceRssUrls.Where(u => u.GameSystemId == gameSystemId).ToListAsync();
         }
 
-        private IEnumerable<GameInfo> GetGameInfoByGameSystemId(int gameSystemId)
+        private async Task<IEnumerable<GameInfo>> GetGameInfoByGameSystemId(int gameSystemId)
         {
-            return _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
+            return await _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId).ToListAsync();
         }
 
         #endregion
