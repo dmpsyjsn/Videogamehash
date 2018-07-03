@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using VideoGameHash.Models;
@@ -26,8 +25,8 @@ namespace VideoGameHash.Controllers
             var model = new HomePageModel
             {
                 Polls = await _infoRepository.GetPolls(),
-                TrendingGames = _gamesRepository.GetTrendingGames(10),
-                PopularGames = _gamesRepository.GetPopularGames(10)
+                TrendingGames = await _gamesRepository.GetTrendingGames(10),
+                PopularGames = await _gamesRepository.GetPopularGames(10)
             };
 
             return View(model);
@@ -44,12 +43,12 @@ namespace VideoGameHash.Controllers
         }
 
 
-        public ActionResult GameDetails(int id)
+        public async Task<ActionResult> GameDetails(int id)
         {
             if (id < 0)
                 return RedirectToAction("Index");
 
-            var model = _gamesRepository.GetGameDetailsViewModel(id, useInfometrics: true);
+            var model = await _gamesRepository.GetGameDetailsViewModel(id, useInfometrics: true);
 
             if (model == null)
                 return RedirectToAction("Index");
@@ -60,9 +59,9 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpPost]
-        public ActionResult SearchGames(string search)
+        public async Task<ActionResult> SearchGames(string search)
         {
-            var list = _gamesRepository.SearchGameTitles(search).ToList();
+            var list = await _gamesRepository.SearchGameTitles(search);
             return Json(new {data = list}, JsonRequestBehavior.AllowGet);
         }
 
@@ -84,7 +83,7 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public async Task<ActionResult> GetGameArticleContainer(GetGameContainerQuery query)
         {
-            var game = _gamesRepository.GetGame(query.GameTitle);
+            var game = await _gamesRepository.GetGame(query.GameTitle);
             var articles = await _infoRepository.GetGameArticles(game, "All", "All");
 
             var model = new GameArticlesHeaderModel
@@ -101,7 +100,7 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public async Task<ActionResult> GetGameArticles(GetGameArticlesQuery query)
         {
-            var game = _gamesRepository.GetGame(query.GameTitle);
+            var game = await _gamesRepository.GetGame(query.GameTitle);
             var articles = await _infoRepository.GetGameArticles(game, query.Source, query.System);
             var multiplier = query.View.Equals("List") ? 10 : 12;
 

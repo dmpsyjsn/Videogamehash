@@ -24,7 +24,7 @@ namespace VideoGameHash.Controllers
 
         public async Task<ActionResult> GetLineChart(string gameTitle, LineChartTimeRange range = LineChartTimeRange.Last3Months, LineChartTickRate tick = LineChartTickRate.Daily)
         {
-            var game = _gamesRepository.GetGame(gameTitle);
+            var game = await _gamesRepository.GetGame(gameTitle);
             var model = new LineChartModel();
             
             // Retrieve the relevant articles
@@ -111,7 +111,7 @@ namespace VideoGameHash.Controllers
 
         public async Task<ActionResult> GetPieChart(string gameTitle)
         {
-            var game = _gamesRepository.GetGame(gameTitle);
+            var game = await _gamesRepository.GetGame(gameTitle);
             var model = new PieChartModel();
 
             // Retrieve the relevant articles

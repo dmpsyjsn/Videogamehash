@@ -2,10 +2,12 @@
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using VideoGameHash.Models;
@@ -15,14 +17,14 @@ namespace VideoGameHash.Repositories
 {
     public interface IGamesRepository
     {
-        IEnumerable<Games> GetGames();
-        IEnumerable<string> SearchGameTitles(string search);
-        void AddGame(string gameSystem);
-        Games GetGame(string gameTitle);
-        List<KeyValuePair<int, string>> GetTrendingGames(int count);
-        List<KeyValuePair<int, string>> GetPopularGames(int count);
-        void DeleteGame(int id);
-        GameDetailsModel GetGameDetailsViewModel(int id, bool useInfometrics);
+        Task<IEnumerable<Games>> GetGames();
+        Task<IEnumerable<string>> SearchGameTitles(string search);
+        Task AddGame(string gameSystem);
+        Task<Games> GetGame(string gameTitle);
+        Task<Dictionary<int, string>> GetTrendingGames(int count);
+        Task<Dictionary<int, string>> GetPopularGames(int count);
+        Task DeleteGame(int id);
+        Task<GameDetailsModel> GetGameDetailsViewModel(int id, bool useInfometrics);
     }
 
     public class GamesRepository : IGamesRepository
@@ -34,49 +36,51 @@ namespace VideoGameHash.Repositories
             _db = db;
         }
 
-        public IEnumerable<Games> GetGames()
+        public async Task<IEnumerable<Games>> GetGames()
         {
-            return _db.Games.OrderBy(u => u.GameTitle);
+            return await _db.Games.OrderBy(u => u.GameTitle).ToListAsync();
         }
 
-        public IEnumerable<string> SearchGameTitles(string search)
+        public async Task<IEnumerable<string>> SearchGameTitles(string search)
         {
             var searchTerm = new Regex($@"{search}", RegexOptions.IgnoreCase);
 
-            var games = _db.Games.AsEnumerable().Where(d => searchTerm.IsMatch(d.GameTitle)).Take(10).Select(x => x.GameTitle).ToList();
+            var games = (await _db.Games.ToListAsync()).Where(d => searchTerm.IsMatch(d.GameTitle)).Take(10).Select(x => x.GameTitle).ToList();
 
             return games;
         }
 
-        public void AddGame(string gameSystem)
+        public async Task AddGame(string gameSystem)
         {
             if (gameSystem == "All") return;
 
             var url = $"http://thegamesdb.net/api/PlatformGames.php?platform={GetPlatform(gameSystem)}";
 
-            ProcessGamesFromWebService(url, gameSystem);
+            await ProcessGamesFromWebService(url, gameSystem);
 
-            ProcessAdditionalDetailsFromWebService(gameSystem);
+            await ProcessAdditionalDetailsFromWebService(gameSystem);
         }
 
-        public Games GetGame(string gameTitle)
+        public async Task<Games> GetGame(string gameTitle)
         {
-            return _db.Games.SingleOrDefault(u => u.GameTitle == gameTitle);
+            return await _db.Games.SingleOrDefaultAsync(u => u.GameTitle == gameTitle);
         }
 
-        public List<KeyValuePair<int, string>> GetTrendingGames(int count)
+        public async Task<Dictionary<int, string>> GetTrendingGames(int count)
         {
-            return _db.TrendingGames.OrderByDescending(x => x.ArticleHits).Take(10).AsEnumerable().Select(x => new KeyValuePair<int, string>(x.Game.Id, x.Game.GameTitle)).ToList();
+            var trendingGames = await _db.TrendingGames.ToListAsync();
+            return trendingGames.OrderByDescending(x => x.ArticleHits).Take(10).ToDictionary(x => x.Game.Id, x => x.Game.GameTitle);
         }
 
-        public List<KeyValuePair<int, string>> GetPopularGames(int count)
+        public async Task<Dictionary<int, string>> GetPopularGames(int count)
         {
-            return _db.PopularGames.OrderByDescending(x => x.ArticleHits).Take(10).AsEnumerable().Select(x => new KeyValuePair<int, string>(x.Game.Id, x.Game.GameTitle)).ToList();
+            var popularGames = await _db.PopularGames.ToListAsync();
+            return popularGames.OrderByDescending(x => x.ArticleHits).Take(10).ToDictionary(x => x.Game.Id, x => x.Game.GameTitle);
         }
 
-        public void DeleteGame(int id)
+        public async Task DeleteGame(int id)
         {
-            var game = GetGame(id);
+            var game = await GetGame(id);
 
             if (game != null)
             {
@@ -85,30 +89,30 @@ namespace VideoGameHash.Repositories
                     GameTitle = game.GameTitle
                 };
 
-                if (!IsDuplicateIgnoredGame(game))
+                if (!await IsDuplicateIgnoredGame(game))
                     _db.GameIgnores.Add(gameIgnore);
 
                 // Delete from GameInfo first
-                DeleteGameInfo(game.Id);
+                await DeleteGameInfo(game.Id);
 
                 // Delete from Trending Games
-                var trendingGame = _db.TrendingGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
+                var trendingGame = await _db.TrendingGames.SingleOrDefaultAsync(x => x.GamesId.Equals(game.Id));
                 if (trendingGame != null)
                     _db.TrendingGames.Remove(trendingGame);
 
                 // Delete from all time games list
-                var allTimeGame = _db.PopularGames.SingleOrDefault(x => x.GamesId.Equals(game.Id));
+                var allTimeGame = await _db.PopularGames.SingleOrDefaultAsync(x => x.GamesId.Equals(game.Id));
                 if (allTimeGame != null)
                     _db.PopularGames.Remove(allTimeGame);
 
                 _db.Games.Remove(game);
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
         }
 
-        public GameDetailsModel GetGameDetailsViewModel(int id, bool useInfometrics)
+        public async Task<GameDetailsModel> GetGameDetailsViewModel(int id, bool useInfometrics)
         {
-            var game = GetGame(id);
+            var game = await GetGame(id);
 
             if (game == null) return null;
 
@@ -116,24 +120,24 @@ namespace VideoGameHash.Repositories
             {
                 Game = game,
                 UseInfoMetrics = useInfometrics,
-                AvailableGameSystems = GetGameSystemsForThisGame(game)
+                AvailableGameSystems = await GetGameSystemsForThisGame(game)
             };
             
             // Image Links
             var links = new Dictionary<string, string>();
             foreach (var system in model.AvailableGameSystems)
             {
-                var systemId = GetGameSystemId(system);
+                var systemId = await GetGameSystemId(system);
 
-                var link = _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == systemId);
+                var link = await _db.GameInfoes.SingleOrDefaultAsync(u => u.GamesId == id && u.GameSystemId == systemId);
 
                 links[system] = link?.GameImage ?? string.Empty;
             }
 
             model.ImageLinks = links;
-            var currentGameSystem = model.AvailableGameSystems[0];;
-            var gameSystemId = GetGameSystemId(currentGameSystem);
-            var gameInfo = _db.GameInfoes.SingleOrDefault(u => u.GamesId == id && u.GameSystemId == gameSystemId);
+            var currentGameSystem = model.AvailableGameSystems[0];
+            var gameSystemId = await GetGameSystemId(currentGameSystem);
+            var gameInfo = await _db.GameInfoes.SingleOrDefaultAsync(u => u.GamesId == id && u.GameSystemId == gameSystemId);
             
             model.Publisher = gameInfo?.Publisher ?? string.Empty;
             model.Developer = gameInfo?.Developer ?? string.Empty;
@@ -146,14 +150,14 @@ namespace VideoGameHash.Repositories
 
         #region Private methods
         
-        private Games GetGame(int id)
+        private async Task<Games> GetGame(int id)
         {
-            return _db.Games.SingleOrDefault(u => u.Id == id);
+            return await _db.Games.SingleOrDefaultAsync(u => u.Id == id);
         }
 
-        private int GetGameSystemId(string gameSystem)
+        private async Task<int> GetGameSystemId(string gameSystem)
         {
-            return _db.GameSystems.SingleOrDefault(u => u.GameSystemName == gameSystem)?.Id ?? -1;
+            return (await _db.GameSystems.SingleOrDefaultAsync(u => u.GameSystemName == gameSystem))?.Id ?? -1;
         }
 
         private static string GetPlatform(string gameSystem)
@@ -174,7 +178,7 @@ namespace VideoGameHash.Repositories
             return gameSystem;
         }
 
-        private void ProcessGamesFromWebService(string url, string gameSystem)
+        private async Task ProcessGamesFromWebService(string url, string gameSystem)
         {
             var request = WebRequest.Create(url);
             using (var response = (HttpWebResponse) request.GetResponse())
@@ -197,26 +201,26 @@ namespace VideoGameHash.Repositories
 
                     if (gameDb.GameTitle == null || usReleaseDate == DateTime.MinValue || IgnoreThisGame(gameDb)) continue;
 
-                    if (!IsDuplicateGame(gameDb))
+                    if (!await IsDuplicateGame(gameDb))
                     {
                         _db.Games.Add(gameDb);
                         _db.SaveChanges();
                     }
                     else
                     {
-                        gameDb = GetGame(gameDb.GameTitle);
+                        gameDb = await GetGame(gameDb.GameTitle);
                     }
 
                     var gameInfo = new GameInfo
                     {
                         GamesId = gameDb.Id,
-                        GameSystemId = GetGameSystemId(gameSystem),
+                        GameSystemId = await GetGameSystemId(gameSystem),
                         USReleaseDate = usReleaseDate,
                         GamesDbNetId = Convert.ToInt32(game.Id),
                         GameImage = "http://thegamesdb.net/banners/" + game.Thumb
                     };
 
-                    if (IsDuplicateGameInfo(gameInfo)) continue;
+                    if (await IsDuplicateGameInfo(gameInfo)) continue;
 
                     _db.GameInfoes.Add(gameInfo);
                     _db.SaveChanges();
@@ -229,20 +233,19 @@ namespace VideoGameHash.Repositories
             return _db.GameIgnores.Any(x => x.GameTitle.Equals(game.GameTitle, StringComparison.OrdinalIgnoreCase));
         }
 
-        private bool IsDuplicateGame(Games game)
+        private async Task<bool> IsDuplicateGame(Games game)
         {
-            return _db.Games.Any(x => x.GameTitle.Equals(game.GameTitle));
+            return await _db.Games.AnyAsync(x => x.GameTitle.Equals(game.GameTitle));
         }
 
-        private bool IsDuplicateGameInfo(GameInfo gameInfo)
+        private async Task<bool> IsDuplicateGameInfo(GameInfo gameInfo)
         {
-            return _db.GameInfoes.Any(x =>
-                x.GamesId.Equals(gameInfo.GamesId) && x.GameSystemId.Equals(gameInfo.GameSystemId));
+            return await _db.GameInfoes.AnyAsync(x => x.GamesId.Equals(gameInfo.GamesId) && x.GameSystemId.Equals(gameInfo.GameSystemId));
         }
 
-        private void ProcessAdditionalDetailsFromWebService(string gameSystem)
+        private async Task ProcessAdditionalDetailsFromWebService(string gameSystem)
         {
-            var gameInfos = GetGameInfoBySystem(gameSystem);
+            var gameInfos = await GetGameInfoBySystem(gameSystem);
             var deleteTheseGames = new List<int>();
             foreach (var gameInfo in gameInfos)
                 if (string.IsNullOrWhiteSpace(gameInfo.Publisher)) // TO DO: Add an update boolean here
@@ -275,55 +278,57 @@ namespace VideoGameHash.Repositories
                         break;
                     }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             foreach (var game in deleteTheseGames)
-                DeleteGameFromGameInfoes(game);
+                await DeleteGameFromGameInfoes(game);
         }
 
-        private IEnumerable<GameInfo> GetGameInfoBySystem(string gameSystem)
+        private async Task<IEnumerable<GameInfo>> GetGameInfoBySystem(string gameSystem)
         {
-            var gameSystemId = GetGameSystemId(gameSystem);
-            return _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId);
+            var gameSystemId = await GetGameSystemId(gameSystem);
+            return await _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId).ToListAsync();
         }
 
-        private void DeleteGameFromGameInfoes(int gameId)
+        private async Task DeleteGameFromGameInfoes(int gameId)
         {
-            IEnumerable<GameInfo> infos = _db.GameInfoes.Where(u => u.GamesId == gameId);
+            IEnumerable<GameInfo> infos = await _db.GameInfoes.Where(u => u.GamesId == gameId).ToListAsync();
 
             foreach (var info in infos)
                 _db.GameInfoes.Remove(info);
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            var game = GetGame(gameId);
+            var game = await GetGame(gameId);
 
             if (game != null)
                 _db.Games.Remove(game);
+
+            await _db.SaveChangesAsync();
         }
 
-        private bool IsDuplicateIgnoredGame(Games game)
+        private async Task<bool> IsDuplicateIgnoredGame(Games game)
         {
-            return _db.GameIgnores.Any(x => x.GameTitle.Equals(game.GameTitle, StringComparison.OrdinalIgnoreCase));
+            return await _db.GameIgnores.AnyAsync(x => x.GameTitle.Equals(game.GameTitle, StringComparison.OrdinalIgnoreCase));
         }
 
-        private void DeleteGameInfo(int id)
+        private async Task DeleteGameInfo(int id)
         {
-            var gameInfos = _db.GameInfoes.Where(u => u.GamesId == id);
+            var gameInfos = await _db.GameInfoes.Where(u => u.GamesId == id).ToListAsync();
             foreach (var gameInfo in gameInfos)
                 _db.GameInfoes.Remove(gameInfo);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        private List<string> GetGameSystemsForThisGame(Games game)
+        private async Task<List<string>> GetGameSystemsForThisGame(Games game)
         {
             var gameSystem = new List<string>();
-            var gameSystemList = _db.GameSystems
+            var gameSystemList = await _db.GameSystems
                 .Where(x => !x.GameSystemName.Equals("All", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(x => x.GameSystemSortOrder.SortOrder).ToList();
+                .OrderBy(x => x.GameSystemSortOrder.SortOrder).ToListAsync();
             foreach (var system in gameSystemList)
             {
-                var hasGameInfos = _db.GameInfoes.Any(x => x.GameSystemId.Equals(system.Id) && x.GamesId.Equals(game.Id));
+                var hasGameInfos = await _db.GameInfoes.AnyAsync(x => x.GameSystemId.Equals(system.Id) && x.GamesId.Equals(game.Id));
 
                 if (hasGameInfos)
                     gameSystem.Add(system.GameSystemName);

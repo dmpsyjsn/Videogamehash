@@ -7,13 +7,13 @@ namespace VideoGameHash.Models
     {
         public HomePageModel()
         {
-            TrendingGames = new List<KeyValuePair<int, string>>();
-            PopularGames = new List<KeyValuePair<int, string>>();
+            TrendingGames = new Dictionary<int, string>();
+            PopularGames = new Dictionary<int, string>();
             Polls = new List<Poll>();
         }
 
-        public List<KeyValuePair<int, string>> TrendingGames { get; set; }
-        public List<KeyValuePair<int, string>> PopularGames { get; set; }
+        public Dictionary<int, string> TrendingGames { get; set; }
+        public Dictionary<int, string> PopularGames { get; set; }
         public List<Poll> Polls { get; set; }
     }
 
