@@ -325,16 +325,16 @@ namespace VideoGameHash.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult Errors()
+        public async Task<ActionResult> Errors()
         {
-            var errorModel = new ErrorModel {ErrorMessages = _errorRepository.GetErrorMessages().ToList()};
+            var errorModel = new ErrorModel {ErrorMessages = await _errorRepository.GetErrorMessages()};
 
             return View(errorModel);
         }
 
-        public ActionResult DeleteAllErrors()
+        public async Task<ActionResult> DeleteAllErrors()
         {
-            _errorRepository.DeleteAllErrors();
+            await _errorRepository.DeleteAllErrors();
             return RedirectToAction("Manage", "Account");
         }
 
@@ -343,6 +343,11 @@ namespace VideoGameHash.Controllers
             await _infoRepository.ReplaceGameSystemAll();
 
             return RedirectToAction("Index");
+        }
+
+        public ActionResult GenerateError()
+        {
+            throw new Exception("test error");
         }
     }
 }

@@ -9,6 +9,6 @@ namespace VideoGameHash.Models
             ErrorMessages = new List<string>();
         }
 
-        public List<string> ErrorMessages { get; set; }
+        public IEnumerable<string> ErrorMessages { get; set; }
     }
 }

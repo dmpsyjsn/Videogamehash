@@ -25,7 +25,7 @@
                 <li>@Html.ActionLink("Manage Game Systems", "Index", "GameSystems")</li>
                 <li>@Html.ActionLink("Manage Info", "Index", "Info")</li>
                 <li>@Html.ActionLink("Manage Users", "Index", "Users")</li>
-                <li>@Html.ActionLink("View Errors", "Errors", "Info")</li>
+                <li>@Html.ActionLink("View Errors", "Errors", "Info") - @Html.ActionLink("Generate Error (testing purposes only!)", "GenerateError", "Info")</li>
             </ul>
         }
         @if (ViewBag.IsEditor)

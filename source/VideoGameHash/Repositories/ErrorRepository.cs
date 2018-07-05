@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using VideoGameHash.Models;
 
 namespace VideoGameHash.Repositories
@@ -7,8 +9,8 @@ namespace VideoGameHash.Repositories
     public interface IErrorRepository
     {
         void AddError(string errorMessage);
-        IEnumerable<string> GetErrorMessages();
-        void DeleteAllErrors();
+        Task<IEnumerable<string>> GetErrorMessages();
+        Task DeleteAllErrors();
     }
 
     public class ErrorRepository : IErrorRepository
@@ -31,19 +33,19 @@ namespace VideoGameHash.Repositories
             _db.SaveChanges();
         }
 
-        public IEnumerable<string> GetErrorMessages()
+        public async Task<IEnumerable<string>> GetErrorMessages()
         {
-            return _db.Errors.AsEnumerable().Select(x => x.ErrorMessage);
+            return await _db.Errors.Select(x => x.ErrorMessage).ToListAsync();
         }
 
-        public void DeleteAllErrors()
+        public async Task DeleteAllErrors()
         {
             if (!_db.Errors.Any()) return;
 
             foreach (var error in _db.Errors)
                 _db.Errors.Remove(error);
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
     }
 }

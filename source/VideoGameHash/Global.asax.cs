@@ -73,7 +73,7 @@ namespace VideoGameHash
             var ex = Server.GetLastError();
 
             var container = new Container();
-            var repository = container.GetInstance<IErrorRepository>();
+            var repository = container.GetInstance<ErrorRepository>();
 
             repository.AddError($"{ex.Message} - {ex.StackTrace}");
 
