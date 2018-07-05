@@ -428,8 +428,6 @@
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\VGHUtilities.js" />
     <Content Include="Scripts\VGH.js" />
-    <Content Include="Scripts\VGH.min.js" />
-    <Content Include="Scripts\VGHUtilities.min.js" />
     <Content Include="VideoGameHash.Publish.xml">
       <SubType>Designer</SubType>
     </Content>
