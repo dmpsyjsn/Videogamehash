@@ -20,11 +20,12 @@ namespace VideoGameHash.Repositories
         Task<IEnumerable<Games>> GetGames();
         Task<IEnumerable<string>> SearchGameTitles(string search);
         Task AddGame(string gameSystem);
+        Task<Games> GetGame(int id);
         Task<Games> GetGame(string gameTitle);
         Task<Dictionary<int, string>> GetTrendingGames(int count);
         Task<Dictionary<int, string>> GetPopularGames(int count);
         Task DeleteGame(int id);
-        Task<GameDetailsModel> GetGameDetailsViewModel(int id, bool useInfometrics);
+        Task<GameDetailsModel> GetGameDetailsViewModel(Games game, bool useInfometrics);
     }
 
     public class GamesRepository : IGamesRepository
@@ -61,9 +62,14 @@ namespace VideoGameHash.Repositories
             await ProcessAdditionalDetailsFromWebService(gameSystem);
         }
 
+        public async Task<Games> GetGame(int id)
+        {
+            return await _db.Games.SingleOrDefaultAsync(x => x.Id.Equals(id));
+        }
+
         public async Task<Games> GetGame(string gameTitle)
         {
-            return await _db.Games.SingleOrDefaultAsync(u => u.GameTitle == gameTitle);
+            return await _db.Games.SingleOrDefaultAsync(u => u.GameTitle.Equals(gameTitle, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<Dictionary<int, string>> GetTrendingGames(int count)
@@ -110,12 +116,8 @@ namespace VideoGameHash.Repositories
             }
         }
 
-        public async Task<GameDetailsModel> GetGameDetailsViewModel(int id, bool useInfometrics)
-        {
-            var game = await GetGame(id);
-
-            if (game == null) return null;
-
+        public async Task<GameDetailsModel> GetGameDetailsViewModel(Games game, bool useInfometrics)
+        {          
             var model = new GameDetailsModel
             {
                 Game = game,
@@ -129,7 +131,7 @@ namespace VideoGameHash.Repositories
             {
                 var systemId = await GetGameSystemId(system);
 
-                var link = await _db.GameInfoes.SingleOrDefaultAsync(u => u.GamesId == id && u.GameSystemId == systemId);
+                var link = await _db.GameInfoes.SingleOrDefaultAsync(u => u.GamesId == game.Id && u.GameSystemId == systemId);
 
                 links[system] = link?.GameImage ?? string.Empty;
             }
@@ -137,7 +139,7 @@ namespace VideoGameHash.Repositories
             model.ImageLinks = links;
             var currentGameSystem = model.AvailableGameSystems[0];
             var gameSystemId = await GetGameSystemId(currentGameSystem);
-            var gameInfo = await _db.GameInfoes.SingleOrDefaultAsync(u => u.GamesId == id && u.GameSystemId == gameSystemId);
+            var gameInfo = await _db.GameInfoes.SingleOrDefaultAsync(u => u.GamesId == game.Id && u.GameSystemId == gameSystemId);
             
             model.Publisher = gameInfo?.Publisher ?? string.Empty;
             model.Developer = gameInfo?.Developer ?? string.Empty;
@@ -150,11 +152,6 @@ namespace VideoGameHash.Repositories
 
         #region Private methods
         
-        private async Task<Games> GetGame(int id)
-        {
-            return await _db.Games.SingleOrDefaultAsync(u => u.Id == id);
-        }
-
         private async Task<int> GetGameSystemId(string gameSystem)
         {
             return (await _db.GameSystems.SingleOrDefaultAsync(u => u.GameSystemName == gameSystem))?.Id ?? -1;

@@ -45,10 +45,27 @@ namespace VideoGameHash.Controllers
 
         public async Task<ActionResult> GameDetails(int id)
         {
-            if (id < 0)
-                return RedirectToAction("Index");
+            var game = await _gamesRepository.GetGame(id);
 
-            var model = await _gamesRepository.GetGameDetailsViewModel(id, useInfometrics: true);
+            if (game == null) return RedirectToAction("Index");
+
+            var model = await _gamesRepository.GetGameDetailsViewModel(game, useInfometrics: true);
+
+            if (model == null)
+                return RedirectToAction("Index");
+            
+            ViewBag.GameSystem = model.AvailableGameSystems[0];
+
+            return View("GameDetails", model);
+        }
+
+        public async Task<ActionResult> GameDetailsByTitle(string gameTitle)
+        {
+            var game = await _gamesRepository.GetGame(gameTitle);
+
+            if (game == null) return RedirectToAction("Index");
+
+            var model = await _gamesRepository.GetGameDetailsViewModel(game, useInfometrics: true);
 
             if (model == null)
                 return RedirectToAction("Index");
