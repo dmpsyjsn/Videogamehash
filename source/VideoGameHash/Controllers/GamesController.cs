@@ -18,9 +18,9 @@ namespace VideoGameHash.Controllers
             _gameSystemsRepository = gameSystemsRepository;
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            return View(_repository.GetGames());
+            return View(await _repository.GetGames());
         }
 
         [HttpGet]
@@ -36,16 +36,16 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddGames(string gameSystem)
+        public async Task<ActionResult> AddGames(string gameSystem)
         {
-            _repository.AddGame(gameSystem);
+            await _repository.AddGame(gameSystem);
 
             return RedirectToAction("Index");
         }
 
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            _repository.DeleteGame(id);
+            await _repository.DeleteGame(id);
 
             return RedirectToAction("Index");
         }

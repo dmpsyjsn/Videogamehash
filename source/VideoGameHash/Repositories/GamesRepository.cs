@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
@@ -55,7 +56,7 @@ namespace VideoGameHash.Repositories
         {
             if (gameSystem == "All") return;
 
-            var url = $"http://thegamesdb.net/api/PlatformGames.php?platform={GetPlatform(gameSystem)}";
+            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApi"]}Games/ByPlatformID?id={GetPlatform(gameSystem)}";
 
             await ProcessGamesFromWebService(url, gameSystem);
 
@@ -178,7 +179,7 @@ namespace VideoGameHash.Repositories
         private async Task ProcessGamesFromWebService(string url, string gameSystem)
         {
             var request = WebRequest.Create(url);
-            using (var response = (HttpWebResponse) request.GetResponse())
+            using (var response = (HttpWebResponse) await request.GetResponseAsync())
             {
                 var serializer = new XmlSerializer(typeof(PlatformGamesData));
 
@@ -201,7 +202,7 @@ namespace VideoGameHash.Repositories
                     if (!await IsDuplicateGame(gameDb))
                     {
                         _db.Games.Add(gameDb);
-                        _db.SaveChanges();
+                        await _db.SaveChangesAsync();
                     }
                     else
                     {
