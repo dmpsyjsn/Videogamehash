@@ -5,12 +5,14 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Data.Entity;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
 using VideoGameHash.Models;
 using VideoGameHash.Models.TheGamesDB;
 
@@ -56,7 +58,11 @@ namespace VideoGameHash.Repositories
         {
             if (gameSystem == "All") return;
 
-            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApi"]}Games/ByPlatformID?id={GetPlatform(gameSystem)}";
+            var platformId = GetGamesDbPlatformId(gameSystem);
+
+            if (string.IsNullOrEmpty(platformId)) throw new InvalidOperationException("Unable to determine platform id!");
+
+            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}Games/ByPlatformID?id={platformId}&apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
 
             await ProcessGamesFromWebService(url, gameSystem);
 
@@ -158,22 +164,25 @@ namespace VideoGameHash.Repositories
             return (await _db.GameSystems.SingleOrDefaultAsync(u => u.GameSystemName == gameSystem))?.Id ?? -1;
         }
 
-        private static string GetPlatform(string gameSystem)
+        private static string GetGamesDbPlatformId(string gameSystem)
         {
-            if (gameSystem == "Xbox 360")
-                gameSystem = "Microsoft+Xbox+360";
-            else if (gameSystem == "Xbox One")
-                gameSystem = "Microsoft+Xbox+One";
-            else if (gameSystem == "Wii U")
-                gameSystem = "Nintendo+Wii+U";
-            else if (gameSystem == "PS3")
-                gameSystem = "Sony+Playstation+3";
-            else if (gameSystem == "PS4")
-                gameSystem = "Sony+Playstation+4";
-            else if (gameSystem == "Switch")
-                gameSystem = "Nintendo+Switch";
+            switch (gameSystem)
+            {
+                case "Xbox 360":
+                    return "15";
+                case "Xbox One":
+                    return "4920";
+                case "Wii U":
+                    return "38";
+                case "PS3":
+                    return "12";
+                case "PS4":
+                    return "4919";
+                case "Switch":
+                    return"4971";
+            }
 
-            return gameSystem;
+            return string.Empty;
         }
 
         private async Task ProcessGamesFromWebService(string url, string gameSystem)
@@ -181,21 +190,32 @@ namespace VideoGameHash.Repositories
             var request = WebRequest.Create(url);
             using (var response = (HttpWebResponse) await request.GetResponseAsync())
             {
-                var serializer = new XmlSerializer(typeof(PlatformGamesData));
+                var responseStream = response.GetResponseStream();
+                if (responseStream == null) throw new InvalidOperationException("Bad response!");
+                
+                string responseString;
+                
+                using (var sr = new StreamReader(responseStream))
+                {
+                    responseString = sr.ReadToEnd();
+                }
 
-                var gameResponse = (PlatformGamesData) serializer.Deserialize(response.GetResponseStream() ?? throw new InvalidOperationException());
+                if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
+
+                var gameResponse = JsonConvert.DeserializeObject<RootObject>(responseString);
+
                 var cutoff = DateTime.Now.AddMonths(-3);
-                var items = gameResponse.Games.Where(u => !string.IsNullOrEmpty(u?.Thumb) && !string.IsNullOrEmpty(u.ReleaseDate) && u.ReleaseDate.IndexOf('/') > 0 && Convert.ToDateTime(u.ReleaseDate) >= cutoff).ToArray();
+                var items = gameResponse.data.games.Where(u => !string.IsNullOrEmpty(u.release_date) && u.release_date.IndexOf('/') > 0 && Convert.ToDateTime(u.release_date) >= cutoff).ToArray();
                 foreach (var game in items)
                 {
                     var gameDb = new Games();
                     var usReleaseDate = new DateTime();
 
-                    if (game.GameTitle != null)
-                        gameDb.GameTitle = game.GameTitle;
+                    if (game.game_title != null)
+                        gameDb.GameTitle = game.game_title;
 
-                    if (game.ReleaseDate != null && game.ReleaseDate.IndexOf('/') > 0)
-                        usReleaseDate = Convert.ToDateTime(game.ReleaseDate);
+                    if (game.release_date != null && game.release_date.IndexOf('/') > 0)
+                        usReleaseDate = Convert.ToDateTime(game.release_date);
 
                     if (gameDb.GameTitle == null || usReleaseDate == DateTime.MinValue || IgnoreThisGame(gameDb)) continue;
 
@@ -214,8 +234,8 @@ namespace VideoGameHash.Repositories
                         GamesId = gameDb.Id,
                         GameSystemId = await GetGameSystemId(gameSystem),
                         USReleaseDate = usReleaseDate,
-                        GamesDbNetId = Convert.ToInt32(game.Id),
-                        GameImage = "http://thegamesdb.net/banners/" + game.Thumb
+                        GamesDbNetId = Convert.ToInt32(game.id),
+                        GameImage = $"{ConfigurationManager.AppSettings["TheGamesDBImageUrl"]}{ConfigurationManager.AppSettings["TheGamesDBImageFileName"]}{game.id}-1"
                     };
 
                     if (await IsDuplicateGameInfo(gameInfo)) continue;
@@ -246,35 +266,34 @@ namespace VideoGameHash.Repositories
             var gameInfos = await GetGameInfoBySystem(gameSystem);
             var deleteTheseGames = new List<int>();
             foreach (var gameInfo in gameInfos)
+            {
                 if (string.IsNullOrWhiteSpace(gameInfo.Publisher)) // TO DO: Add an update boolean here
-                    try
+                {
+                    // ToDo: this url needs to be updated
+                    var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}?id={gameInfo.GamesDbNetId}&apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
+                    var request = WebRequest.Create(url);
+                    using (var response = (HttpWebResponse) await request.GetResponseAsync())
                     {
-                        var url =
-                            $"http://thegamesdb.net/api/GetGame.php?id={gameInfo.GamesDbNetId}&platform={GetPlatform(gameSystem)}";
-                        var request = WebRequest.Create(url);
-                        using (var response = (HttpWebResponse) request.GetResponse())
+                        var serializer = new XmlSerializer(typeof(DataByGameId));
+
+                        var gameResponse =
+                            (DataByGameId) serializer.Deserialize(
+                                response.GetResponseStream() ?? throw new InvalidOperationException());
+
+                        if (!string.IsNullOrWhiteSpace(gameResponse.Game[0].Publisher) ||
+                            !string.IsNullOrWhiteSpace(gameResponse.Game[0].Developer))
                         {
-                            var serializer = new XmlSerializer(typeof(DataByGameId));
-
-                            var gameResponse = (DataByGameId) serializer.Deserialize(response.GetResponseStream() ?? throw new InvalidOperationException());
-
-                            if (!string.IsNullOrWhiteSpace(gameResponse.Game[0].Publisher) ||
-                                !string.IsNullOrWhiteSpace(gameResponse.Game[0].Developer))
-                            {
-                                gameInfo.Publisher = gameResponse.Game[0].Publisher;
-                                gameInfo.Developer = gameResponse.Game[0].Developer;
-                                gameInfo.Overview = gameResponse.Game[0].Overview;
-                            }
-                            else
-                            {
-                                deleteTheseGames.Add(gameInfo.Game.Id);
-                            }
+                            gameInfo.Publisher = gameResponse.Game[0].Publisher;
+                            gameInfo.Developer = gameResponse.Game[0].Developer;
+                            gameInfo.Overview = gameResponse.Game[0].Overview;
+                        }
+                        else
+                        {
+                            deleteTheseGames.Add(gameInfo.Game.Id);
                         }
                     }
-                    catch
-                    {
-                        break;
-                    }
+                }
+            }
 
             await _db.SaveChangesAsync();
 
