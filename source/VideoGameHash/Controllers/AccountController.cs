@@ -82,7 +82,9 @@ namespace VideoGameHash.Controllers
         [AllowAnonymous]
         public ActionResult Register()
         {
-            return View();
+            //return View();
+
+            return RedirectToAction("Index", "Home");
         }
 
         //
@@ -93,23 +95,25 @@ namespace VideoGameHash.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Register(RegisterModel model)
         {
-            if (ModelState.IsValid)
-            {
-                // Attempt to register the user
-                try
-                {
-                    WebSecurity.CreateUserAndAccount(model.UserName, model.Password, new {model.Email, model.SecurityQuestion, model.SecurityAnswer });
-                    WebSecurity.Login(model.UserName, model.Password);
-                    return RedirectToAction("Index", "Home");
-                }
-                catch (MembershipCreateUserException e)
-                {
-                    ModelState.AddModelError("", ErrorCodeToString(e.StatusCode));
-                }
-            }
+            //if (ModelState.IsValid)
+            //{
+            //    // Attempt to register the user
+            //    try
+            //    {
+            //        WebSecurity.CreateUserAndAccount(model.UserName, model.Password, new {model.Email, model.SecurityQuestion, model.SecurityAnswer });
+            //        WebSecurity.Login(model.UserName, model.Password);
+            //        return RedirectToAction("Index", "Home");
+            //    }
+            //    catch (MembershipCreateUserException e)
+            //    {
+            //        ModelState.AddModelError("", ErrorCodeToString(e.StatusCode));
+            //    }
+            //}
 
-            // If we got this far, something failed, redisplay form
-            return View(model);
+            //// If we got this far, something failed, redisplay form
+            //return View(model);
+
+            return RedirectToAction("Index", "Home");
         }
 
         //
@@ -132,7 +136,9 @@ namespace VideoGameHash.Controllers
         // GET: /Account/ChangePassword
         public ActionResult ChangePassword(ManageMessageId? message)
         {
-            return View();
+            //return View();
+
+            return RedirectToAction("Index", "Home");
         }
 
         // POST: /Account/ChangePassword
@@ -140,30 +146,32 @@ namespace VideoGameHash.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult ChangePassword(LocalPasswordModel model)
         {
-            if (ModelState.IsValid)
-            {
-                // ChangePassword will throw an exception rather than return false in certain failure scenarios.
-                bool changePasswordSucceeded;
-                try
-                {
-                    changePasswordSucceeded = WebSecurity.ChangePassword(User.Identity.Name, model.OldPassword, model.NewPassword);
-                }
-                catch (Exception)
-                {
-                    changePasswordSucceeded = false;
-                }
+            //if (ModelState.IsValid)
+            //{
+            //    // ChangePassword will throw an exception rather than return false in certain failure scenarios.
+            //    bool changePasswordSucceeded;
+            //    try
+            //    {
+            //        changePasswordSucceeded = WebSecurity.ChangePassword(User.Identity.Name, model.OldPassword, model.NewPassword);
+            //    }
+            //    catch (Exception)
+            //    {
+            //        changePasswordSucceeded = false;
+            //    }
 
-                if (changePasswordSucceeded)
-                {
-                    return RedirectToAction("Manage", new { Message = ManageMessageId.ChangePasswordSuccess });
-                }
-                else
-                {
-                    ModelState.AddModelError("", "The current password is incorrect or the new password is invalid.");
-                }
-            }
+            //    if (changePasswordSucceeded)
+            //    {
+            //        return RedirectToAction("Manage", new { Message = ManageMessageId.ChangePasswordSuccess });
+            //    }
+            //    else
+            //    {
+            //        ModelState.AddModelError("", "The current password is incorrect or the new password is invalid.");
+            //    }
+            //}
 
-            return View(model);
+            //return View(model);
+
+            return RedirectToAction("Index", "Home");
         }
 
         //
@@ -172,8 +180,10 @@ namespace VideoGameHash.Controllers
         [AllowAnonymous]
         public ActionResult Validate(string recover)
         {
-            ViewBag.Recover = recover;
-            return View();
+            //ViewBag.Recover = recover;
+            //return View();
+
+            return RedirectToAction("Index", "Home");
         }
 
 
@@ -184,27 +194,29 @@ namespace VideoGameHash.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Validate(RecoverModel model, string recover)
         {
-            var member = _repository.GetMembershipByEmail(model.Email);
+            //var member = _repository.GetMembershipByEmail(model.Email);
 
-            ViewBag.Message = String.Empty;
+            //ViewBag.Message = String.Empty;
 
-            if (member != null)
-            {
-                var security = new SecurityQuestionModel
-                {
-                    UserId = member.UserId,
-                    SecurityQuestion = member.SecurityQuestion
-                };
+            //if (member != null)
+            //{
+            //    var security = new SecurityQuestionModel
+            //    {
+            //        UserId = member.UserId,
+            //        SecurityQuestion = member.SecurityQuestion
+            //    };
 
-                if (recover == "username")
-                    return RedirectToAction("RecoverUsername", security);
-                else
-                    return RedirectToAction("RecoverPassword", security);
-            }
+            //    if (recover == "username")
+            //        return RedirectToAction("RecoverUsername", security);
+            //    else
+            //        return RedirectToAction("RecoverPassword", security);
+            //}
 
-            ViewBag.Message = "Email address not found.  Please try again.";
+            //ViewBag.Message = "Email address not found.  Please try again.";
 
-            return View();
+            //return View();
+
+            return RedirectToAction("Index", "Home");
         }
         
         //
@@ -212,14 +224,16 @@ namespace VideoGameHash.Controllers
         [AllowAnonymous]
         public ActionResult RecoverUsername(SecurityQuestionModel member)
         {
-            var security = new SecurityAnswerModel
-            {
-                UserId = member.UserId,
-                SecurityQuestion = member.SecurityQuestion,
-                SecurityAnswer = String.Empty
-            };
+            //var security = new SecurityAnswerModel
+            //{
+            //    UserId = member.UserId,
+            //    SecurityQuestion = member.SecurityQuestion,
+            //    SecurityAnswer = String.Empty
+            //};
 
-            return View(security);
+            //return View(security);
+
+            return RedirectToAction("Index", "Home");
         }
 
         //
@@ -229,24 +243,26 @@ namespace VideoGameHash.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult RecoverUsername(SecurityAnswerModel model)
         {
-            var member = _repository.GetMembershipByUserId(model.UserId);
+            //var member = _repository.GetMembershipByUserId(model.UserId);
 
-            ViewBag.Message = "";
+            //ViewBag.Message = "";
 
-            if (member != null)
-            {
-                if (String.Compare(member.SecurityAnswer, model.SecurityAnswer, true) == 0)
-                {
-                    if (SendEmail(member.Email, "Username for VideoGameHash", "Your username is " + _repository.GetUserNameByUserId(model.UserId)))
-                        return RedirectToAction("RecoverResult", new { Type = "Recover user name", Message = "User name has been sent to " + member.Email });
-                    else
-                        return RedirectToAction("RecoverResult", new { Type = "Recover user name", Message = "Unable to email username.  Please try again later." });
-                }
-                else
-                    ViewBag.Message = "The answer provided was incorrect.  Please try again.";
-            }
+            //if (member != null)
+            //{
+            //    if (String.Compare(member.SecurityAnswer, model.SecurityAnswer, true) == 0)
+            //    {
+            //        if (SendEmail(member.Email, "Username for VideoGameHash", "Your username is " + _repository.GetUserNameByUserId(model.UserId)))
+            //            return RedirectToAction("RecoverResult", new { Type = "Recover user name", Message = "User name has been sent to " + member.Email });
+            //        else
+            //            return RedirectToAction("RecoverResult", new { Type = "Recover user name", Message = "Unable to email username.  Please try again later." });
+            //    }
+            //    else
+            //        ViewBag.Message = "The answer provided was incorrect.  Please try again.";
+            //}
 
-            return View(model);
+            //return View(model);
+
+            return RedirectToAction("Index", "Home");
         }
 
         //
@@ -254,14 +270,16 @@ namespace VideoGameHash.Controllers
         [AllowAnonymous]
         public ActionResult RecoverPassword(SecurityQuestionModel model)
         {
-            var security = new SecurityAnswerModel
-            {
-                UserId = model.UserId,
-                SecurityQuestion = model.SecurityQuestion,
-                SecurityAnswer = String.Empty
-            };
+            //var security = new SecurityAnswerModel
+            //{
+            //    UserId = model.UserId,
+            //    SecurityQuestion = model.SecurityQuestion,
+            //    SecurityAnswer = String.Empty
+            //};
 
-            return View(security);
+            //return View(security);
+
+            return RedirectToAction("Index", "Home");
         }
 
         //
@@ -271,26 +289,28 @@ namespace VideoGameHash.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult RecoverPassword(SecurityAnswerModel model)
         {
-            var member = _repository.GetMembershipByUserId(model.UserId);
+            //var member = _repository.GetMembershipByUserId(model.UserId);
 
-            ViewBag.Message = "";
+            //ViewBag.Message = "";
 
-            if (member != null)
-            {
-                if (String.Compare(member.SecurityAnswer, model.SecurityAnswer, true) == 0)
-                {
-                    var newPassword = CreatePassword(8);
-                    _repository.ResetPassword(_repository.GetUserNameByUserId(member.UserId), newPassword);
-                    if (SendEmail(member.Email, "Password reset for VideoGameHash", "Your password has been reset.  It is now " + newPassword + "."))
-                        return RedirectToAction("RecoverResult", new { Type = "Reset Password", Message = "Password has been reset. A new password has been sent to " + member.Email + "." });
-                    else
-                        return RedirectToAction("RecoverResult", new { Type = "Reset Password", Message = "Unable to reset pasword.  Please try again later." } );
-                }
-                else
-                    ViewBag.Message = "The answer provided was incorrect.  Please try again.";
-            }
+            //if (member != null)
+            //{
+            //    if (String.Compare(member.SecurityAnswer, model.SecurityAnswer, true) == 0)
+            //    {
+            //        var newPassword = CreatePassword(8);
+            //        _repository.ResetPassword(_repository.GetUserNameByUserId(member.UserId), newPassword);
+            //        if (SendEmail(member.Email, "Password reset for VideoGameHash", "Your password has been reset.  It is now " + newPassword + "."))
+            //            return RedirectToAction("RecoverResult", new { Type = "Reset Password", Message = "Password has been reset. A new password has been sent to " + member.Email + "." });
+            //        else
+            //            return RedirectToAction("RecoverResult", new { Type = "Reset Password", Message = "Unable to reset pasword.  Please try again later." } );
+            //    }
+            //    else
+            //        ViewBag.Message = "The answer provided was incorrect.  Please try again.";
+            //}
 
-            return View(model);
+            //return View(model);
+
+            return RedirectToAction("Index", "Home");
         }
 
         // 
@@ -298,10 +318,12 @@ namespace VideoGameHash.Controllers
         [AllowAnonymous]
         public ActionResult RecoverResult(string type, string message)
         {
-            ViewBag.Type = type;
-            ViewBag.Message = message;
+            //ViewBag.Type = type;
+            //ViewBag.Message = message;
 
-            return View();
+            //return View();
+
+            return RedirectToAction("Index", "Home");
         }
 
         private bool SendEmail(string emailAddress, string subject, string body)
