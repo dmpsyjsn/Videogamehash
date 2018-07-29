@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web.Routing;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
@@ -62,11 +63,8 @@ namespace VideoGameHash.Repositories
 
             if (string.IsNullOrEmpty(platformId)) throw new InvalidOperationException("Unable to determine platform id!");
 
-            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}Games/ByPlatformID?id={platformId}&apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
+            await ProcessGamesFromWebService(platformId, gameSystem);
 
-            await ProcessGamesFromWebService(url, gameSystem);
-
-            await ProcessAdditionalDetailsFromWebService(gameSystem);
         }
 
         public async Task<Games> GetGame(int id)
@@ -180,21 +178,104 @@ namespace VideoGameHash.Repositories
                     return "4919";
                 case "Switch":
                     return"4971";
+                case "PC":
+                    return "1";
             }
 
             return string.Empty;
         }
 
-        private async Task ProcessGamesFromWebService(string url, string gameSystem)
+        #region Request methods
+
+        private async Task ProcessGamesFromWebService(string platformId, string gameSystem)
         {
+            var developers = await GetDevelopers();
+            var publishers = await GetPublishers();
+
+            var index = 1;
+            while (true)
+            {
+                if (/*gameSystem.Equals("PC") &&*/ index > 20) break; // I have a monthly request limit...
+
+                var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}Games/ByPlatformID?id={platformId}&fields=publishers&apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}&page={index++}";
+
+                var request = WebRequest.Create(url);
+                using (var response = (HttpWebResponse)await request.GetResponseAsync())
+                {
+                    var responseStream = response.GetResponseStream();
+                    if (responseStream == null) throw new InvalidOperationException("Bad response!");
+
+                    string responseString;
+
+                    using (var sr = new StreamReader(responseStream))
+                    {
+                        responseString = sr.ReadToEnd();
+                    }
+                    
+                    if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
+
+                    var gameResponse = JsonConvert.DeserializeObject<RootObject>(responseString);
+
+                    var cutoff = DateTime.Now.AddMonths(-3);
+                    var items = gameResponse.data.games.Where(u => !string.IsNullOrEmpty(u.release_date) && u.release_date.IndexOf('-') > 0 && Convert.ToDateTime(u.release_date) >= cutoff).ToArray();
+                    foreach (var game in items)
+                    {
+                        var gameDb = new Games();
+                        var usReleaseDate = Convert.ToDateTime(game.release_date);
+
+                        if (game.game_title != null)
+                            gameDb.GameTitle = game.game_title;
+
+                        if (gameDb.GameTitle == null || usReleaseDate == DateTime.MinValue || IgnoreThisGame(gameDb)) continue;
+
+                        if (!await IsDuplicateGame(gameDb))
+                        {
+                            _db.Games.Add(gameDb);
+                            await _db.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            gameDb = await GetGame(gameDb.GameTitle);
+                        }
+
+                        var gameInfo = new GameInfo
+                        {
+                            GamesId = gameDb.Id,
+                            GameSystemId = await GetGameSystemId(gameSystem),
+                            USReleaseDate = usReleaseDate,
+                            GamesDbNetId = Convert.ToInt32(game.id),
+                            GameImage = $"{ConfigurationManager.AppSettings["TheGamesDBImageUrl"]}{ConfigurationManager.AppSettings["TheGamesDBImageFileName"]}{game.id}-1.jpg",
+                            Publisher = game.publishers == null ? string.Empty : GetRelated(game.publishers, publishers),
+                            Developer = game.developers == null ? string.Empty : GetRelated(game.developers, developers)
+                        };
+
+                        if (await IsDuplicateGameInfo(gameInfo)) continue;
+
+                        _db.GameInfoes.Add(gameInfo);
+                        _db.SaveChanges();
+                    }
+
+                    if (gameResponse.pages == null || string.IsNullOrEmpty(gameResponse.pages.next)) break;
+                }
+            }
+        }
+
+        private string GetRelated(List<int?> baseList, List<IdNameMapping> publishers)
+        {
+            return string.Join(",", publishers.Where(x => baseList.Contains(x.Id)).Select(x => x.Name));
+        }
+
+        private static async Task<List<IdNameMapping>> GetDevelopers()
+        {
+            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}/Developers?apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
             var request = WebRequest.Create(url);
             using (var response = (HttpWebResponse) await request.GetResponseAsync())
             {
                 var responseStream = response.GetResponseStream();
                 if (responseStream == null) throw new InvalidOperationException("Bad response!");
-                
+
                 string responseString;
-                
+
                 using (var sr = new StreamReader(responseStream))
                 {
                     responseString = sr.ReadToEnd();
@@ -202,49 +283,53 @@ namespace VideoGameHash.Repositories
 
                 if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
 
-                var gameResponse = JsonConvert.DeserializeObject<RootObject>(responseString);
+                var gameResponse = JsonConvert.DeserializeObject<dynamic>(responseString);
 
-                var cutoff = DateTime.Now.AddMonths(-3);
-                var items = gameResponse.data.games.Where(u => !string.IsNullOrEmpty(u.release_date) && u.release_date.IndexOf('/') > 0 && Convert.ToDateTime(u.release_date) >= cutoff).ToArray();
-                foreach (var game in items)
-                {
-                    var gameDb = new Games();
-                    var usReleaseDate = new DateTime();
+                var developers = new List<IdNameMapping>();
+                
+                if (gameResponse.status != "Success") return developers;
+                
+                var result = new RouteValueDictionary(gameResponse.data.developers);
+                var developerJson = JsonConvert.SerializeObject(result.Values);
+                developers.AddRange(JsonConvert.DeserializeObject<List<IdNameMapping>>(developerJson));
 
-                    if (game.game_title != null)
-                        gameDb.GameTitle = game.game_title;
-
-                    if (game.release_date != null && game.release_date.IndexOf('/') > 0)
-                        usReleaseDate = Convert.ToDateTime(game.release_date);
-
-                    if (gameDb.GameTitle == null || usReleaseDate == DateTime.MinValue || IgnoreThisGame(gameDb)) continue;
-
-                    if (!await IsDuplicateGame(gameDb))
-                    {
-                        _db.Games.Add(gameDb);
-                        await _db.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        gameDb = await GetGame(gameDb.GameTitle);
-                    }
-
-                    var gameInfo = new GameInfo
-                    {
-                        GamesId = gameDb.Id,
-                        GameSystemId = await GetGameSystemId(gameSystem),
-                        USReleaseDate = usReleaseDate,
-                        GamesDbNetId = Convert.ToInt32(game.id),
-                        GameImage = $"{ConfigurationManager.AppSettings["TheGamesDBImageUrl"]}{ConfigurationManager.AppSettings["TheGamesDBImageFileName"]}{game.id}-1"
-                    };
-
-                    if (await IsDuplicateGameInfo(gameInfo)) continue;
-
-                    _db.GameInfoes.Add(gameInfo);
-                    _db.SaveChanges();
-                }
+                return developers;
             }
         }
+
+        private static async Task<List<IdNameMapping>> GetPublishers()
+        {
+            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}/Publishers?apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
+            var request = WebRequest.Create(url);
+            using (var response = (HttpWebResponse) await request.GetResponseAsync())
+            {
+                var responseStream = response.GetResponseStream();
+                if (responseStream == null) throw new InvalidOperationException("Bad response!");
+
+                string responseString;
+
+                using (var sr = new StreamReader(responseStream))
+                {
+                    responseString = sr.ReadToEnd();
+                }
+
+                if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
+
+                var gameResponse = JsonConvert.DeserializeObject<dynamic>(responseString);
+
+                var publishers = new List<IdNameMapping>();
+                
+                if (gameResponse.status != "Success") return publishers;
+                
+                var result = new RouteValueDictionary(gameResponse.data.publishers);
+                var developerJson = JsonConvert.SerializeObject(result.Values);
+                publishers.AddRange(JsonConvert.DeserializeObject<List<IdNameMapping>>(developerJson));
+
+                return publishers;
+            }
+        }
+
+        #endregion
 
         private bool IgnoreThisGame(Games game)
         {
@@ -259,69 +344,6 @@ namespace VideoGameHash.Repositories
         private async Task<bool> IsDuplicateGameInfo(GameInfo gameInfo)
         {
             return await _db.GameInfoes.AnyAsync(x => x.GamesId.Equals(gameInfo.GamesId) && x.GameSystemId.Equals(gameInfo.GameSystemId));
-        }
-
-        private async Task ProcessAdditionalDetailsFromWebService(string gameSystem)
-        {
-            var gameInfos = await GetGameInfoBySystem(gameSystem);
-            var deleteTheseGames = new List<int>();
-            foreach (var gameInfo in gameInfos)
-            {
-                if (string.IsNullOrWhiteSpace(gameInfo.Publisher)) // TO DO: Add an update boolean here
-                {
-                    // ToDo: this url needs to be updated
-                    var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}?id={gameInfo.GamesDbNetId}&apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
-                    var request = WebRequest.Create(url);
-                    using (var response = (HttpWebResponse) await request.GetResponseAsync())
-                    {
-                        var serializer = new XmlSerializer(typeof(DataByGameId));
-
-                        var gameResponse =
-                            (DataByGameId) serializer.Deserialize(
-                                response.GetResponseStream() ?? throw new InvalidOperationException());
-
-                        if (!string.IsNullOrWhiteSpace(gameResponse.Game[0].Publisher) ||
-                            !string.IsNullOrWhiteSpace(gameResponse.Game[0].Developer))
-                        {
-                            gameInfo.Publisher = gameResponse.Game[0].Publisher;
-                            gameInfo.Developer = gameResponse.Game[0].Developer;
-                            gameInfo.Overview = gameResponse.Game[0].Overview;
-                        }
-                        else
-                        {
-                            deleteTheseGames.Add(gameInfo.Game.Id);
-                        }
-                    }
-                }
-            }
-
-            await _db.SaveChangesAsync();
-
-            foreach (var game in deleteTheseGames)
-                await DeleteGameFromGameInfoes(game);
-        }
-
-        private async Task<IEnumerable<GameInfo>> GetGameInfoBySystem(string gameSystem)
-        {
-            var gameSystemId = await GetGameSystemId(gameSystem);
-            return await _db.GameInfoes.Where(u => u.GameSystemId == gameSystemId).ToListAsync();
-        }
-
-        private async Task DeleteGameFromGameInfoes(int gameId)
-        {
-            IEnumerable<GameInfo> infos = await _db.GameInfoes.Where(u => u.GamesId == gameId).ToListAsync();
-
-            foreach (var info in infos)
-                _db.GameInfoes.Remove(info);
-
-            await _db.SaveChangesAsync();
-
-            var game = await GetGame(gameId);
-
-            if (game != null)
-                _db.Games.Remove(game);
-
-            await _db.SaveChangesAsync();
         }
 
         private async Task<bool> IsDuplicateIgnoredGame(Games game)

@@ -10,6 +10,7 @@ namespace VideoGameHash.Models.TheGamesDB
         public string release_date { get; set; }
         public int platform { get; set; }
         public List<int?> developers { get; set; }
+        public List<int?> publishers { get; set; }
     }
 
     public class Data
@@ -34,5 +35,10 @@ namespace VideoGameHash.Models.TheGamesDB
         public int remaining_monthly_allowance { get; set; }
         public int extra_allowance { get; set; }
     }
-    
+
+    public class IdNameMapping
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
 }

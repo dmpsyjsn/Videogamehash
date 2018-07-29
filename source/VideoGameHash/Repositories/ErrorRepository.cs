@@ -35,7 +35,7 @@ namespace VideoGameHash.Repositories
 
         public async Task<IEnumerable<string>> GetErrorMessages()
         {
-            return await _db.Errors.Select(x => x.ErrorMessage).ToListAsync();
+            return await _db.Errors.OrderByDescending(x => x.Id).Select(x => x.ErrorMessage).ToListAsync();
         }
 
         public async Task DeleteAllErrors()
