@@ -217,12 +217,19 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\InfoController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
+    <Compile Include="Decorators\TransactionCommandHandlerDecorator.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Handlers\Games\Commands\AddGameInfoHandler.cs" />
+    <Compile Include="Handlers\Games\Commands\AddGamesHandler.cs" />
+    <Compile Include="Helpers\GamesHelper.cs" />
     <Compile Include="Helpers\HtmlHelpers.cs" />
     <Compile Include="Helpers\LatestInfoHelper.cs" />
     <Compile Include="Helpers\RegexUtilities.cs" />
+    <Compile Include="Helpers\TheGamesDBHelper.cs" />
+    <Compile Include="Messages\Games\Commands\AddGameInfo.cs" />
+    <Compile Include="Messages\Games\Commands\AddGames.cs" />
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\Articles.cs">
       <DependentUpon>Videogamehash.tt</DependentUpon>
@@ -300,6 +307,7 @@
       <DependentUpon>Videogamehash.tt</DependentUpon>
     </Compile>
     <Compile Include="Repositories\ErrorRepository.cs" />
+    <Compile Include="Repositories\ICommandHandler.cs" />
     <Compile Include="Repositories\InfoRepository.cs" />
     <Compile Include="Models\TheGamesDB\PlatformGames.cs" />
     <Compile Include="Models\CustomMembershipProvider.cs" />

@@ -9,6 +9,7 @@ using SimpleInjector;
 using SimpleInjector.Integration.Web;
 using SimpleInjector.Integration.Web.Mvc;
 using VideoGameHash.Controllers;
+using VideoGameHash.Decorators;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -33,6 +34,17 @@ namespace VideoGameHash
             container.Register<IGameSystemsRepository, GameSystemsRepository>(Lifestyle.Scoped);
             container.Register<IGamesRepository, GamesRepository>(Lifestyle.Scoped);
             container.Register<IErrorRepository, ErrorRepository>(Lifestyle.Scoped);
+
+            // Register command handlers
+            // Go look in all assemblies and register all implementations
+            // of ICommandHandler<T> by their closed interface:
+            container.Register(typeof(ICommandHandler<>),
+                AppDomain.CurrentDomain.GetAssemblies());
+
+            // Decorate each returned ICommandHandler<T> object with
+            // a TransactionCommandHandlerDecorator<T>.
+            container.RegisterDecorator(typeof(ICommandHandler<>),
+                typeof(TransactionCommandHandlerDecorator<>));
 
             container.RegisterMvcControllers(Assembly.GetExecutingAssembly());
 

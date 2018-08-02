@@ -1,16 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web.Routing;
-using Newtonsoft.Json;
 using VideoGameHash.Models;
-using VideoGameHash.Models.TheGamesDB;
 
 namespace VideoGameHash.Repositories
 {
@@ -18,7 +11,6 @@ namespace VideoGameHash.Repositories
     {
         Task<IEnumerable<Games>> GetGames();
         Task<IEnumerable<string>> SearchGameTitles(string search);
-        Task AddGame(string gameSystem);
         Task<Games> GetGame(int id);
         Task<Games> GetGame(string gameTitle);
         Task<Dictionary<int, string>> GetTrendingGames(int count);
@@ -43,23 +35,7 @@ namespace VideoGameHash.Repositories
 
         public async Task<IEnumerable<string>> SearchGameTitles(string search)
         {
-            var searchTerm = new Regex($@"{search}", RegexOptions.IgnoreCase);
-
-            var games = (await _db.Games.ToListAsync()).Where(d => searchTerm.IsMatch(d.GameTitle)).Take(10).Select(x => x.GameTitle).ToList();
-
-            return games;
-        }
-
-        public async Task AddGame(string gameSystem)
-        {
-            if (gameSystem == "All") return;
-
-            var platformId = GetGamesDbPlatformId(gameSystem);
-
-            if (string.IsNullOrEmpty(platformId)) throw new InvalidOperationException("Unable to determine platform id!");
-
-            await ProcessGamesFromWebService(platformId, gameSystem);
-
+            return await _db.Games.AsQueryable().Where(d => d.GameTitle.ToLower().Contains(search.ToLower())).Take(10).Select(x => x.GameTitle).ToListAsync();
         }
 
         public async Task<Games> GetGame(int id)
@@ -81,6 +57,7 @@ namespace VideoGameHash.Repositories
         public async Task<Dictionary<int, string>> GetPopularGames(int count)
         {
             var popularGames = await _db.PopularGames.ToListAsync();
+            
             return popularGames.OrderByDescending(x => x.ArticleHits).Take(10).ToDictionary(x => x.Game.Id, x => x.Game.GameTitle);
         }
 
@@ -155,190 +132,6 @@ namespace VideoGameHash.Repositories
         private async Task<int> GetGameSystemId(string gameSystem)
         {
             return (await _db.GameSystems.SingleOrDefaultAsync(u => u.GameSystemName == gameSystem))?.Id ?? -1;
-        }
-
-        private static string GetGamesDbPlatformId(string gameSystem)
-        {
-            switch (gameSystem)
-            {
-                case "Xbox 360":
-                    return "15";
-                case "Xbox One":
-                    return "4920";
-                case "Wii U":
-                    return "38";
-                case "PS3":
-                    return "12";
-                case "PS4":
-                    return "4919";
-                case "Switch":
-                    return"4971";
-                case "PC":
-                    return "1";
-            }
-
-            return string.Empty;
-        }
-
-        #region Request methods
-
-        private async Task ProcessGamesFromWebService(string platformId, string gameSystem)
-        {
-            var developers = await GetDevelopers();
-            var publishers = await GetPublishers();
-
-            var index = 1;
-            while (true)
-            {
-                if (/*gameSystem.Equals("PC") &&*/ index > 20) break; // I have a monthly request limit...
-
-                var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}Games/ByPlatformID?id={platformId}&fields=publishers&apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}&page={index++}";
-
-                var request = WebRequest.Create(url);
-                using (var response = (HttpWebResponse)await request.GetResponseAsync())
-                {
-                    var responseStream = response.GetResponseStream();
-                    if (responseStream == null) throw new InvalidOperationException("Bad response!");
-
-                    string responseString;
-
-                    using (var sr = new StreamReader(responseStream))
-                    {
-                        responseString = sr.ReadToEnd();
-                    }
-                    
-                    if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
-
-                    var gameResponse = JsonConvert.DeserializeObject<RootObject>(responseString);
-
-                    var cutoff = DateTime.Now.AddMonths(-3);
-                    var items = gameResponse.data.games.Where(u => !string.IsNullOrEmpty(u.release_date) && u.release_date.IndexOf('-') > 0 && Convert.ToDateTime(u.release_date) >= cutoff).ToArray();
-                    foreach (var game in items)
-                    {
-                        var gameDb = new Games();
-                        var usReleaseDate = Convert.ToDateTime(game.release_date);
-
-                        if (game.game_title != null)
-                            gameDb.GameTitle = game.game_title;
-
-                        if (gameDb.GameTitle == null || usReleaseDate == DateTime.MinValue || IgnoreThisGame(gameDb)) continue;
-
-                        if (!await IsDuplicateGame(gameDb))
-                        {
-                            _db.Games.Add(gameDb);
-                            await _db.SaveChangesAsync();
-                        }
-                        else
-                        {
-                            gameDb = await GetGame(gameDb.GameTitle);
-                        }
-
-                        var gameInfo = new GameInfo
-                        {
-                            GamesId = gameDb.Id,
-                            GameSystemId = await GetGameSystemId(gameSystem),
-                            USReleaseDate = usReleaseDate,
-                            GamesDbNetId = Convert.ToInt32(game.id),
-                            GameImage = $"{ConfigurationManager.AppSettings["TheGamesDBImageUrl"]}{ConfigurationManager.AppSettings["TheGamesDBImageFileName"]}{game.id}-1.jpg",
-                            Publisher = game.publishers == null ? string.Empty : GetRelated(game.publishers, publishers),
-                            Developer = game.developers == null ? string.Empty : GetRelated(game.developers, developers)
-                        };
-
-                        if (await IsDuplicateGameInfo(gameInfo)) continue;
-
-                        _db.GameInfoes.Add(gameInfo);
-                        _db.SaveChanges();
-                    }
-
-                    if (gameResponse.pages == null || string.IsNullOrEmpty(gameResponse.pages.next)) break;
-                }
-            }
-        }
-
-        private string GetRelated(List<int?> baseList, List<IdNameMapping> publishers)
-        {
-            return string.Join(",", publishers.Where(x => baseList.Contains(x.Id)).Select(x => x.Name));
-        }
-
-        private static async Task<List<IdNameMapping>> GetDevelopers()
-        {
-            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}/Developers?apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
-            var request = WebRequest.Create(url);
-            using (var response = (HttpWebResponse) await request.GetResponseAsync())
-            {
-                var responseStream = response.GetResponseStream();
-                if (responseStream == null) throw new InvalidOperationException("Bad response!");
-
-                string responseString;
-
-                using (var sr = new StreamReader(responseStream))
-                {
-                    responseString = sr.ReadToEnd();
-                }
-
-                if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
-
-                var gameResponse = JsonConvert.DeserializeObject<dynamic>(responseString);
-
-                var developers = new List<IdNameMapping>();
-                
-                if (gameResponse.status != "Success") return developers;
-                
-                var result = new RouteValueDictionary(gameResponse.data.developers);
-                var developerJson = JsonConvert.SerializeObject(result.Values);
-                developers.AddRange(JsonConvert.DeserializeObject<List<IdNameMapping>>(developerJson));
-
-                return developers;
-            }
-        }
-
-        private static async Task<List<IdNameMapping>> GetPublishers()
-        {
-            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}/Publishers?apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
-            var request = WebRequest.Create(url);
-            using (var response = (HttpWebResponse) await request.GetResponseAsync())
-            {
-                var responseStream = response.GetResponseStream();
-                if (responseStream == null) throw new InvalidOperationException("Bad response!");
-
-                string responseString;
-
-                using (var sr = new StreamReader(responseStream))
-                {
-                    responseString = sr.ReadToEnd();
-                }
-
-                if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
-
-                var gameResponse = JsonConvert.DeserializeObject<dynamic>(responseString);
-
-                var publishers = new List<IdNameMapping>();
-                
-                if (gameResponse.status != "Success") return publishers;
-                
-                var result = new RouteValueDictionary(gameResponse.data.publishers);
-                var developerJson = JsonConvert.SerializeObject(result.Values);
-                publishers.AddRange(JsonConvert.DeserializeObject<List<IdNameMapping>>(developerJson));
-
-                return publishers;
-            }
-        }
-
-        #endregion
-
-        private bool IgnoreThisGame(Games game)
-        {
-            return _db.GameIgnores.Any(x => x.GameTitle.Equals(game.GameTitle, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private async Task<bool> IsDuplicateGame(Games game)
-        {
-            return await _db.Games.AnyAsync(x => x.GameTitle.Equals(game.GameTitle));
-        }
-
-        private async Task<bool> IsDuplicateGameInfo(GameInfo gameInfo)
-        {
-            return await _db.GameInfoes.AnyAsync(x => x.GamesId.Equals(gameInfo.GamesId) && x.GameSystemId.Equals(gameInfo.GameSystemId));
         }
 
         private async Task<bool> IsDuplicateIgnoredGame(Games game)
