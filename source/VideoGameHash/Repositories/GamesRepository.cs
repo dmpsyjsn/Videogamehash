@@ -50,15 +50,13 @@ namespace VideoGameHash.Repositories
 
         public async Task<Dictionary<int, string>> GetTrendingGames(int count)
         {
-            var trendingGames = await _db.TrendingGames.ToListAsync();
-            return trendingGames.OrderByDescending(x => x.ArticleHits).Take(10).ToDictionary(x => x.Game.Id, x => x.Game.GameTitle);
+            return await _db.TrendingGames.OrderByDescending(x => x.ArticleHits).Take(count).ToDictionaryAsync(x => x.Game.Id, x => x.Game.GameTitle);
         }
 
         public async Task<Dictionary<int, string>> GetPopularGames(int count)
         {
-            var popularGames = await _db.PopularGames.ToListAsync();
-            
-            return popularGames.OrderByDescending(x => x.ArticleHits).Take(10).ToDictionary(x => x.Game.Id, x => x.Game.GameTitle);
+           
+            return await _db.PopularGames.OrderByDescending(x => x.ArticleHits).Take(count).ToDictionaryAsync(x => x.Game.Id, x => x.Game.GameTitle);
         }
 
         public async Task DeleteGame(int id)

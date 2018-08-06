@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using System.Web.Routing;
 using Newtonsoft.Json;
@@ -18,100 +16,40 @@ namespace VideoGameHash.Helpers
             var platformId = GamesHelper.GetGamesDbPlatformId(gameSystem);
 
             var games = new List<Game>();
+
+            var hitMax = Convert.ToInt32(ConfigurationManager.AppSettings["TheGamesDBImageFileName"]);
+
             var index = 1;
             while (true)
             {
-                if (index > 5) break;
+                if (index > hitMax) break;
 
                 var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}Games/ByPlatformID?id={platformId}&fields=publishers&apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}&page={index++}";
 
-                var request = WebRequest.Create(url);
-                using (var response = (HttpWebResponse) await request.GetResponseAsync())
-                {
-                    var responseStream = response.GetResponseStream();
-                    if (responseStream == null) throw new InvalidOperationException("Bad response!");
+                var gameResponse = await HttpClientHelper.GetData<RootObject>(url);
 
-                    string responseString;
-
-                    using (var sr = new StreamReader(responseStream))
-                    {
-                        responseString = sr.ReadToEnd();
-                    }
-
-                    if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
-
-                    var gameResponse = JsonConvert.DeserializeObject<RootObject>(responseString);
-
-                    var cutoff = DateTime.Now.AddMonths(-12);
-                    games.AddRange(gameResponse.data.games.Where(u => !string.IsNullOrEmpty(u.release_date) && u.release_date.IndexOf('-') > 0 && Convert.ToDateTime(u.release_date) >= cutoff).ToList());
-                }
+                var cutoff = DateTime.Now.AddMonths(-3);
+                games.AddRange(gameResponse.data.games.Where(u => !string.IsNullOrEmpty(u.release_date) && u.release_date.IndexOf('-') > 0 && Convert.ToDateTime(u.release_date) >= cutoff).ToList());
             }
 
             return games;
         }
 
-        public static async Task<List<IdNameMapping>> GetDevelopers()
+        public static async Task<List<IdNameMapping>> GetDataByField(string field)
         {
-            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}/Developers?apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
-            var request = WebRequest.Create(url);
-            using (var response = (HttpWebResponse) await request.GetResponseAsync())
-            {
-                var responseStream = response.GetResponseStream();
-                if (responseStream == null) throw new InvalidOperationException("Bad response!");
+            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}/{field}?apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
+            
+            var gameResponse = await HttpClientHelper.GetData<dynamic>(url);
 
-                string responseString;
+            var data = new List<IdNameMapping>();
+            
+            if (gameResponse.status != "Success") return data;
+            
+            var result = new RouteValueDictionary(field.Equals("Developers") ? gameResponse.data.developers : gameResponse.data.publishers); // ToDo: Should revisit this in the future.
+            var developerJson = JsonConvert.SerializeObject(result.Values);
+            data.AddRange(JsonConvert.DeserializeObject<List<IdNameMapping>>(developerJson));
 
-                using (var sr = new StreamReader(responseStream))
-                {
-                    responseString = sr.ReadToEnd();
-                }
-
-                if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
-
-                var gameResponse = JsonConvert.DeserializeObject<dynamic>(responseString);
-
-                var developers = new List<IdNameMapping>();
-                
-                if (gameResponse.status != "Success") return developers;
-                
-                var result = new RouteValueDictionary(gameResponse.data.developers);
-                var developerJson = JsonConvert.SerializeObject(result.Values);
-                developers.AddRange(JsonConvert.DeserializeObject<List<IdNameMapping>>(developerJson));
-
-                return developers;
-            }
-        }
-
-        public static async Task<List<IdNameMapping>> GetPublishers()
-        {
-            var url = $"{ConfigurationManager.AppSettings["TheGamesDBApiUrl"]}/Publishers?apikey={ConfigurationManager.AppSettings["TheGamesDBApiKey"]}";
-            var request = WebRequest.Create(url);
-            using (var response = (HttpWebResponse) await request.GetResponseAsync())
-            {
-                var responseStream = response.GetResponseStream();
-                if (responseStream == null) throw new InvalidOperationException("Bad response!");
-
-                string responseString;
-
-                using (var sr = new StreamReader(responseStream))
-                {
-                    responseString = sr.ReadToEnd();
-                }
-
-                if (string.IsNullOrEmpty(responseString)) throw new InvalidOperationException("Bad response!");
-
-                var gameResponse = JsonConvert.DeserializeObject<dynamic>(responseString);
-
-                var publishers = new List<IdNameMapping>();
-                
-                if (gameResponse.status != "Success") return publishers;
-                
-                var result = new RouteValueDictionary(gameResponse.data.publishers);
-                var developerJson = JsonConvert.SerializeObject(result.Values);
-                publishers.AddRange(JsonConvert.DeserializeObject<List<IdNameMapping>>(developerJson));
-
-                return publishers;
-            }
+            return data;
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
-using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Threading.Tasks;
 using VideoGameHash.Helpers;
@@ -24,8 +23,8 @@ namespace VideoGameHash.Handlers.Games.Commands
 
         public async Task Handle(AddGameInfo command)
         {
-            var publishers = await TheGamesDBHelper.GetPublishers();
-            var developers = await TheGamesDBHelper.GetDevelopers();
+            var publishers = await TheGamesDBHelper.GetDataByField("Publishers");
+            var developers = await TheGamesDBHelper.GetDataByField("Developers");
 
             foreach (var game in command.Games)
             {

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CodeHollow.FeedReader;
 using QDFeedParser;
 using VideoGameHash.Models;
+using VideoGameHash.Models.HighchartModels;
 
 namespace VideoGameHash.Repositories
 {
@@ -24,7 +25,7 @@ namespace VideoGameHash.Repositories
         Task AddUrl(int typeId, int sourceId, int gameSystemId, string url);
         Task EditInfo(string section, EditModel model);
         Task EditSectionInfo(EditSectionModel model);
-        Task<IEnumerable<Articles>> GetGameArticles(Games game, string source, string system);
+        Task<List<Articles>> GetGameArticles(Games game, string source, string system, LineChartTimeRange range = LineChartTimeRange.AllTime);
         Task<IEnumerable<InfoTypeSortOrder>> GetInfoTypeSortOrder();
         Task<IEnumerable<InfoSourceSortOrder>> GetInfoSourceSortOrder();
         Task UpdateOrder(InfoTypeSortOrder order);
@@ -192,41 +193,66 @@ namespace VideoGameHash.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Articles>> GetGameArticles(Games game, string source, string system)
+        public async Task<List<Articles>> GetGameArticles(Games game, string source, string system, LineChartTimeRange range)
         {
-            var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
+            var relatedGameInfos = game.GameInfoes.Select(x => x.GameSystem.GameSystemName).ToList();
 
-            var articles = await _db.Articles.ToListAsync();
+            DateTime cutoff;
+            switch (range)
+            {
+                case LineChartTimeRange.AllTime:
+                    cutoff = DateTime.MinValue;
+                    break;
+                case LineChartTimeRange.LastMonth:
+                    cutoff = DateTime.Now.AddDays(-30);
+                    break;
+                case LineChartTimeRange.Last3Months:
+                    cutoff = DateTime.Now.AddDays(-90);
+                    break;
+                // range == LastYear
+                case LineChartTimeRange.Last6Months:
+                    cutoff = DateTime.Now.AddDays(-180);
+                    break;
+                default:
+                    cutoff = DateTime.Now.AddDays(-365);
+                    break;
+            }
+
+            var searchTerm = $"{game.GameTitle}";
             if (source.Equals("All") && system.Equals("All"))
             {
-                
-                return articles.Where(u => searchTerm.IsMatch(u.Title) &&
-                                           game.GameInfoes.Select(x => x.GameSystem.GameSystemName)
-                                               .Contains(u.GameSystem.GameSystemName))
-                    .OrderByDescending(u => u.DatePublished).ToList();
+
+                return await _db.Articles.AsQueryable()
+                    .Where(u => u.Title.Contains(searchTerm) &&
+                                relatedGameInfos.Contains(u.GameSystem.GameSystemName) &&
+                                u.DatePublished >= cutoff).OrderByDescending(u => u.DatePublished)
+                    .ToListAsync();
             }
 
             if (source.Equals("All"))
             {
-                return articles
-                    .Where(u => searchTerm.IsMatch(u.Title) &&
-                                u.GameSystem.GameSystemName.Equals(system))
-                    .OrderByDescending(u => u.DatePublished).ToList();
+                return await _db.Articles.AsQueryable()
+                    .Where(u => u.Title.Contains(game.GameTitle) &&
+                                u.GameSystem.GameSystemName.Equals(system) &&
+                                u.DatePublished >= cutoff)
+                    .OrderByDescending(u => u.DatePublished).ToListAsync();
             }
             
             if (system.Equals("All"))
             {
-                return articles
-                    .Where(u => searchTerm.IsMatch(u.Title) &&
-                                u.InfoSource.InfoSourceName.Equals(source) && game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Contains(u.GameSystem.GameSystemName))
-                    .OrderByDescending(u => u.DatePublished).ToList();
+                return await _db.Articles.AsQueryable()
+                    .Where(u => u.Title.Contains(game.GameTitle) &&
+                                u.InfoSource.InfoSourceName.Equals(source) && relatedGameInfos.Contains(u.GameSystem.GameSystemName) &&
+                                u.DatePublished >= cutoff)
+                    .OrderByDescending(u => u.DatePublished).ToListAsync();
             }
 
-            return articles
-                .Where(u => searchTerm.IsMatch(u.Title) &&
+            return await _db.Articles.AsQueryable()
+                .Where(u => u.Title.Contains(game.GameTitle) &&
                             u.InfoSource.InfoSourceName.Equals(source) &&
-                            u.GameSystem.GameSystemName.Equals(system))
-                .OrderByDescending(u => u.DatePublished).ToList(); 
+                            u.GameSystem.GameSystemName.Equals(system) &&
+                            u.DatePublished >= cutoff)
+                .OrderByDescending(u => u.DatePublished).ToListAsync(); 
         }
 
         public async Task<IEnumerable<InfoTypeSortOrder>> GetInfoTypeSortOrder()
@@ -751,6 +777,32 @@ namespace VideoGameHash.Repositories
             }
 
             await _db.SaveChangesAsync();
+        }
+
+        private static bool InTimeRange(DateTime datePublished, LineChartTimeRange range)
+        {
+            if (range == LineChartTimeRange.AllTime)
+                return true;
+
+            DateTime cutoff;
+            if (range == LineChartTimeRange.LastMonth)
+            {
+                cutoff = DateTime.Now.AddDays(-30);
+            }
+            else if (range == LineChartTimeRange.Last3Months)
+            {
+                cutoff = DateTime.Now.AddDays(-90);
+            }
+            else if (range == LineChartTimeRange.Last6Months)
+            {
+                cutoff = DateTime.Now.AddDays(-180);
+            }
+            else // range == LastYear
+            {
+                cutoff = DateTime.Now.AddDays(-365);
+            }
+
+            return datePublished >= cutoff;
         }
 
         #endregion

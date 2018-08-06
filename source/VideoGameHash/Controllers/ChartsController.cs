@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -26,9 +25,9 @@ namespace VideoGameHash.Controllers
         {
             var game = await _gamesRepository.GetGame(gameTitle);
             var model = new LineChartModel();
-            
+
             // Retrieve the relevant articles
-            var gameArticles = (await _infoRepository.GetGameArticles(game, "All", "All")).Where(x => InTimeRange(x.DatePublished, range)).OrderBy(x => x.DatePublished).ToList();
+            var gameArticles = await _infoRepository.GetGameArticles(game, "All", "All", range);
 
             if (!gameArticles.Any()) return PartialView("LineChartView", model);
 
@@ -115,7 +114,7 @@ namespace VideoGameHash.Controllers
             var model = new PieChartModel();
 
             // Retrieve the relevant articles
-            var gameArticles = (await _infoRepository.GetGameArticles(game, "All", "All")).OrderBy(x => x.DatePublished).ToList();
+            var gameArticles = await _infoRepository.GetGameArticles(game, "All", "All");
 
             if (!gameArticles.Any()) return PartialView("PieChartView", model);
 
@@ -130,36 +129,5 @@ namespace VideoGameHash.Controllers
         }
 
         #endregion
-        
-        #region private methods
-
-        private static bool InTimeRange(DateTime datePublished, LineChartTimeRange range)
-        {
-            if (range == LineChartTimeRange.AllTime)
-                return true;
-
-            DateTime cutoff;
-            if (range == LineChartTimeRange.LastMonth)
-            {
-                cutoff = DateTime.Now.AddDays(-30);
-            }
-            else if (range == LineChartTimeRange.Last3Months)
-            {
-                cutoff = DateTime.Now.AddDays(-90);
-            }
-            else if (range == LineChartTimeRange.Last6Months)
-            {
-                cutoff = DateTime.Now.AddDays(-180);
-            }
-            else // range == LastYear
-            {
-                cutoff = DateTime.Now.AddDays(-365);
-            }
-
-            return datePublished >= cutoff;
-        }
-
-        #endregion
-
     }
 }
