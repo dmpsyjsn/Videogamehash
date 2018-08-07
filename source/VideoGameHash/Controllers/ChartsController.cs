@@ -27,7 +27,7 @@ namespace VideoGameHash.Controllers
             var model = new LineChartModel();
 
             // Retrieve the relevant articles
-            var gameArticles = await _infoRepository.GetGameArticles(game, "All", "All", range);
+            var gameArticles = await _infoRepository.GetGameArticles(game, "All", "All", range, false);
 
             if (!gameArticles.Any()) return PartialView("LineChartView", model);
 

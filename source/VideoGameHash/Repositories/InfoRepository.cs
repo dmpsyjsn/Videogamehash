@@ -25,7 +25,7 @@ namespace VideoGameHash.Repositories
         Task AddUrl(int typeId, int sourceId, int gameSystemId, string url);
         Task EditInfo(string section, EditModel model);
         Task EditSectionInfo(EditSectionModel model);
-        Task<List<Articles>> GetGameArticles(Games game, string source, string system, LineChartTimeRange range = LineChartTimeRange.AllTime);
+        Task<List<Articles>> GetGameArticles(Games game, string source, string system, LineChartTimeRange range = LineChartTimeRange.AllTime, bool useDesc = true);
         Task<IEnumerable<InfoTypeSortOrder>> GetInfoTypeSortOrder();
         Task<IEnumerable<InfoSourceSortOrder>> GetInfoSourceSortOrder();
         Task UpdateOrder(InfoTypeSortOrder order);
@@ -193,7 +193,7 @@ namespace VideoGameHash.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task<List<Articles>> GetGameArticles(Games game, string source, string system, LineChartTimeRange range)
+        public async Task<List<Articles>> GetGameArticles(Games game, string source, string system, LineChartTimeRange range, bool useDesc = true)
         {
             var relatedGameInfos = game.GameInfoes.Select(x => x.GameSystem.GameSystemName).ToList();
 
@@ -219,40 +219,40 @@ namespace VideoGameHash.Repositories
             }
 
             var searchTerm = $"{game.GameTitle}";
+            var articleQuery = _db.Articles.AsQueryable();
             if (source.Equals("All") && system.Equals("All"))
             {
-
-                return await _db.Articles.AsQueryable()
+                articleQuery = articleQuery
                     .Where(u => u.Title.Contains(searchTerm) &&
                                 relatedGameInfos.Contains(u.GameSystem.GameSystemName) &&
-                                u.DatePublished >= cutoff).OrderByDescending(u => u.DatePublished)
-                    .ToListAsync();
+                                u.DatePublished >= cutoff);
             }
 
-            if (source.Equals("All"))
+            else if (source.Equals("All"))
             {
-                return await _db.Articles.AsQueryable()
-                    .Where(u => u.Title.Contains(game.GameTitle) &&
+                articleQuery = articleQuery.Where(u => u.Title.Contains(game.GameTitle) &&
                                 u.GameSystem.GameSystemName.Equals(system) &&
-                                u.DatePublished >= cutoff)
-                    .OrderByDescending(u => u.DatePublished).ToListAsync();
+                                u.DatePublished >= cutoff);
             }
             
-            if (system.Equals("All"))
+            else if (system.Equals("All"))
             {
-                return await _db.Articles.AsQueryable()
-                    .Where(u => u.Title.Contains(game.GameTitle) &&
+                articleQuery = articleQuery.Where(u => u.Title.Contains(game.GameTitle) &&
                                 u.InfoSource.InfoSourceName.Equals(source) && relatedGameInfos.Contains(u.GameSystem.GameSystemName) &&
-                                u.DatePublished >= cutoff)
-                    .OrderByDescending(u => u.DatePublished).ToListAsync();
+                                u.DatePublished >= cutoff);
             }
 
-            return await _db.Articles.AsQueryable()
-                .Where(u => u.Title.Contains(game.GameTitle) &&
-                            u.InfoSource.InfoSourceName.Equals(source) &&
-                            u.GameSystem.GameSystemName.Equals(system) &&
-                            u.DatePublished >= cutoff)
-                .OrderByDescending(u => u.DatePublished).ToListAsync(); 
+            else
+            {
+                articleQuery = articleQuery.Where(u => u.Title.Contains(game.GameTitle) &&
+                                        u.InfoSource.InfoSourceName.Equals(source) &&
+                                        u.GameSystem.GameSystemName.Equals(system) &&
+                                        u.DatePublished >= cutoff); 
+            }
+
+            return useDesc
+                ? await articleQuery.OrderByDescending(x => x.DatePublished).ToListAsync()
+                : await articleQuery.OrderBy(x => x.DatePublished).ToListAsync();
         }
 
         public async Task<IEnumerable<InfoTypeSortOrder>> GetInfoTypeSortOrder()
