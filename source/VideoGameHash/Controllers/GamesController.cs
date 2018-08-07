@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using VideoGameHash.Helpers;
 using VideoGameHash.Messages.Games.Commands;
+using VideoGameHash.Messages.Games.Queries;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -13,20 +14,28 @@ namespace VideoGameHash.Controllers
 
         private readonly IGamesRepository _repository;
         private readonly IGameSystemsRepository _gameSystemsRepository;
+        private readonly IQueryProcessor _queryProcessor;
         private readonly ICommandHandler<AddGames> _addGamesHandler;
         private readonly ICommandHandler<AddGameInfo> _addGameInfoHandler;
+        private readonly ICommandHandler<DeleteGame> _deleteGameHandler;
 
-        public GamesController(IGamesRepository repository, IGameSystemsRepository gameSystemsRepository, ICommandHandler<AddGames> addGamesHandler, ICommandHandler<AddGameInfo> addGameInfoHandler)
+        public GamesController(IGamesRepository repository, IGameSystemsRepository gameSystemsRepository, 
+            IQueryProcessor queryProcessor, 
+            ICommandHandler<AddGames> addGamesHandler, 
+            ICommandHandler<AddGameInfo> addGameInfoHandler, 
+            ICommandHandler<DeleteGame> deleteGameHandler)
         {
             _repository = repository;
             _gameSystemsRepository = gameSystemsRepository;
+            _queryProcessor = queryProcessor;
             _addGamesHandler = addGamesHandler;
             _addGameInfoHandler = addGameInfoHandler;
+            _deleteGameHandler = deleteGameHandler;
         }
 
         public async Task<ActionResult> Index()
         {
-            return View(await _repository.GetGames());
+            return View(await _queryProcessor.Process(new GetGames()));
         }
 
         [HttpGet]
@@ -67,7 +76,10 @@ namespace VideoGameHash.Controllers
 
         public async Task<ActionResult> Delete(int id)
         {
-            await _repository.DeleteGame(id);
+            await _deleteGameHandler.Handle(new DeleteGame
+            {
+                Id = id
+            });
 
             return RedirectToAction("Index");
         }

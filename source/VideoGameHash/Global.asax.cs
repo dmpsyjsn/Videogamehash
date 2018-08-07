@@ -46,6 +46,10 @@ namespace VideoGameHash
             container.RegisterDecorator(typeof(ICommandHandler<>),
                 typeof(TransactionCommandHandlerDecorator<>));
 
+            // Register query handlers
+            container.Register<IQueryProcessor, QueryProcessor>(Lifestyle.Singleton);
+            container.Register(typeof(IQueryHandler<,>), new[] {typeof(IQueryHandler<,>).Assembly});
+
             container.RegisterMvcControllers(Assembly.GetExecutingAssembly());
 
             AreaRegistration.RegisterAllAreas();

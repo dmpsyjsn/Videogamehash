@@ -223,6 +223,8 @@
     </Compile>
     <Compile Include="Handlers\Games\Commands\AddGameInfoHandler.cs" />
     <Compile Include="Handlers\Games\Commands\AddGamesHandler.cs" />
+    <Compile Include="Handlers\Games\Commands\DeleteGameHandler.cs" />
+    <Compile Include="Handlers\Games\Queries\GetGamesHandler.cs" />
     <Compile Include="Helpers\GamesHelper.cs" />
     <Compile Include="Helpers\HtmlHelpers.cs" />
     <Compile Include="Helpers\HttpClientHelper.cs" />
@@ -231,6 +233,8 @@
     <Compile Include="Helpers\TheGamesDBHelper.cs" />
     <Compile Include="Messages\Games\Commands\AddGameInfo.cs" />
     <Compile Include="Messages\Games\Commands\AddGames.cs" />
+    <Compile Include="Messages\Games\Commands\DeleteGame.cs" />
+    <Compile Include="Messages\Games\Queries\GetGames.cs" />
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\Articles.cs">
       <DependentUpon>Videogamehash.tt</DependentUpon>
@@ -317,6 +321,7 @@
     <Compile Include="Models\GameSystemModels.cs" />
     <Compile Include="Repositories\GameSystemsRepository.cs" />
     <Compile Include="Models\HomePageModels.cs" />
+    <Compile Include="Repositories\IQueryProcessor.cs" />
     <Compile Include="Repositories\UserRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

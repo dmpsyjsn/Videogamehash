@@ -9,13 +9,11 @@ namespace VideoGameHash.Repositories
 {
     public interface IGamesRepository
     {
-        Task<IEnumerable<Games>> GetGames();
         Task<IEnumerable<string>> SearchGameTitles(string search);
         Task<Games> GetGame(int id);
         Task<Games> GetGame(string gameTitle);
         Task<Dictionary<int, string>> GetTrendingGames(int count);
         Task<Dictionary<int, string>> GetPopularGames(int count);
-        Task DeleteGame(int id);
         Task<GameDetailsModel> GetGameDetailsViewModel(Games game, bool useInfometrics);
     }
 
@@ -26,11 +24,6 @@ namespace VideoGameHash.Repositories
         public GamesRepository(VGHDatabaseContainer db)
         {
             _db = db;
-        }
-
-        public async Task<IEnumerable<Games>> GetGames()
-        {
-            return await _db.Games.OrderBy(u => u.GameTitle).ToListAsync();
         }
 
         public async Task<IEnumerable<string>> SearchGameTitles(string search)
@@ -57,38 +50,6 @@ namespace VideoGameHash.Repositories
         {
            
             return await _db.PopularGames.OrderByDescending(x => x.ArticleHits).Take(count).ToDictionaryAsync(x => x.Game.Id, x => x.Game.GameTitle);
-        }
-
-        public async Task DeleteGame(int id)
-        {
-            var game = await GetGame(id);
-
-            if (game != null)
-            {
-                var gameIgnore = new GameIgnore
-                {
-                    GameTitle = game.GameTitle
-                };
-
-                if (!await IsDuplicateIgnoredGame(game))
-                    _db.GameIgnores.Add(gameIgnore);
-
-                // Delete from GameInfo first
-                await DeleteGameInfo(game.Id);
-
-                // Delete from Trending Games
-                var trendingGame = await _db.TrendingGames.SingleOrDefaultAsync(x => x.GamesId.Equals(game.Id));
-                if (trendingGame != null)
-                    _db.TrendingGames.Remove(trendingGame);
-
-                // Delete from all time games list
-                var allTimeGame = await _db.PopularGames.SingleOrDefaultAsync(x => x.GamesId.Equals(game.Id));
-                if (allTimeGame != null)
-                    _db.PopularGames.Remove(allTimeGame);
-
-                _db.Games.Remove(game);
-                await _db.SaveChangesAsync();
-            }
         }
 
         public async Task<GameDetailsModel> GetGameDetailsViewModel(Games game, bool useInfometrics)
@@ -130,19 +91,6 @@ namespace VideoGameHash.Repositories
         private async Task<int> GetGameSystemId(string gameSystem)
         {
             return (await _db.GameSystems.SingleOrDefaultAsync(u => u.GameSystemName == gameSystem))?.Id ?? -1;
-        }
-
-        private async Task<bool> IsDuplicateIgnoredGame(Games game)
-        {
-            return await _db.GameIgnores.AnyAsync(x => x.GameTitle.Equals(game.GameTitle, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private async Task DeleteGameInfo(int id)
-        {
-            var gameInfos = await _db.GameInfoes.Where(u => u.GamesId == id).ToListAsync();
-            foreach (var gameInfo in gameInfos)
-                _db.GameInfoes.Remove(gameInfo);
-            await _db.SaveChangesAsync();
         }
 
         private async Task<List<string>> GetGameSystemsForThisGame(Games game)
