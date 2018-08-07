@@ -341,21 +341,22 @@ namespace VideoGameHash.Repositories
             // Get games
             var games = await _db.Games.ToListAsync();
 
-            var articles = await _db.Articles.ToListAsync();
-
+            // ToDo: See if there's a way we don't have to query the whole table
+            var articles = await _db.Articles.Where(d => d.DatePublished >= DbFunctions.AddDays(DateTime.Now, -7)).Select(x => x.Title).ToListAsync();
+            
             // See if any articles contain game title
             foreach (var game in games)
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var matchingArticles = articles.Where(d => d.DatePublished >= DateTime.Now.AddDays(-7) && searchTerm.IsMatch(d.Title)).ToList();
+                var matchingArticles = articles.Count(d => searchTerm.IsMatch(d));
 
-                if (!matchingArticles.Any()) continue;
+                if (matchingArticles <= 0) continue;
 
                 var trendingGame = new TrendingGames
                 {
                     GamesId = game.Id,
-                    ArticleHits = matchingArticles.Count
+                    ArticleHits = matchingArticles
                 };
 
                 _db.TrendingGames.Add(trendingGame);
@@ -376,21 +377,22 @@ namespace VideoGameHash.Repositories
             // Get games
             var games = await _db.Games.ToListAsync();
             
-            var articles = await _db.Articles.ToListAsync();
+            // ToDo: See if there's a way we don't have to query the whole table
+            var articles = await _db.Articles.Select(x => x.Title).ToListAsync();
 
             // See if any articles contain game title
             foreach (var game in games)
             {
                 var searchTerm = new Regex($@"\b{game.GameTitle}\b", RegexOptions.IgnoreCase);
                 
-                var matchingArticles = articles.Where(d => searchTerm.IsMatch(d.Title)).ToList();
+                var matchingArticles = articles.Count(d => searchTerm.IsMatch(d));
 
-                if (!matchingArticles.Any()) continue;
+                if (matchingArticles <= 0) continue;
 
                 var popularGame = new PopularGames
                 {
                     GamesId = game.Id,
-                    ArticleHits = matchingArticles.Count
+                    ArticleHits = matchingArticles
                 };
 
                 _db.PopularGames.Add(popularGame);
