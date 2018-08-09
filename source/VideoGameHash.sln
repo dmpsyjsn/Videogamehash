@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoGameHash", "VideoGameHash\VideoGameHash.csproj", "{445C3F84-99EE-427D-8EB8-6F117CD5BF7C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{77428B81-59D4-4A06-A1B1-E8A73CABBDB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{445C3F84-99EE-427D-8EB8-6F117CD5BF7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{445C3F84-99EE-427D-8EB8-6F117CD5BF7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{445C3F84-99EE-427D-8EB8-6F117CD5BF7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77428B81-59D4-4A06-A1B1-E8A73CABBDB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77428B81-59D4-4A06-A1B1-E8A73CABBDB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77428B81-59D4-4A06-A1B1-E8A73CABBDB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77428B81-59D4-4A06-A1B1-E8A73CABBDB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
