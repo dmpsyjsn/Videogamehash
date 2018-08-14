@@ -90,7 +90,7 @@
                     contentType: "application/json; charset=utf-8",
                     url: '@Url.Action("SearchGames")',
                     dataType: "json",
-                    data: "{ 'search': '" + request.term + "'}",
+                    data: "{ 'search': '" + htmlEncode(request.term) + "'}",
                     dataFilter: function (data) { return data; },
                     success: function (data) {
                         response($.map(data.data,

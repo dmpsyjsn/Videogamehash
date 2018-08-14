@@ -82,9 +82,10 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public async Task<ActionResult> SearchGames(string search)
         {
+            var searchTerm = HttpUtility.HtmlDecode(search);
             var list = await _queryProcessor.Process(new SearchGames
             {
-                GameTitle = search
+                GameTitle = searchTerm
             });
             return Json(new {data = list}, JsonRequestBehavior.AllowGet);
         }
@@ -108,8 +109,8 @@ namespace VideoGameHash.Controllers
         [ValidateInput(false)]
         public async Task<ActionResult> GetGameArticleContainer(GetGameContainerQuery query)
         {
-            var gameTitle = HttpUtility.UrlDecode(query.GameTitle);
-            var game = await _gamesRepository.GetGame(!string.IsNullOrEmpty(gameTitle) ? gameTitle : string.Empty);
+            var gameTitle = HttpUtility.HtmlDecode(query.GameTitle);
+            var game = await _gamesRepository.GetGame(gameTitle);
 
             if (game == null) return PartialView("ArticleContainer", new GameArticlesHeaderModel());
 
@@ -117,7 +118,7 @@ namespace VideoGameHash.Controllers
 
             var model = new GameArticlesHeaderModel
             {
-                GameTitle = query.GameTitle,
+                GameTitle = gameTitle,
                 Sources = articles.GroupBy(x => x.InfoSource).OrderBy(x => x.Key.InfoSourceSortOrder.SortOrder)
                     .Select(x => x.Key.InfoSourceName).ToList(),
                 Systems = game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Distinct().ToList()
@@ -127,15 +128,20 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpGet]
+        [ValidateInput(false)]
         public async Task<ActionResult> GetGameArticles(GetGameArticlesQuery query)
         {
-            var game = await _gamesRepository.GetGame(query.GameTitle);
+            var gameTitle = HttpUtility.HtmlDecode(query.GameTitle);
+            var game = await _gamesRepository.GetGame(gameTitle);
+
+            if (game == null) return PartialView("Article", new GameArticlesViewModel());
+
             var articles = await _infoRepository.GetGameArticles(game, query.Source, query.System);
             var multiplier = query.View.Equals("List") ? 10 : 12;
 
             var model = new GameArticlesViewModel
             {
-                GameTitle = query.GameTitle,
+                GameTitle = gameTitle,
                 Articles = articles.Skip((query.Page - 1) * multiplier).Take(multiplier).Select(x =>
                     new ArticleViewModel
                     {

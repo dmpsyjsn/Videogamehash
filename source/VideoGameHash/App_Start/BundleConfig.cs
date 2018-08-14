@@ -18,7 +18,8 @@ namespace VideoGameHash
                         "~/Scripts/jquery.actual.js",
                         "~/Scripts/Highcharts-3.0.1/js/highcharts.js",
                         "~/Scripts/VGHUtilities.js",
-                        "~/Scripts/VGH.js"));
+                        "~/Scripts/VGH.js",
+                        "~/Scripts/htmlencode.js"));
 
             bundles.Add(new ScriptBundle("~/bundles/jqueryui").Include(
                         "~/Scripts/jquery-ui-{version}.js"));
