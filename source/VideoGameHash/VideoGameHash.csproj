@@ -225,6 +225,7 @@
     <Compile Include="Handlers\Games\Commands\AddGamesHandler.cs" />
     <Compile Include="Handlers\Games\Commands\DeleteGameHandler.cs" />
     <Compile Include="Handlers\Games\Queries\GetGamesHandler.cs" />
+    <Compile Include="Handlers\Games\Queries\SearchGamesHandler.cs" />
     <Compile Include="Helpers\GamesHelper.cs" />
     <Compile Include="Helpers\HtmlHelpers.cs" />
     <Compile Include="Helpers\HttpClientHelper.cs" />
@@ -235,6 +236,7 @@
     <Compile Include="Messages\Games\Commands\AddGames.cs" />
     <Compile Include="Messages\Games\Commands\DeleteGame.cs" />
     <Compile Include="Messages\Games\Queries\GetGames.cs" />
+    <Compile Include="Messages\Games\Queries\SearchGames.cs" />
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\Articles.cs">
       <DependentUpon>Videogamehash.tt</DependentUpon>

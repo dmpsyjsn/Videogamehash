@@ -11,21 +11,18 @@ namespace VideoGameHash.Controllers
 {
     public class GamesController : Controller
     {
-
-        private readonly IGamesRepository _repository;
         private readonly IGameSystemsRepository _gameSystemsRepository;
         private readonly IQueryProcessor _queryProcessor;
         private readonly ICommandHandler<AddGames> _addGamesHandler;
         private readonly ICommandHandler<AddGameInfo> _addGameInfoHandler;
         private readonly ICommandHandler<DeleteGame> _deleteGameHandler;
 
-        public GamesController(IGamesRepository repository, IGameSystemsRepository gameSystemsRepository, 
+        public GamesController(IGameSystemsRepository gameSystemsRepository, 
             IQueryProcessor queryProcessor, 
             ICommandHandler<AddGames> addGamesHandler, 
             ICommandHandler<AddGameInfo> addGameInfoHandler, 
             ICommandHandler<DeleteGame> deleteGameHandler)
         {
-            _repository = repository;
             _gameSystemsRepository = gameSystemsRepository;
             _queryProcessor = queryProcessor;
             _addGamesHandler = addGamesHandler;
@@ -66,10 +63,10 @@ namespace VideoGameHash.Controllers
             await _addGameInfoHandler.Handle(new AddGameInfo
             {
                 Games = games,
-                GameSystem = gameSystem
+                GameSystem = gameSystem,
+                Publishers = await TheGamesDBHelper.GetDataByField("Publishers"),
+                Developers = await TheGamesDBHelper.GetDataByField("Developers")
             });
-            
-            //await _repository.AddGame(gameSystem);
 
             return RedirectToAction("Index");
         }

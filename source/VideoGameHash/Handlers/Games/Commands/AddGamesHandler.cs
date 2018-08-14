@@ -20,13 +20,14 @@ namespace VideoGameHash.Handlers.Games.Commands
         {
             foreach (var game in command.Games)
             {
+                if (string.IsNullOrEmpty(game.release_date) || string.IsNullOrEmpty(game.game_title)) continue;
+                
                 var gameDb = new Models.Games();
                 var usReleaseDate = Convert.ToDateTime(game.release_date);
 
-                if (game.game_title != null)
-                    gameDb.GameTitle = game.game_title;
+                gameDb.GameTitle = game.game_title;
 
-                if (gameDb.GameTitle == null || usReleaseDate == DateTime.MinValue || await IgnoreThisGame(gameDb) || await IsDuplicateGame(gameDb)) continue;
+                if (usReleaseDate == DateTime.MinValue || await IgnoreThisGame(gameDb) || await IsDuplicateGame(gameDb)) continue;
                 
                 _db.Games.Add(gameDb);
             }

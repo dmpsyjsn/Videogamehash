@@ -8,18 +8,18 @@ using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Handlers.Games.Queries
 {
-    public class GetGamesHandler : IQueryHandler<GetGames, IEnumerable<Models.Games>>
+    public class SearchGamesHandler : IQueryHandler<SearchGames, IEnumerable<string>>
     {
         private readonly VGHDatabaseContainer _db;
 
-        public GetGamesHandler(VGHDatabaseContainer db)
+        public SearchGamesHandler(VGHDatabaseContainer db)
         {
             _db = db;
         }
 
-        public async Task<IEnumerable<Models.Games>> Handle(GetGames query)
+        public async Task<IEnumerable<string>> Handle(SearchGames query)
         {
-            return await _db.Games.OrderBy(u => u.GameTitle).ToListAsync();
+            return await _db.Games.AsQueryable().Where(d => d.GameTitle.ToLower().Contains(query.GameTitle.ToLower())).Take(10).Select(x => x.GameTitle).ToListAsync();
         }
     }
 }

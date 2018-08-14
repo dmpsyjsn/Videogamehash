@@ -9,7 +9,6 @@ namespace VideoGameHash.Repositories
 {
     public interface IGamesRepository
     {
-        Task<IEnumerable<string>> SearchGameTitles(string search);
         Task<Games> GetGame(int id);
         Task<Games> GetGame(string gameTitle);
         Task<Dictionary<int, string>> GetTrendingGames(int count);
@@ -24,11 +23,6 @@ namespace VideoGameHash.Repositories
         public GamesRepository(VGHDatabaseContainer db)
         {
             _db = db;
-        }
-
-        public async Task<IEnumerable<string>> SearchGameTitles(string search)
-        {
-            return await _db.Games.AsQueryable().Where(d => d.GameTitle.ToLower().Contains(search.ToLower())).Take(10).Select(x => x.GameTitle).ToListAsync();
         }
 
         public async Task<Games> GetGame(int id)
@@ -67,9 +61,9 @@ namespace VideoGameHash.Repositories
             {
                 var systemId = await GetGameSystemId(system);
 
-                var link = await _db.GameInfoes.SingleOrDefaultAsync(u => u.GamesId == game.Id && u.GameSystemId == systemId);
+                var gameInfoDb = await _db.GameInfoes.SingleOrDefaultAsync(u => u.GamesId == game.Id && u.GameSystemId == systemId);
 
-                links[system] = link?.GameImage ?? string.Empty;
+                links[system] = gameInfoDb?.GameImage ?? string.Empty;
             }
 
             model.ImageLinks = links;

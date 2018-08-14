@@ -65,6 +65,7 @@
     <Compile Include="IntegrationTesting\Games\GamesTests.cs" />
     <Compile Include="MockHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VideoGameHash\VideoGameHash.csproj">

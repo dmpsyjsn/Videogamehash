@@ -17,7 +17,7 @@ namespace VideoGameHash.Helpers
 
             var games = new List<Game>();
 
-            var hitMax = Convert.ToInt32(ConfigurationManager.AppSettings["TheGamesDBImageFileName"]);
+            var hitMax = Convert.ToInt32(ConfigurationManager.AppSettings["TheGamesDbCutoff"]);
 
             var index = 1;
             while (true)

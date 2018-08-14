@@ -4,7 +4,6 @@ using System.Configuration;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using VideoGameHash.Helpers;
 using VideoGameHash.Messages.Games.Commands;
 using VideoGameHash.Models;
 using VideoGameHash.Models.TheGamesDB;
@@ -23,9 +22,6 @@ namespace VideoGameHash.Handlers.Games.Commands
 
         public async Task Handle(AddGameInfo command)
         {
-            var publishers = await TheGamesDBHelper.GetDataByField("Publishers");
-            var developers = await TheGamesDBHelper.GetDataByField("Developers");
-
             foreach (var game in command.Games)
             {
                 var gameDb = await GetGame(game.game_title);
@@ -41,8 +37,8 @@ namespace VideoGameHash.Handlers.Games.Commands
                     USReleaseDate = usReleaseDate,
                     GamesDbNetId = Convert.ToInt32(game.id),
                     GameImage = $"{ConfigurationManager.AppSettings["TheGamesDBImageUrl"]}{ConfigurationManager.AppSettings["TheGamesDBImageFileName"]}{game.id}-1.jpg",
-                    Publisher = game.publishers == null ? string.Empty : GetRelated(game.publishers, publishers),
-                    Developer = game.developers == null ? string.Empty : GetRelated(game.developers, developers)
+                    Publisher = game.publishers == null ? string.Empty : GetRelated(game.publishers, command.Publishers),
+                    Developer = game.developers == null ? string.Empty : GetRelated(game.developers, command.Developers)
                 };
 
                 var gameInfoDb = await GetGameInfo(gameInfo);

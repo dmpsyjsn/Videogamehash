@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using VideoGameHash.Messages.Games.Queries;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -10,12 +11,14 @@ namespace VideoGameHash.Controllers
     {
         private readonly IGamesRepository _gamesRepository;
         private readonly IInfoRepository _infoRepository;
+        private readonly IQueryProcessor _queryProcessor;
 
         public HomeController(IInfoRepository infoRepository,
-            IGamesRepository gamesRepository)
+            IGamesRepository gamesRepository, IQueryProcessor queryProcessor)
         {
             _infoRepository = infoRepository;
             _gamesRepository = gamesRepository;
+            _queryProcessor = queryProcessor;
         }
 
         public async Task<ActionResult> Index()
@@ -78,7 +81,10 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public async Task<ActionResult> SearchGames(string search)
         {
-            var list = await _gamesRepository.SearchGameTitles(search);
+            var list = await _queryProcessor.Process(new SearchGames
+            {
+                GameTitle = search
+            });
             return Json(new {data = list}, JsonRequestBehavior.AllowGet);
         }
 
