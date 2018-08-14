@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using VideoGameHash.Messages.Games.Queries;
 using VideoGameHash.Models;
@@ -107,7 +108,11 @@ namespace VideoGameHash.Controllers
         [ValidateInput(false)]
         public async Task<ActionResult> GetGameArticleContainer(GetGameContainerQuery query)
         {
-            var game = await _gamesRepository.GetGame(!string.IsNullOrEmpty(query.GameTitle) ? query.GameTitle : string.Empty);
+            var gameTitle = HttpUtility.UrlDecode(query.GameTitle);
+            var game = await _gamesRepository.GetGame(!string.IsNullOrEmpty(gameTitle) ? gameTitle : string.Empty);
+
+            if (game == null) return PartialView("ArticleContainer", new GameArticlesHeaderModel());
+
             var articles = await _infoRepository.GetGameArticles(game, "All", "All");
 
             var model = new GameArticlesHeaderModel
