@@ -104,9 +104,10 @@ namespace VideoGameHash.Controllers
         }
 
         [HttpGet]
+        [ValidateInput(false)]
         public async Task<ActionResult> GetGameArticleContainer(GetGameContainerQuery query)
         {
-            var game = await _gamesRepository.GetGame(query.GameTitle);
+            var game = await _gamesRepository.GetGame(!string.IsNullOrEmpty(query.GameTitle) ? query.GameTitle : string.Empty);
             var articles = await _infoRepository.GetGameArticles(game, "All", "All");
 
             var model = new GameArticlesHeaderModel
