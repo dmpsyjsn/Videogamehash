@@ -18,7 +18,6 @@ namespace VideoGameHash.Decorators
         public async Task Handle(TCommand command)
         {
             await _decorated.Handle(command);
-
             await _db.SaveChangesAsync();
         }
     }

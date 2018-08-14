@@ -405,7 +405,6 @@
     <Content Include="Images\bg-scrollbar-thumb-y.png" />
     <Content Include="Images\bg-scrollbar-track-y.png" />
     <Content Include="Images\bg-scrollbar-trackend-y.png" />
-    <Content Include="Images\bird_blue_16.png" />
     <Content Include="Models\VGHDatabase.edmx.sql" />
     <Content Include="Models\Videogamehash.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -450,13 +449,6 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="Web.config">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="Web.Debug.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </Content>
-    <Content Include="Web.Release.config">
-      <DependentUpon>Web.config</DependentUpon>
       <SubType>Designer</SubType>
     </Content>
     <Content Include="Scripts\_references.js" />
