@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using VideoGameHash.Handlers;
 using VideoGameHash.Messages.Games.Queries;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
@@ -10,15 +11,12 @@ namespace VideoGameHash.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IGamesRepository _gamesRepository;
         private readonly IInfoRepository _infoRepository;
         private readonly IQueryProcessor _queryProcessor;
 
-        public HomeController(IInfoRepository infoRepository,
-            IGamesRepository gamesRepository, IQueryProcessor queryProcessor)
+        public HomeController(IInfoRepository infoRepository, IQueryProcessor queryProcessor)
         {
             _infoRepository = infoRepository;
-            _gamesRepository = gamesRepository;
             _queryProcessor = queryProcessor;
         }
 
@@ -26,11 +24,13 @@ namespace VideoGameHash.Controllers
         {
             ViewBag.Message = "Welcome to VideoGameHash!";
 
+            var relatedGames = await _queryProcessor.Process(new GetTrendingAndPopularGames(10));
+
             var model = new HomePageModel
             {
                 Polls = await _infoRepository.GetPolls(),
-                TrendingGames = await _gamesRepository.GetTrendingGames(10),
-                PopularGames = await _gamesRepository.GetPopularGames(10)
+                TrendingGames = relatedGames.TrendingGames,
+                PopularGames = relatedGames.PopularGames
             };
 
             return View(model);
@@ -45,18 +45,16 @@ namespace VideoGameHash.Controllers
         {
             return View();
         }
-
-
+        
         public async Task<ActionResult> GameDetails(int id)
         {
-            var game = await _gamesRepository.GetGame(id);
+            var model = await _queryProcessor.Process(new GetGameDetailsByGameId
+            {
+                GameId = id,
+                UseInfoMetrics = true
+            });
 
-            if (game == null) return RedirectToAction("Index");
-
-            var model = await _gamesRepository.GetGameDetailsViewModel(game, useInfometrics: true);
-
-            if (model == null)
-                return RedirectToAction("Index");
+            if (model == null) return RedirectToAction("Index");
             
             ViewBag.GameSystem = model.AvailableGameSystems[0];
 
@@ -65,14 +63,13 @@ namespace VideoGameHash.Controllers
 
         public async Task<ActionResult> GameDetailsByTitle(string gameTitle)
         {
-            var game = await _gamesRepository.GetGame(gameTitle);
+            var model = await _queryProcessor.Process(new GetGameDetailsByGameTitle
+            {
+                GameTitle = gameTitle,
+                UseInfoMetrics = true
+            });
 
-            if (game == null) return RedirectToAction("Index");
-
-            var model = await _gamesRepository.GetGameDetailsViewModel(game, useInfometrics: true);
-
-            if (model == null)
-                return RedirectToAction("Index");
+            if (model == null) return RedirectToAction("Index");
             
             ViewBag.GameSystem = model.AvailableGameSystems[0];
 
@@ -110,7 +107,10 @@ namespace VideoGameHash.Controllers
         public async Task<ActionResult> GetGameArticleContainer(GetGameContainerQuery query)
         {
             var gameTitle = HttpUtility.HtmlDecode(query.GameTitle);
-            var game = await _gamesRepository.GetGame(gameTitle);
+            var game = await _queryProcessor.Process(new GetGameByTitle
+            {
+                Title = gameTitle
+            });
 
             if (game == null) return PartialView("ArticleContainer", new GameArticlesHeaderModel());
 
@@ -121,7 +121,7 @@ namespace VideoGameHash.Controllers
                 GameTitle = gameTitle,
                 Sources = articles.GroupBy(x => x.InfoSource).OrderBy(x => x.Key.InfoSourceSortOrder.SortOrder)
                     .Select(x => x.Key.InfoSourceName).ToList(),
-                Systems = game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Distinct().ToList()
+                Systems = game.GameSystems
             };
 
             return PartialView("ArticleContainer", model);
@@ -132,7 +132,10 @@ namespace VideoGameHash.Controllers
         public async Task<ActionResult> GetGameArticles(GetGameArticlesQuery query)
         {
             var gameTitle = HttpUtility.HtmlDecode(query.GameTitle);
-            var game = await _gamesRepository.GetGame(gameTitle);
+            var game = await _queryProcessor.Process(new GetGameByTitle
+            {
+                Title = gameTitle
+            });
 
             if (game == null) return PartialView("Article", new GameArticlesViewModel());
 

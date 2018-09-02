@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
+using VideoGameHash.Handlers;
 using VideoGameHash.Models;
-using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Decorators
 {

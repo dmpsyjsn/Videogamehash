@@ -25,7 +25,7 @@ namespace VideoGameHash.Repositories
         Task AddUrl(int typeId, int sourceId, int gameSystemId, string url);
         Task EditInfo(string section, EditModel model);
         Task EditSectionInfo(EditSectionModel model);
-        Task<List<Articles>> GetGameArticles(Games game, string source, string system, LineChartTimeRange range = LineChartTimeRange.AllTime, bool useDesc = true);
+        Task<List<Articles>> GetGameArticles(GameViewModel game, string source, string system, LineChartTimeRange range = LineChartTimeRange.AllTime, bool useDesc = true);
         Task<IEnumerable<InfoTypeSortOrder>> GetInfoTypeSortOrder();
         Task<IEnumerable<InfoSourceSortOrder>> GetInfoSourceSortOrder();
         Task UpdateOrder(InfoTypeSortOrder order);
@@ -193,9 +193,9 @@ namespace VideoGameHash.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task<List<Articles>> GetGameArticles(Games game, string source, string system, LineChartTimeRange range, bool useDesc = true)
+        public async Task<List<Articles>> GetGameArticles(GameViewModel game, string source, string system, LineChartTimeRange range, bool useDesc = true)
         {
-            var relatedGameInfos = game.GameInfoes.Select(x => x.GameSystem.GameSystemName).ToList();
+            var relatedGameInfos = _db.GameInfoes.Where(x => x.GamesId.Equals(game.Id)).Select(x => x.GameSystem.GameSystemName).ToList();
 
             DateTime cutoff;
             switch (range)

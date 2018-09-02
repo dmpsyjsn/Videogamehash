@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using VideoGameHash.Handlers;
 using VideoGameHash.Helpers;
 using VideoGameHash.Messages.Games.Commands;
 using VideoGameHash.Messages.Games.Queries;

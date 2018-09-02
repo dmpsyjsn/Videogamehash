@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web.Mvc;
-using VideoGameHash.Repositories;
 
 
 namespace VideoGameHash.Models
@@ -20,9 +19,23 @@ namespace VideoGameHash.Models
         public IEnumerable<GameSystemSortOrder> GameSystemSortOrders { get; set; }
     }
 
+    public class GameViewModel
+    {
+        public GameViewModel(Games game)
+        {
+            Id = game.Id;
+            GameTitle = game.GameTitle;
+            GameSystems = game.GameInfoes.Select(x => x.GameSystem.GameSystemName).Distinct().ToList();
+        }
+
+        public int Id { get; }
+        public string GameTitle { get; }
+        public List<string> GameSystems { get; }
+    }
+
     public class GameDetailsModel
     {
-        public Games Game { get; set; }
+        public GameViewModel Game { get; set; }
 
         public List<string> AvailableGameSystems { get; set; }
 
@@ -33,6 +46,12 @@ namespace VideoGameHash.Models
         public int GamesDbNetId { get; set; }
         public DateTime UsReleaseDate { get; set; }
         public bool UseInfoMetrics { get; set; }
+    }
+
+    public class TrendingAndPopularGamesViewModel
+    {
+        public Dictionary<int, string> TrendingGames { get; set; }
+        public Dictionary<int, string> PopularGames { get; set; }
     }
 
     public class GameFormViewModel

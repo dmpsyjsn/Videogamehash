@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Highsoft.Web.Mvc.Charts;
+using VideoGameHash.Handlers;
+using VideoGameHash.Messages.Games.Queries;
 using VideoGameHash.Models.HighchartModels;
 using VideoGameHash.Repositories;
 
@@ -11,19 +13,22 @@ namespace VideoGameHash.Controllers
     public class ChartsController : Controller
     {
         private readonly IInfoRepository _infoRepository;
-        private readonly IGamesRepository _gamesRepository;
+        private readonly IQueryProcessor _queryProcessor;
 
-        public ChartsController(IInfoRepository infoRepository, IGamesRepository gamesRepository)
+        public ChartsController(IInfoRepository infoRepository, IQueryProcessor queryProcessor)
         {
             _infoRepository = infoRepository;
-            _gamesRepository = gamesRepository;
+            _queryProcessor = queryProcessor;
         }
 
         #region controller methods
 
         public async Task<ActionResult> GetLineChart(string gameTitle, LineChartTimeRange range = LineChartTimeRange.Last3Months, LineChartTickRate tick = LineChartTickRate.Daily)
         {
-            var game = await _gamesRepository.GetGame(gameTitle);
+            var game = await _queryProcessor.Process(new GetGameByTitle
+            {
+                Title = gameTitle
+            });
             var model = new LineChartModel();
 
             // Retrieve the relevant articles
@@ -110,7 +115,10 @@ namespace VideoGameHash.Controllers
 
         public async Task<ActionResult> GetPieChart(string gameTitle)
         {
-            var game = await _gamesRepository.GetGame(gameTitle);
+            var game = await _queryProcessor.Process(new GetGameByTitle
+            {
+                Title = gameTitle
+            });
             var model = new PieChartModel();
 
             // Retrieve the relevant articles

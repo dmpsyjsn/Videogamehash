@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using SimpleInjector;
 
-namespace VideoGameHash.Repositories
+namespace VideoGameHash.Handlers
 {
     public interface IQueryProcessor
     {

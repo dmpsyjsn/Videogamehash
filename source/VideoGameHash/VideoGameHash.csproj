@@ -90,8 +90,8 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="Highcharts.Web.Mvc, Version=6.1.0.0, Culture=neutral, PublicKeyToken=90b74bd27a557bd3, processorArchitecture=MSIL">
-      <HintPath>..\packages\Highsoft.Highcharts.6.1.0.74\lib\net40\Highcharts.Web.Mvc.dll</HintPath>
+    <Reference Include="Highcharts.Web.Mvc, Version=6.1.1.0, Culture=neutral, PublicKeyToken=90b74bd27a557bd3, processorArchitecture=MSIL">
+      <HintPath>..\packages\Highsoft.Highcharts.6.1.1.16\lib\net40\Highcharts.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.5.1.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <HintPath>..\packages\HtmlAgilityPack.1.5.1\lib\Net45\HtmlAgilityPack.dll</HintPath>
@@ -226,7 +226,6 @@
     <Compile Include="Handlers\Games\Commands\AddGamesHandler.cs" />
     <Compile Include="Handlers\Games\Commands\DeleteGameHandler.cs" />
     <Compile Include="Handlers\Games\Queries\GetGamesHandler.cs" />
-    <Compile Include="Handlers\Games\Queries\SearchGamesHandler.cs" />
     <Compile Include="Helpers\GamesHelper.cs" />
     <Compile Include="Helpers\HtmlHelpers.cs" />
     <Compile Include="Helpers\HttpClientHelper.cs" />
@@ -237,7 +236,6 @@
     <Compile Include="Messages\Games\Commands\AddGames.cs" />
     <Compile Include="Messages\Games\Commands\DeleteGame.cs" />
     <Compile Include="Messages\Games\Queries\GetGames.cs" />
-    <Compile Include="Messages\Games\Queries\SearchGames.cs" />
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\Articles.cs">
       <DependentUpon>Videogamehash.tt</DependentUpon>
@@ -315,16 +313,14 @@
       <DependentUpon>Videogamehash.tt</DependentUpon>
     </Compile>
     <Compile Include="Repositories\ErrorRepository.cs" />
-    <Compile Include="Repositories\ICommandHandler.cs" />
+    <Compile Include="Handlers\ICommandHandler.cs" />
     <Compile Include="Repositories\InfoRepository.cs" />
     <Compile Include="Models\TheGamesDB\PlatformGames.cs" />
     <Compile Include="Models\CustomMembershipProvider.cs" />
-    <Compile Include="Models\GameSerializer.cs" />
-    <Compile Include="Repositories\GamesRepository.cs" />
-    <Compile Include="Models\GameSystemModels.cs" />
+    <Compile Include="Models\GameViewModels.cs" />
     <Compile Include="Repositories\GameSystemsRepository.cs" />
     <Compile Include="Models\HomePageModels.cs" />
-    <Compile Include="Repositories\IQueryProcessor.cs" />
+    <Compile Include="Handlers\IQueryProcessor.cs" />
     <Compile Include="Repositories\UserRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

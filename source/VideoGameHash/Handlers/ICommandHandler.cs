@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace VideoGameHash.Repositories
+namespace VideoGameHash.Handlers
 {
     public interface ICommandHandler<in TCommand>
     {

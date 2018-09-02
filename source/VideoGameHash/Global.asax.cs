@@ -10,6 +10,7 @@ using SimpleInjector.Integration.Web;
 using SimpleInjector.Integration.Web.Mvc;
 using VideoGameHash.Controllers;
 using VideoGameHash.Decorators;
+using VideoGameHash.Handlers;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -26,29 +27,28 @@ namespace VideoGameHash
             container.Options.DefaultScopedLifestyle = new WebRequestLifestyle();
 
             // Register db container
-            container.Register<VGHDatabaseContainer>(Lifestyle.Scoped);
+            container.Register(() => new VGHDatabaseContainer(), Lifestyle.Scoped);
 
             // Register Repositories
             container.Register<IUserRepository, UserRepository>(Lifestyle.Scoped);
             container.Register<IInfoRepository, InfoRepository>(Lifestyle.Scoped);
             container.Register<IGameSystemsRepository, GameSystemsRepository>(Lifestyle.Scoped);
-            container.Register<IGamesRepository, GamesRepository>(Lifestyle.Scoped);
             container.Register<IErrorRepository, ErrorRepository>(Lifestyle.Scoped);
 
             // Register command handlers
             // Go look in all assemblies and register all implementations
             // of ICommandHandler<T> by their closed interface:
             container.Register(typeof(ICommandHandler<>),
-                AppDomain.CurrentDomain.GetAssemblies());
+                AppDomain.CurrentDomain.GetAssemblies(), Lifestyle.Scoped);
 
             // Decorate each returned ICommandHandler<T> object with
             // a TransactionCommandHandlerDecorator<T>.
             container.RegisterDecorator(typeof(ICommandHandler<>),
-                typeof(TransactionCommandHandlerDecorator<>));
+                typeof(TransactionCommandHandlerDecorator<>), Lifestyle.Scoped);
 
             // Register query handlers
-            container.Register<IQueryProcessor, QueryProcessor>(Lifestyle.Singleton);
-            container.Register(typeof(IQueryHandler<,>), new[] {typeof(IQueryHandler<,>).Assembly});
+            container.Register<IQueryProcessor, QueryProcessor>(Lifestyle.Scoped);
+            container.Register(typeof(IQueryHandler<,>), new[] {typeof(IQueryHandler<,>).Assembly}, Lifestyle.Scoped);
 
             container.RegisterMvcControllers(Assembly.GetExecutingAssembly());
 
