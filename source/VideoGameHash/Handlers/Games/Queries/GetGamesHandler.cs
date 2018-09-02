@@ -25,7 +25,8 @@ namespace VideoGameHash.Handlers.Games.Queries
 
         public async Task<IEnumerable<GameViewModel>> Handle(GetGames query)
         {
-            return await _db.Games.OrderBy(u => u.GameTitle).Select(x => new GameViewModel(x)).ToListAsync();
+            var games = await _db.Games.OrderBy(x => x.GameTitle).ToListAsync();
+            return games.Select(x => new GameViewModel(x));
         }
 
         public async Task<GameViewModel> Handle(GetGameById query)

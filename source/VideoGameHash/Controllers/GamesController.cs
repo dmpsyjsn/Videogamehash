@@ -33,7 +33,8 @@ namespace VideoGameHash.Controllers
 
         public async Task<ActionResult> Index()
         {
-            return View(await _queryProcessor.Process(new GetGames()));
+            var result = await _queryProcessor.Process(new GetGames());
+            return View(result);
         }
 
         [HttpGet]
