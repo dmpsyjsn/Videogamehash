@@ -57,7 +57,7 @@ namespace VideoGameHash.Models
     public class GameFormViewModel
     {
         public string ActionName { get; set; }
-        public SelectList GameSystems { get; private set; }
+        public SelectList GameSystems { get; }
 
         public GameFormViewModel(IEnumerable<string> gameSystemNames)
         {
@@ -65,12 +65,19 @@ namespace VideoGameHash.Models
 
             GameSystems = new SelectList(gameSystemList);
         }
+    }
 
-        public GameFormViewModel(string sourceType, IEnumerable<string> gameSystemNames)
+    public class GameSystemViewModel
+    {
+        public GameSystemViewModel(int id, string name, int order)
         {
-            var gameSystemList = gameSystemNames.Where(gs => gs != "All" && !(sourceType == "Wikipedia" && gs == "PC")).ToList();
-
-            GameSystems = new SelectList(gameSystemList);
+            Id = id;
+            GameSystemName = name;
+            GameSystemSortOrder = order;
         }
+
+        public int Id { get; }
+        public string GameSystemName { get; }
+        public int GameSystemSortOrder { get; }
     }
 }

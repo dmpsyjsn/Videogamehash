@@ -222,6 +222,8 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Handlers\GameSystems\Commands\GameSystemCommandHandlers.cs" />
+    <Compile Include="Handlers\GameSystems\Queries\GameSystemQueryHandlers.cs" />
     <Compile Include="Handlers\Games\Commands\AddGameInfoHandler.cs" />
     <Compile Include="Handlers\Games\Commands\AddGamesHandler.cs" />
     <Compile Include="Handlers\Games\Commands\DeleteGameHandler.cs" />
@@ -232,6 +234,8 @@
     <Compile Include="Helpers\LatestInfoHelper.cs" />
     <Compile Include="Helpers\RegexUtilities.cs" />
     <Compile Include="Helpers\TheGamesDBHelper.cs" />
+    <Compile Include="Messages\GameSystems\Commands\GameSystemCommands.cs" />
+    <Compile Include="Messages\GameSystems\Queries\GameSystemQueries.cs" />
     <Compile Include="Messages\Games\Commands\AddGameInfo.cs" />
     <Compile Include="Messages\Games\Commands\AddGames.cs" />
     <Compile Include="Messages\Games\Commands\DeleteGame.cs" />

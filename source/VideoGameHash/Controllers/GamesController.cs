@@ -5,6 +5,7 @@ using VideoGameHash.Handlers;
 using VideoGameHash.Helpers;
 using VideoGameHash.Messages.Games.Commands;
 using VideoGameHash.Messages.Games.Queries;
+using VideoGameHash.Messages.GameSystems.Queries;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -12,7 +13,6 @@ namespace VideoGameHash.Controllers
 {
     public class GamesController : Controller
     {
-        private readonly IGameSystemsRepository _gameSystemsRepository;
         private readonly IQueryProcessor _queryProcessor;
         private readonly ICommandHandler<AddGames> _addGamesHandler;
         private readonly ICommandHandler<AddGameInfo> _addGameInfoHandler;
@@ -24,7 +24,6 @@ namespace VideoGameHash.Controllers
             ICommandHandler<AddGameInfo> addGameInfoHandler, 
             ICommandHandler<DeleteGame> deleteGameHandler)
         {
-            _gameSystemsRepository = gameSystemsRepository;
             _queryProcessor = queryProcessor;
             _addGamesHandler = addGamesHandler;
             _addGameInfoHandler = addGameInfoHandler;
@@ -40,11 +39,7 @@ namespace VideoGameHash.Controllers
         [HttpGet]
         public async Task<ActionResult> AddGames()
         {
-            var gameSytems = (await _gameSystemsRepository.GetGameSystems()).Select(x => x.GameSystemName).ToArray();
-            var model = new GameFormViewModel(gameSytems)
-            {
-                ActionName = "AddGames"
-            };
+            var model = await _queryProcessor.Process(new GetGameSystemForms());
 
             return View(model);
         }

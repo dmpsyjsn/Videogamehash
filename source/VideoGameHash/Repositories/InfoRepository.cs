@@ -23,6 +23,7 @@ namespace VideoGameHash.Repositories
         Task<int> AddInfoSource(string name);
         Task AddUrl(AddUrlModel model);
         Task AddUrl(int typeId, int sourceId, int gameSystemId, string url);
+        Task AddUrl(int typeId, int sourceId, string gameSystemName, string url);
         Task EditInfo(string section, EditModel model);
         Task EditSectionInfo(EditSectionModel model);
         Task<List<Articles>> GetGameArticles(GameViewModel game, string source, string system, LineChartTimeRange range = LineChartTimeRange.AllTime, bool useDesc = true);
@@ -157,6 +158,27 @@ namespace VideoGameHash.Repositories
 
             if (entryExists) return;
             
+            var infoSourceRssUrl = new InfoSourceRssUrls
+            {
+                InfoTypeId = typeId,
+                InfoSourceId = sourceId,
+                GameSystemId = gameSystemId,
+                URL = url
+            };
+
+            _db.InfoSourceRssUrls.Add(infoSourceRssUrl);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task AddUrl(int typeId, int sourceId, string gameSystemName, string url)
+        {
+            var entryExists = _db.InfoSourceRssUrls.SingleOrDefault(x =>
+                                  x.URL.Equals(url, StringComparison.OrdinalIgnoreCase)) != null;
+
+            if (entryExists) return;
+
+            var gameSystemId = await GetGameSystemId(gameSystemName);
+
             var infoSourceRssUrl = new InfoSourceRssUrls
             {
                 InfoTypeId = typeId,

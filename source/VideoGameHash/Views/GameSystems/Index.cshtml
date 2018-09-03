@@ -1,5 +1,5 @@
 ﻿@using System.Linq
-@model System.Collections.Generic.IEnumerable<VideoGameHash.Models.GameSystem>
+@model IEnumerable<VideoGameHash.Models.GameSystemViewModel>
 
 @{
     ViewBag.Title = "Manage Game Systems";
@@ -35,7 +35,7 @@
                 @Html.DisplayFor(modelItem => item.GameSystemName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.GameSystemSortOrder.SortOrder)
+                @Html.DisplayFor(modelItem => item.GameSystemSortOrder)
             </td>
             <td>
                 @*@Html.ActionLink("Edit", "Edit", new { id = item.Id })*@ |

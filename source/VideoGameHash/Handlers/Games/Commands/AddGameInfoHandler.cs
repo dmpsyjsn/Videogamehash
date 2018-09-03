@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using VideoGameHash.Messages.Games.Commands;
 using VideoGameHash.Models;
 using VideoGameHash.Models.TheGamesDB;
-using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Handlers.Games.Commands
 {

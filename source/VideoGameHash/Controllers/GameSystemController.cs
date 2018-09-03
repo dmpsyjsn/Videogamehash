@@ -1,75 +1,73 @@
 ﻿using System.Threading.Tasks;
 using System.Web.Mvc;
+using VideoGameHash.Handlers;
+using VideoGameHash.Messages.GameSystems.Commands;
+using VideoGameHash.Messages.GameSystems.Queries;
 using VideoGameHash.Models;
-using VideoGameHash.Repositories;
 
 namespace VideoGameHash.Controllers
 {
     public class GameSystemsController : Controller
     {
-        private readonly IGameSystemsRepository _gameSystemsRepository;
+        private readonly IQueryProcessor _queryProcessor;
+        private readonly ICommandHandler<AddGameSystem> _addGameSystemHandler;
+        private readonly ICommandHandler<AddGameSystemSortOrder> _addGameSystemSortOrderHandler;
+        private readonly ICommandHandler<DeleteGameSystem> _deleteGameSystemHandler;
+        private readonly ICommandHandler<UpdateGameSystemOrder> _updateGameSystemSortOrderHandler;
 
-        public GameSystemsController(IGameSystemsRepository gameSystemsRepository)
+        public GameSystemsController(IQueryProcessor queryProcessor, 
+            ICommandHandler<AddGameSystem> addGameSystemHandler, 
+            ICommandHandler<AddGameSystemSortOrder> addGameSystemSortOrderHandler, 
+            ICommandHandler<DeleteGameSystem> deleteGameSystemHandler, ICommandHandler<UpdateGameSystemOrder> updateGameSystemSortOrderHandler)
         {
-            _gameSystemsRepository = gameSystemsRepository;
+            _addGameSystemHandler = addGameSystemHandler;
+            _addGameSystemSortOrderHandler = addGameSystemSortOrderHandler;
+            _deleteGameSystemHandler = deleteGameSystemHandler;
+            _updateGameSystemSortOrderHandler = updateGameSystemSortOrderHandler;
+            _queryProcessor = queryProcessor;
         }
-
-        //
-        // GET: /GameSystem/
 
         public async Task<ActionResult> Index()
         {
-            return View(await _gameSystemsRepository.GetGameSystems());
+            var result = await _queryProcessor.Process(new GetGameSystems());
+            return View(result);
         }
 
-        // 
-        // GET: /AddGameSystem
         public ActionResult AddGameSystem()
         {
             return View();
         }
 
-        // POST: /AddGameSystem
-
         [HttpPost]
         public async Task<ActionResult> AddGameSystem(GameSystemModel model)
         {
-            await _gameSystemsRepository.AddGameSystem(model.GameSystem);
+            var addGameSystem = new AddGameSystem(model.GameSystem);
+            await _addGameSystemHandler.Handle(addGameSystem);
+
+            var addGameSystemSortOrder = new AddGameSystemSortOrder(model.GameSystem);
+            await _addGameSystemSortOrderHandler.Handle(addGameSystemSortOrder);
 
             return RedirectToAction("Index");
         }
 
-        // 
-        // GET: /DeleteGameSystem
         public async Task<ActionResult> DeleteGameSystem(int id)
         {
-            await _gameSystemsRepository.DeleteGameSystem(id);
+            await _deleteGameSystemHandler.Handle(new DeleteGameSystem(id));
 
             return RedirectToAction("Index");
         }
 
-        // GET: /GameSystemList
         public async Task<ActionResult> GameSystemList()
         {
-            var order = new GameSystemSortOrderEdit
-            {
-                GameSystemSortOrders = await _gameSystemsRepository.GetGameSystemSortOrder()
-            };
+            var order = await _queryProcessor.Process(new GetGameSystemSortOrder());
 
             return View(order);
         }
 
-        // POST: /GameSystemList
         [HttpPost]
         public async Task<ActionResult> GameSystemList(GameSystemSortOrderEdit model)
         {
-            if (model.GameSystemSortOrders != null)
-            {
-                foreach (var order in model.GameSystemSortOrders)
-                {
-                    await _gameSystemsRepository.UpdateOrder(order);
-                }
-            }
+            await _updateGameSystemSortOrderHandler.Handle(new UpdateGameSystemOrder(model.GameSystemSortOrders));
 
             return RedirectToAction("Index");
         }

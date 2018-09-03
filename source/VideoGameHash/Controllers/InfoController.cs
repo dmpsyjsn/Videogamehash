@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
+using VideoGameHash.Handlers;
+using VideoGameHash.Messages.GameSystems.Commands;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -15,12 +17,17 @@ namespace VideoGameHash.Controllers
         private readonly IInfoRepository _infoRepository;
         private readonly IGameSystemsRepository _gameSystemsRepository;
         private readonly IErrorRepository _errorRepository;
+        private readonly ICommandHandler<AddGameSystem> _addGameSystemHandler;
+        private readonly ICommandHandler<AddGameSystemSortOrder> _addGameSystemSortOrderHandler;
 
-        public InfoController(IInfoRepository infoRepository, IGameSystemsRepository gameSystemsRepository, IErrorRepository errorRepository)
+        public InfoController(IInfoRepository infoRepository, IGameSystemsRepository gameSystemsRepository, IErrorRepository errorRepository, 
+            ICommandHandler<AddGameSystem> addGameSystemHandler, ICommandHandler<AddGameSystemSortOrder> addGameSystemSortOrderHandler)
         {
             _infoRepository = infoRepository;
             _gameSystemsRepository = gameSystemsRepository;
             _errorRepository = errorRepository;
+            _addGameSystemHandler = addGameSystemHandler;
+            _addGameSystemSortOrderHandler = addGameSystemSortOrderHandler;
         }
 
         public async Task<ActionResult> Index()
@@ -314,10 +321,11 @@ namespace VideoGameHash.Controllers
                         var sourceId = await _infoRepository.AddInfoSource(item.Source);
 
                         // Import Game System
-                        var systemId = await _gameSystemsRepository.AddGameSystem(item.System);
+                        await _addGameSystemHandler.Handle(new AddGameSystem(item.System));
+                        await _addGameSystemSortOrderHandler.Handle(new AddGameSystemSortOrder(item.System));
 
                         // Import Rss Url
-                        await _infoRepository.AddUrl(infoTypeId, sourceId, systemId, item.Link);
+                        await _infoRepository.AddUrl(infoTypeId, sourceId, item.System, item.Link);
                     }
                 }
             }
