@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncHelpers.cs" />
+    <Compile Include="IntegrationTesting\GameSystems\GameSystemTests.cs" />
     <Compile Include="IntegrationTesting\Games\GamesTests.cs" />
     <Compile Include="MockHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

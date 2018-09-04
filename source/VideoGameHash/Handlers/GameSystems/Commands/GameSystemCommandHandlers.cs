@@ -7,14 +7,14 @@ using VideoGameHash.Models;
 
 namespace VideoGameHash.Handlers.GameSystems.Commands
 {
-    public class AddGameSystemHandler : ICommandHandler<AddGameSystem>,
+    public class GameSystemCommandHandlers : ICommandHandler<AddGameSystem>,
         ICommandHandler<AddGameSystemSortOrder>,
         ICommandHandler<DeleteGameSystem>,
         ICommandHandler<UpdateGameSystemOrder>
     {
         private readonly VGHDatabaseContainer _db;
 
-        public AddGameSystemHandler(VGHDatabaseContainer db)
+        public GameSystemCommandHandlers(VGHDatabaseContainer db)
         {
             _db = db;
         }

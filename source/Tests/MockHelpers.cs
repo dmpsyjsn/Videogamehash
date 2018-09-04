@@ -27,6 +27,7 @@ namespace Tests
             mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType); 
             mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
             mockSet.Setup(d => d.Add(It.IsAny<T>())).Callback<T>(s => sourceList.Add(s));
+            mockSet.Setup(d => d.Remove(It.IsAny<T>())).Callback<T>(s => sourceList.Remove(s));
             return mockSet;
         }
     }
