@@ -18,8 +18,7 @@ namespace VideoGameHash.Controllers
         private readonly ICommandHandler<AddGameInfo> _addGameInfoHandler;
         private readonly ICommandHandler<DeleteGame> _deleteGameHandler;
 
-        public GamesController(IGameSystemsRepository gameSystemsRepository, 
-            IQueryProcessor queryProcessor, 
+        public GamesController(IQueryProcessor queryProcessor, 
             ICommandHandler<AddGames> addGamesHandler, 
             ICommandHandler<AddGameInfo> addGameInfoHandler, 
             ICommandHandler<DeleteGame> deleteGameHandler)

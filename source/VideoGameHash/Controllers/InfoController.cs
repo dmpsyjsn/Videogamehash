@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using Newtonsoft.Json;
 using VideoGameHash.Handlers;
 using VideoGameHash.Messages.GameSystems.Commands;
+using VideoGameHash.Messages.Info.Queries;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -15,19 +16,21 @@ namespace VideoGameHash.Controllers
     public class InfoController : Controller
     {
         private readonly IInfoRepository _infoRepository;
-        private readonly IGameSystemsRepository _gameSystemsRepository;
         private readonly IErrorRepository _errorRepository;
+        private readonly IQueryProcessor _queryProcessor;
         private readonly ICommandHandler<AddGameSystem> _addGameSystemHandler;
         private readonly ICommandHandler<AddGameSystemSortOrder> _addGameSystemSortOrderHandler;
 
-        public InfoController(IInfoRepository infoRepository, IGameSystemsRepository gameSystemsRepository, IErrorRepository errorRepository, 
-            ICommandHandler<AddGameSystem> addGameSystemHandler, ICommandHandler<AddGameSystemSortOrder> addGameSystemSortOrderHandler)
+        public InfoController(IInfoRepository infoRepository, IErrorRepository errorRepository,
+            IQueryProcessor queryProcessor, 
+            ICommandHandler<AddGameSystem> addGameSystemHandler, 
+            ICommandHandler<AddGameSystemSortOrder> addGameSystemSortOrderHandler)
         {
             _infoRepository = infoRepository;
-            _gameSystemsRepository = gameSystemsRepository;
             _errorRepository = errorRepository;
             _addGameSystemHandler = addGameSystemHandler;
             _addGameSystemSortOrderHandler = addGameSystemSortOrderHandler;
+            _queryProcessor = queryProcessor;
         }
 
         public async Task<ActionResult> Index()
@@ -83,11 +86,7 @@ namespace VideoGameHash.Controllers
         // GET: AddUrl
         public async Task<ActionResult> AddUrl()
         {
-            var urlModel = new AddUrlModel();
-            var model = new AddUrlViewModel(urlModel);
-            model.Section = new SelectList((await _infoRepository.GetInfoTypes()).Select(x => x.InfoTypeName).ToList(), model.Section);
-            model.Source = new SelectList((await _infoRepository.GetSources()).Select(x => x.InfoSourceName).ToList(), model.Source);
-            model.GameSystem = new SelectList((await _gameSystemsRepository.GetGameSystems()).Select(x => x.GameSystemName).ToList(), model.GameSystem);
+            var model = await _queryProcessor.Process(new GetInfoAddUrlViewModel());
             return View(model);
         }
 
