@@ -1,55 +1,67 @@
 ﻿
 @model VideoGameHash.Models.HighchartModels.LineChartModel
 
-@using Highsoft.Web.Mvc.Charts
 
-@(Html.Highsoft().Highcharts(
-                    new Highcharts
+<div id="linechart_material" style="width: 950px; height: 500px;"></div>
+
+
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['line']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+
+        @if (Model.Categories.Any())
+        {
+            <text>
+                var data = new google.visualization.DataTable();
+                data.addColumn('string', 'Date');
+
+
+                @foreach (var category in Model.AlternateSources.Keys)
+                {
+                    @: data.addColumn('number', '@category');
+                }
+
+                @foreach (var category in Model.Categories)
+                {
+                    var yData = new List<int>();
+                    foreach (var item in Model.AlternateSources)
                     {
-                        Title = new Title
-                        {
-                            Text = "Articles over last 3 months",
-                            X = -20
-                        },
-                        XAxis = new List<XAxis>
-                        {
-                            new XAxis
-                            {
-                                Categories = Model.Categories,
-
-                            }
-                        },
-                        YAxis = new List<YAxis>
-                        {
-                            new YAxis
-                            {
-                                Title = new YAxisTitle
-                                {
-                                    Text = "# of Articles"
-                                },
-                                PlotLines = new List<YAxisPlotLines>
-                                {
-                                    new YAxisPlotLines
-                                    {
-                                        Value = 0,
-                                        Width = 1,
-                                        Color = "#808080"
-                                    }
-                                }
-                            }
-                        },
-                        Tooltip = new Tooltip
-                        {
-                            ValueSuffix = " articles"
-                        },
-                        Legend = new Legend
-                        {
-                            Layout = LegendLayout.Vertical,
-                            Align = LegendAlign.Right,
-                            VerticalAlign = LegendVerticalAlign.Middle,
-                            BorderWidth = 0
-                        },
-                        Series = Model.ChartSeries
+                        yData.Add(item.Value.Single(x => x.Key.Equals(category)).Value);
                     }
-                    , "chart")
-)
+                    var seriesData = string.Join(", ", yData);
+                    @: data.addRow(['@category', @seriesData]);
+
+                }
+
+                var options =
+                {
+                    chart: {
+                        title: 'Articles over last 12 months'
+                    },
+                    legend: { textStyle: {fontSize: 10} },
+                    width: 900,
+                    height: 500,
+                    hAxis: {
+                        title: 'Date'
+                    },
+                    vAxis: {
+                        title: 'Articles'
+                    }
+                };
+
+                var chart = new google.charts.Line(document.getElementById('linechart_material'));
+
+                chart.draw(data, google.charts.Line.convertOptions(options));
+                
+            </text>
+        }
+    }
+
+    $(function() {
+        $("Rate").change(function() {
+
+        });
+    });
+</script>

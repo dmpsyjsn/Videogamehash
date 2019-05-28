@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Highsoft.Web.Mvc.Charts;
 
 namespace VideoGameHash.Models.HighchartModels
 {
@@ -11,5 +10,11 @@ namespace VideoGameHash.Models.HighchartModels
         }
 
         public List<PieSeriesData> PieSeriesData { get; set; }
+    }
+
+    public class PieSeriesData
+    {
+        public string Name { get; set; }
+        public int Y { get; set; }
     }
 }

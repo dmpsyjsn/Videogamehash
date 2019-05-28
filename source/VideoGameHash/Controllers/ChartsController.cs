@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Highsoft.Web.Mvc.Charts;
 using VideoGameHash.Handlers;
 using VideoGameHash.Messages.Games.Queries;
 using VideoGameHash.Models.HighchartModels;
@@ -23,7 +22,7 @@ namespace VideoGameHash.Controllers
 
         #region controller methods
 
-        public async Task<ActionResult> GetLineChart(string gameTitle, LineChartTimeRange range = LineChartTimeRange.Last3Months, LineChartTickRate tick = LineChartTickRate.Daily)
+        public async Task<ActionResult> GetLineChart(string gameTitle, LineChartTimeRange range = LineChartTimeRange.LastYear, LineChartTickRate tick = LineChartTickRate.Daily)
         {
             var game = await _queryProcessor.Process(new GetGameByTitle
             {
@@ -51,10 +50,10 @@ namespace VideoGameHash.Controllers
 
             // Generate the data for all info sources
             var allSources = gameArticles.Select(x => x.InfoSource).Distinct().ToList();
-            var sourcesByDayTotals = new Dictionary<string, List<int>>();
+            var sourcesByRateAltTotals = new Dictionary<string, List<KeyValuePair<string, int>>>();
             foreach (var source in allSources)
             {
-                var articleList = new List<int>();
+                var articleListAlt = new List<KeyValuePair<string, int>>();
                 foreach (var date in gameArticlesBySource.Keys)
                 {
                     var articlesBySource = tick == LineChartTickRate.Daily
@@ -64,51 +63,13 @@ namespace VideoGameHash.Controllers
                             x.InfoSourceId == source.Id &&
                             date.Equals($"{months[x.DatePublished.Month - 1]} {x.DatePublished.Year}")).ToList();
 
-                    articleList.Add(articlesBySource.Count);
+                    articleListAlt.Add(new KeyValuePair<string, int>(date, articlesBySource.Count));
                 }
 
-                sourcesByDayTotals[source.InfoSourceName] = articleList;
+                sourcesByRateAltTotals[source.InfoSourceName] = articleListAlt;
             }
 
-
-            // Generate the data series for each info source
-            var series = new List<Series>();
-
-            foreach (var source in sourcesByDayTotals)
-            {
-                var subchart = new List<LineSeriesData>();
-                foreach (var data in source.Value)
-                {
-                    subchart.Add(new LineSeriesData
-                    {
-                        Y = data
-                    });
-                }
-
-                series.Add(new LineSeries
-                {
-                    Name = source.Key,
-                    Data = subchart
-                });
-            }
-
-            // Generate the series that sums up all info sources
-            var chart = new List<LineSeriesData>();
-            foreach (var data in gameArticlesBySource.Values)
-            {
-                chart.Add(new LineSeriesData
-                {
-                    Y = data
-                });
-            }
-
-            series.Add(new LineSeries
-            {
-                Name = "All",
-                Data = chart
-            });
-
-            model.ChartSeries = series;
+            model.AlternateSources = sourcesByRateAltTotals;
             
             return PartialView("LineChartView", model);
         }
