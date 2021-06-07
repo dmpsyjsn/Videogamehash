@@ -17,8 +17,9 @@ jobs:
 
     steps:
 
-    - name: Restore dependencies
-      run: nuget restore VideoGameHash.sln
+    - uses: actions/checkout@master
+    - uses: nuget/setup-nuget@v1
+    - run: nuget restore VideoGameHash.sln
     
     - name: Build
       run: dotnet build --no-restore
