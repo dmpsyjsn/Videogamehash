@@ -16,11 +16,14 @@ jobs:
     runs-on: windows-latest
 
     steps:
-
     - uses: actions/checkout@master
+    
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
    
     - name: Build
-      run: dotnet build
+      working-directory: source
+      run: msbuild VideoGameHash.sln
     
     - name: 'Deploy to Azure WebApp'
       uses: azure/webapps-deploy@v2
