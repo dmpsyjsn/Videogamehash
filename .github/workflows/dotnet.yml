@@ -18,15 +18,10 @@ jobs:
     steps:
 
     - uses: actions/checkout@master
-    - uses: nuget/setup-nuget@v1
-    - run: nuget restore VideoGameHash.sln
-    
+   
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build
     
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-
     - name: 'Deploy to Azure WebApp'
       uses: azure/webapps-deploy@v2
       with:
