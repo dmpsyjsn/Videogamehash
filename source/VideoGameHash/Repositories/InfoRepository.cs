@@ -13,16 +13,10 @@ namespace VideoGameHash.Repositories
 {
     public interface IInfoRepository
     {
-        Task<IEnumerable<InfoType>> GetInfoTypes();
         Task<InfoType> GetInfoType(int id);
-        Task<IEnumerable<InfoSource>> GetSources();
         Task<InfoSource> GetInfoSource(int id);
-        Task<IEnumerable<InfoSourceRssUrls>> GetRssUrls();
         Task<InfoSourceRssUrls> GetRssUrl(int id);
-        Task<int> AddInfoType(string name);
-        Task<int> AddInfoSource(string name);
         Task AddUrl(AddUrlModel model);
-        Task AddUrl(int typeId, int sourceId, int gameSystemId, string url);
         Task AddUrl(int typeId, int sourceId, string gameSystemName, string url);
         Task EditInfo(string section, EditModel model);
         Task EditSectionInfo(EditSectionModel model);
@@ -40,7 +34,6 @@ namespace VideoGameHash.Repositories
         Task DeleteInfoSource(int id);
         Task AddPoll(AddPollModel model);
         Task EditPoll(EditPollModel model);
-        Task<List<Poll>> GetPolls();
         Task<Poll> GetPoll(int id);
         Task UpdatePoll(int pollId, int pollValue);
         Task DeleteUrl(int id);
@@ -56,19 +49,10 @@ namespace VideoGameHash.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<InfoType>> GetInfoTypes()
-        {
-            return await _db.InfoTypes.ToListAsync();
-        }
 
         public async Task<InfoType> GetInfoType(int id)
         {
             return await _db.InfoTypes.SingleOrDefaultAsync(u => u.Id == id);
-        }
-
-        public async Task<IEnumerable<InfoSource>> GetSources()
-        {
-            return await _db.InfoSources.OrderBy(x => x.InfoSourceSortOrder.SortOrder).ToListAsync();
         }
 
         public async Task<InfoSource> GetInfoSource(int id)
@@ -76,65 +60,9 @@ namespace VideoGameHash.Repositories
             return await _db.InfoSources.SingleOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task<IEnumerable<InfoSourceRssUrls>> GetRssUrls()
-        {
-            return await _db.InfoSourceRssUrls.ToListAsync();
-        }
-
         public async Task<InfoSourceRssUrls> GetRssUrl(int id)
         {
             return await _db.InfoSourceRssUrls.SingleOrDefaultAsync(u => u.Id == id);
-        }
-
-        public async Task<int> AddInfoType(string name)
-        {
-            var type = await GetInfoType(name);
-            if (type != null) return type.Id;
-
-            var infoType = new InfoType
-            {
-                InfoTypeName = name,
-                UseGameSystem = true
-            };
-            _db.InfoTypes.Add(infoType);
-            await _db.SaveChangesAsync();
-
-            int? maxValue = _db.InfoTypeSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
-            var order = new InfoTypeSortOrder();
-            infoType = await GetInfoType(name);
-            order.Id = infoType.Id;
-            order.InfoType = infoType;
-            order.SortOrder = (int) (maxValue + 1);
-
-            _db.InfoTypeSortOrders.Add(order);
-            await _db.SaveChangesAsync();
-
-            return infoType.Id;
-        }
-
-        public async Task<int> AddInfoSource(string name)
-        {
-            var source = await GetInfoSource(name);
-            if (source != null) return source.Id;
-
-            var infoSource = new InfoSource
-            {
-                InfoSourceName = name
-            };
-            _db.InfoSources.Add(infoSource);
-            await _db.SaveChangesAsync();
-
-            int? maxValue = _db.InfoSourceSortOrders.Max(u => (int?)u.SortOrder) ?? 0;
-            var order = new InfoSourceSortOrder();
-            infoSource = await GetInfoSource(name);
-            order.Id = infoSource.Id;
-            order.InfoSource = infoSource;
-            order.SortOrder = (int) (maxValue + 1);
-
-            _db.InfoSourceSortOrders.Add(order);
-            await _db.SaveChangesAsync();
-
-            return infoSource.Id;
         }
 
         public async Task AddUrl(AddUrlModel model)
@@ -309,7 +237,7 @@ namespace VideoGameHash.Repositories
         {
             var i = 0;
 
-            foreach (var model in await GetRssUrls())
+            foreach (var model in await _db.InfoSourceRssUrls.ToListAsync())
             {
                 i += await AddRssFeed(model);
             }
@@ -536,11 +464,6 @@ namespace VideoGameHash.Repositories
             }
         }
 
-        public async Task<List<Poll>> GetPolls()
-        {
-            return await _db.Polls.OrderByDescending(x => x.DateCreated).Take(6).ToListAsync();
-        }
-
         public async Task<Poll> GetPoll(int id)
         {
             return await _db.Polls.SingleOrDefaultAsync(u => u.Id == id);
@@ -644,11 +567,6 @@ namespace VideoGameHash.Repositories
         private async Task<InfoType> GetInfoType(string name)
         {          
             return await _db.InfoTypes.SingleOrDefaultAsync(u => u.InfoTypeName == name);
-        }
-
-        private async Task<InfoSource> GetInfoSource(string name)
-        {
-            return await _db.InfoSources.SingleOrDefaultAsync(u => u.InfoSourceName == name);
         }
 
         private async Task<int> GetInfoSourceId(string source)

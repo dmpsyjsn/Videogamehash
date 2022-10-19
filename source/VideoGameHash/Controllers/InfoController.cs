@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using VideoGameHash.Handlers;
+using VideoGameHash.Handlers.Info.Commands;
 using VideoGameHash.Messages.GameSystems.Commands;
+using VideoGameHash.Messages.Info.Commands;
 using VideoGameHash.Messages.Info.Queries;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
@@ -20,30 +22,25 @@ namespace VideoGameHash.Controllers
         private readonly IQueryProcessor _queryProcessor;
         private readonly ICommandHandler<AddGameSystem> _addGameSystemHandler;
         private readonly ICommandHandler<AddGameSystemSortOrder> _addGameSystemSortOrderHandler;
+        private readonly InfoCommandHandlers _infoCommandHandlers;
 
         public InfoController(IInfoRepository infoRepository, IErrorRepository errorRepository,
             IQueryProcessor queryProcessor, 
             ICommandHandler<AddGameSystem> addGameSystemHandler, 
-            ICommandHandler<AddGameSystemSortOrder> addGameSystemSortOrderHandler)
+            ICommandHandler<AddGameSystemSortOrder> addGameSystemSortOrderHandler, 
+            InfoCommandHandlers infoCommandHandlers)
         {
             _infoRepository = infoRepository;
             _errorRepository = errorRepository;
             _addGameSystemHandler = addGameSystemHandler;
             _addGameSystemSortOrderHandler = addGameSystemSortOrderHandler;
+            _infoCommandHandlers = infoCommandHandlers;
             _queryProcessor = queryProcessor;
         }
 
         public async Task<ActionResult> Index()
         {
-            var model = new InfoTypeViewModel
-            {
-                InfoSources = await _infoRepository.GetSources(),
-                InfoTypes = await _infoRepository.GetInfoTypes(),
-                InfoSourceRssUrls = await _infoRepository.GetRssUrls(),
-                Polls = await _infoRepository.GetPolls()
-            };
-
-            return View(model);
+            return View(await _queryProcessor.Process(new GetInfoType()));
         }
 
         // GET: AddInfoType
@@ -60,7 +57,7 @@ namespace VideoGameHash.Controllers
         [HttpPost]
         public async Task<ActionResult> AddInfoType(AddInfoModel model)
         {
-            await _infoRepository.AddInfoType(model.Name);
+            await _infoCommandHandlers.Handle(new AddInfoType(model.Name));
             return RedirectToAction("Index");
         }
 
@@ -76,9 +73,9 @@ namespace VideoGameHash.Controllers
 
         // POST: AddInfoSource
         [HttpPost]
-        public async Task<ActionResult> AddInfoSource(AddInfoModel model)
+        public async Task<ActionResult> AddInfoSource(AddInfoSource command)
         {
-            await _infoRepository.AddInfoSource(model.Name);
+            await _infoCommandHandlers.Handle(command);
             
             return RedirectToAction("Index");
         }
@@ -86,7 +83,7 @@ namespace VideoGameHash.Controllers
         // GET: AddUrl
         public async Task<ActionResult> AddUrl()
         {
-            var model = await _queryProcessor.Process(new GetInfoAddUrlViewModel());
+            var model = await _queryProcessor.Process(new GetInfoAddUrl());
             return View(model);
         }
 
@@ -306,7 +303,7 @@ namespace VideoGameHash.Controllers
                 if (file != null && file.ContentLength > 0)
                 {
                     // get contents to string
-                    var str = new StreamReader(file.InputStream).ReadToEnd();
+                    var str = await new StreamReader(file.InputStream).ReadToEndAsync();
 
                     // deserializes string into object
                     var data = JsonConvert.DeserializeObject<ImportModel>(str);
@@ -314,17 +311,18 @@ namespace VideoGameHash.Controllers
                     foreach (var item in data.Data)
                     {
                         // Import Type of link (News, Reviews, etc)
-                        var infoTypeId = await _infoRepository.AddInfoType(item.Type);
+                        await _infoCommandHandlers.Handle(new AddInfoType(item.Type));
 
                         // Import News Source
-                        var sourceId = await _infoRepository.AddInfoSource(item.Source);
+                        //var sourceId = await _infoRepository.AddInfoSource(item.Source);
+                        await _infoCommandHandlers.Handle(new AddInfoSource(item.Source));
 
                         // Import Game System
                         await _addGameSystemHandler.Handle(new AddGameSystem(item.System));
                         await _addGameSystemSortOrderHandler.Handle(new AddGameSystemSortOrder(item.System));
 
                         // Import Rss Url
-                        await _infoRepository.AddUrl(infoTypeId, sourceId, item.System, item.Link);
+                        await _infoCommandHandlers.Handle(new AddUrl(item.Type, item.Source, item.System, item.Link));
                     }
                 }
             }

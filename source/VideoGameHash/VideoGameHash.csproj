@@ -228,6 +228,7 @@
     <Compile Include="Handlers\Games\Commands\AddGamesHandler.cs" />
     <Compile Include="Handlers\Games\Commands\DeleteGameHandler.cs" />
     <Compile Include="Handlers\Games\Queries\GetGamesHandler.cs" />
+    <Compile Include="Handlers\Info\Commands\InfoCommandHandlers.cs" />
     <Compile Include="Handlers\Info\Queries\InfoQueryHandlers.cs" />
     <Compile Include="Helpers\GamesHelper.cs" />
     <Compile Include="Helpers\HtmlHelpers.cs" />
@@ -241,6 +242,7 @@
     <Compile Include="Messages\Games\Commands\AddGames.cs" />
     <Compile Include="Messages\Games\Commands\DeleteGame.cs" />
     <Compile Include="Messages\Games\Queries\GetGames.cs" />
+    <Compile Include="Messages\Info\Commands\InfoCommands.cs" />
     <Compile Include="Messages\Info\Queries\InfoQueries.cs" />
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\Articles.cs">
@@ -463,10 +465,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Handlers\Info\Commands\" />
     <Folder Include="Messages\Errors\Commands\" />
     <Folder Include="Messages\Errors\Queries\" />
-    <Folder Include="Messages\Info\Commands\" />
   </ItemGroup>
   <ItemGroup>
     <EntityDeploy Include="Models\VGHDatabase.edmx">

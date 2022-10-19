@@ -4,6 +4,7 @@ using System.Web;
 using System.Web.Mvc;
 using VideoGameHash.Handlers;
 using VideoGameHash.Messages.Games.Queries;
+using VideoGameHash.Messages.Info.Queries;
 using VideoGameHash.Models;
 using VideoGameHash.Repositories;
 
@@ -25,10 +26,11 @@ namespace VideoGameHash.Controllers
             ViewBag.Message = "Welcome to VideoGameHash!";
 
             var relatedGames = await _queryProcessor.Process(new GetTrendingAndPopularGames(10));
+            var polls = await _queryProcessor.Process(new GetPolls());
 
             var model = new HomePageModel
             {
-                Polls = await _infoRepository.GetPolls(),
+                Polls = polls.ToList(),
                 TrendingGames = relatedGames.TrendingGames,
                 PopularGames = relatedGames.PopularGames
             };

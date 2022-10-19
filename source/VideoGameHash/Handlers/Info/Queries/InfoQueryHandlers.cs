@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,7 +8,9 @@ using VideoGameHash.Models;
 
 namespace VideoGameHash.Handlers.Info.Queries
 {
-    public class InfoQueryHandlers : IQueryHandler<GetInfoAddUrlViewModel, AddUrlViewModel>
+    public class InfoQueryHandlers : IQueryHandler<GetInfoAddUrl, AddUrlViewModel>,
+        IQueryHandler<GetInfoType, InfoTypeViewModel>,
+        IQueryHandler<GetPolls, List<Poll>>
     {
         private readonly VGHDatabaseContainer _db;
 
@@ -17,7 +19,9 @@ namespace VideoGameHash.Handlers.Info.Queries
             _db = db;
         }
 
-        public async Task<AddUrlViewModel> Handle(GetInfoAddUrlViewModel query)
+        #region Public Methods
+
+        public async Task<AddUrlViewModel> Handle(GetInfoAddUrl query)
         {
             var urlModel = new AddUrlModel();
             var model = new AddUrlViewModel(urlModel);
@@ -27,5 +31,28 @@ namespace VideoGameHash.Handlers.Info.Queries
 
             return model;
         }
+
+        public async Task<InfoTypeViewModel> Handle(GetInfoType query)
+        {
+            return new InfoTypeViewModel
+            {
+                InfoSources = await _db.InfoSources.OrderBy(x => x.InfoSourceSortOrder.SortOrder).ToListAsync(),
+                InfoTypes = await _db.InfoTypes.ToListAsync(),
+                InfoSourceRssUrls = await _db.InfoSourceRssUrls.ToListAsync(),
+                Polls = await _db.Polls.OrderByDescending(x => x.DateCreated).Take(6).ToListAsync()
+            };
+        }
+
+        public async Task<List<Poll>> Handle(GetPolls query)
+        {
+            return await _db.Polls.ToListAsync();
+        }
+
+        #endregion
+
+        #region Private Methods
+
+
+        #endregion
     }
 }
